@@ -1,0 +1,9 @@
+<!-- templates/game/game.html> -->
+
+<h1>All Boards</h1>
+
+{% if this_game.emergency_board %}
+    <h2>Emergency Board</h2>
+    <p>Red Beads: {{ emergency_board_red }}</p>
+    <p>Clear Beads: {{ emergency_board_clear }}</p>
+{% endif %}

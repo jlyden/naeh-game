@@ -1,0 +1,11 @@
+.vagrant/
+Vagrantfile
+
+*.pyc
+
+*.sql
+*.sqlite
+
+*.log
+
+*~
