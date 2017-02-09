@@ -11,7 +11,8 @@
 {% if current_games %}
     <ul>
     {% for this_game in current_games %}
-        <li><a href="{% url 'game' this_game.id %}">{{ this_game.id }}</a></li>
+        <li>
+        <a href="{% url 'game:get_game' this_game.id %}">{{ this_game.id }}</a></li>
     {% endfor %}
     </ul>
 {% else %}

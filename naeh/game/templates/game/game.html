@@ -1,9 +1,31 @@
 <!-- templates/game/game.html> -->
 
+<p><a href="{% url 'game:index' %}">Back to index</a></p>
+
+<h1>Round {{ this_game.turn }}
+
 <h1>All Boards</h1>
 
-{% if this_game.emergency_board %}
-    <h2>Emergency Board</h2>
-    <p>Red Beads: {{ emergency_board_red }}</p>
-    <p>Clear Beads: {{ emergency_board_clear }}</p>
-{% endif %}
+<h2>Intake Board</h2>
+<p>Count: {{ this_game.intake_board|wordcount }}</p>
+<p>Beads: {{ this_game.intake_board }}</p>
+
+<h2>Emergency Board</h2>
+<p>Count: {{ this_game.emergency_board|wordcount }}</p>
+<p>Beads: {{ this_game.emergency_board }}</p>
+
+<h2>Rapid Rehousing Board</h2>
+<p>Count: {{ this_game.rapid_rehousing_board|wordcount }}</p>
+<p>Beads: {{ this_game.rapid_rehousing_board }}</p>
+
+<h2>Outreach Board</h2>
+<p>Count: {{ this_game.outreach_board|wordcount }}</p>
+<p>Beads: {{ this_game.outreach_board }}</p>
+
+<h2>Transitional Housing Board</h2>
+<p>Count: {{ this_game.transitional_board|wordcount }}</p>
+<p>Beads: {{ this_game.transitional_board }}</p>
+
+<h2>Permanent Support Board</h2>
+<p>Count: {{ this_game.permanent_support_board|wordcount }}</p>
+<p>Beads: {{ this_game.permanent_support_board }}</p>

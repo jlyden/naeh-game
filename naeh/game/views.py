@@ -1,7 +1,7 @@
 # game/views.py
 
-from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
+from django.conf import settings
 
 from .models import Game
 
@@ -15,14 +15,18 @@ def index(request):
     return render(request, 'game/index.html', context)
 
 
-def game(request, game_id):
-    try:
-        this_game = Game.objects.get(pk=game_id)
-    except Game.DoesNotExist:
-        raise Http404("That game does not exist.")
+def get_game(request, game_id):
+    this_game = get_object_or_404(Game, pk=game_id)
     return render(request, 'game/game.html', {'this_game': this_game})
 
 
 def new(request):
-    this_game = Game.new_game()
-    return render(request, 'game/game.html', {'this_game': this_game})
+    this_game = Game.objects.create(
+        emergency_board=settings.EMERGENCY_START,
+        rapid_rehousing_board=settings.RAPID_REHOUSING_START,
+        outreach_board=settings.OUTREACH_START,
+        transitional_board=settings.TRANSITIONAL_START,
+        permanent_support_board=settings.PERMANENT_SUPPORT_START,
+        available_beads=settings.AVAILABLE_BEADS
+    )
+    return render(request, 'game/start.html', {'this_game': this_game})
