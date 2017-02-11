@@ -130,10 +130,10 @@ STATIC_URL = '/static/'
 # Constants
 
 # Beads 1-65 are red
-ALL_BEADS = map(str, range(1, 325))
-EMERGENCY_START = map(str, range(1, 7)) + map(str, range(66, 80))
-RAPID_REHOUSING_START = map(str, range(7, 8)) + map(str, range(80, 89))
-OUTREACH_START = map(str, range(8, 10)) + map(str, range(89, 95))
-TRANSITIONAL_START = map(str, range(10, 14)) + map(str, range(95, 107))
-PERMANENT_SUPPORT_START = map(str, range(14, 26)) + map(str, range(107, 115))
-AVAILABLE_BEADS = map(str, range(26, 66)) + map(str, range(115, 325))
+ALL_BEADS = range(1, 325)
+EMERGENCY_START = range(1, 7) + range(66, 80)
+RAPID_REHOUSING_START = range(7, 8) + range(80, 89)
+OUTREACH_START = range(8, 10) + range(89, 95)
+TRANSITIONAL_START = range(10, 14) + range(95, 107)
+PERMANENT_SUPPORT_START = range(14, 26) + range(107, 115)
+AVAILABLE_BEADS = range(26, 66) + range(115, 325)

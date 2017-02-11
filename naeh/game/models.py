@@ -12,28 +12,28 @@ class Game(models.Model):
 
     available_beads = models.CharField(
         validators=[validate_comma_separated_integer_list],
-        max_length=1000)
+        max_length=2000)
     market_housing = models.CharField(
         validators=[validate_comma_separated_integer_list],
-        max_length=1000,
+        max_length=2000,
         default=0)
     unsheltered_homeless = models.CharField(
         validators=[validate_comma_separated_integer_list],
-        max_length=1000,
+        max_length=2000,
         default=0)
 
     intake_board = models.CharField(
-        validators=[validate_comma_separated_integer_list], max_length=1000)
+        validators=[validate_comma_separated_integer_list], max_length=2000)
     emergency_board = models.CharField(
-        validators=[validate_comma_separated_integer_list], max_length=1000)
+        validators=[validate_comma_separated_integer_list], max_length=2000)
     rapid_rehousing_board = models.CharField(
-        validators=[validate_comma_separated_integer_list], max_length=1000)
+        validators=[validate_comma_separated_integer_list], max_length=2000)
     outreach_board = models.CharField(
-        validators=[validate_comma_separated_integer_list], max_length=1000)
+        validators=[validate_comma_separated_integer_list], max_length=2000)
     transitional_board = models.CharField(
-        validators=[validate_comma_separated_integer_list], max_length=1000)
+        validators=[validate_comma_separated_integer_list], max_length=2000)
     permanent_support_board = models.CharField(
-        validators=[validate_comma_separated_integer_list], max_length=1000)
+        validators=[validate_comma_separated_integer_list], max_length=2000)
 
     def __str__(self):
         return str(self.id)
