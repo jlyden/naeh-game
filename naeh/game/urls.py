@@ -8,7 +8,10 @@ urlpatterns = [
     # ex: /game/
     url(r'^$', views.index, name='index'),
     # ex: /game/6/
-    url(r'^(?P<game_id>[0-9]+)/$', views.get_game, name='get_game'),
+    url(r'^(?P<game_id>[0-9]+)/$', views.status, name='status'),
+    # ex: /game/6/load_intake
+    url(r'^(?P<game_id>[0-9]+)/load_intake/$',
+        views.load_intake, name='load_intake'),
     # ex: /game/new/
     url(r'^new/', views.new, name='new'),
 ]
