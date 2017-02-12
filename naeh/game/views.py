@@ -2,7 +2,6 @@
 
 from django.shortcuts import get_object_or_404, render
 from django.conf import settings
-from ast import literal_eval
 
 from utils import get_random_bead
 from .models import Game
@@ -36,8 +35,29 @@ def new(request):
 
 def load_intake(request, game_id):
     this_game = get_object_or_404(Game, pk=game_id)
-    collection, this_game.available_beads = get_random_bead(
-        50, this_game.available_beads)
-    this_game.intake_board = collection
-    this_game.save()
-    return render(request, 'game/status.html', {'this_game': this_game})
+    error_message = ''
+
+    # Validation: Only load intake board after end of previous round
+    if not this_game.round_over:
+        error_message = "Only fill intake board once per round."
+    elif this_game.intake_board:
+        error_message = "Your intake board is already full!"
+    # If already at round 5, round 6 would be started by load_intake
+    elif this_game.round_count > 4:
+        error_message = "Game is already over!"
+    else:
+        collection, this_game.available_beads = get_random_bead(
+            50, this_game.available_beads)
+        this_game.intake_board = collection
+
+        # Now the round has begun, so up-counter and toggle flag
+        this_game.round_count += 1
+        this_game.round_over = False
+        this_game.save()
+
+    if error_message:
+        return render(request, 'game/status.html', {
+                      'this_game': this_game, 'error_message': error_message,
+                      })
+    else:
+        return render(request, 'game/status.html', {'this_game': this_game})

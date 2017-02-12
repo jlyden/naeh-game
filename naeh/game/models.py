@@ -4,12 +4,11 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.core.validators import validate_comma_separated_integer_list
-from django.urls import reverse
 
 
 class Game(models.Model):
     round_count = models.IntegerField(default=0)
-    round_over = models.BooleanField(default=False)
+    round_over = models.BooleanField(default=True)
     diversion = models.BooleanField(default=False)
 
     available_beads = models.CharField(

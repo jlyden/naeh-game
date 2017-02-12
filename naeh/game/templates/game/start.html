@@ -4,13 +4,13 @@
 
 <h1>Rules/Overview</h1>
 
-<h1>Set Up - Round {{ this_game.turn }}</h1>
+<h1>Set Up - Round {{ this_game.round_count }}</h1>
+
+<form action="{% url 'game:load_intake' this_game.id %}" method="POST">
+{% csrf_token %}
+    <input type="submit" value="Load Intake Board" />
+</form>
 
 <h2>Intake Board</h2>
 <p>Count: {{ this_game.intake_board|wordcount }}</p>
 <p>Beads: {{ this_game.intake_board }}</p>
-
-<form action="{% url 'game:load_intake' this_game.id %}" method="POST">
-{% csrf_token %}
-    <input type="submit" value="Start Round {{ this_game.turn|add:"1" }}" />
-</form>
