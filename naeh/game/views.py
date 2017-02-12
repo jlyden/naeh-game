@@ -1,7 +1,9 @@
 # game/views.py
 
 from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponseRedirect
 from django.conf import settings
+from django.urls import reverse
 
 from utils import get_random_bead
 from .models import Game
@@ -30,7 +32,7 @@ def new(request):
         permanent_support_board=settings.PERMANENT_SUPPORT_START,
         available_beads=settings.AVAILABLE_BEADS
     )
-    return render(request, 'game/start.html', {'this_game': this_game})
+    return HttpResponseRedirect(reverse('game:status', args=(this_game.id,)))
 
 
 def load_intake(request, game_id):
@@ -60,4 +62,5 @@ def load_intake(request, game_id):
                       'this_game': this_game, 'error_message': error_message,
                       })
     else:
-        return render(request, 'game/status.html', {'this_game': this_game})
+        return HttpResponseRedirect(reverse('game:status',
+                                            args=(this_game.id,)))
