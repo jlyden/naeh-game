@@ -2,7 +2,6 @@
 
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
-from django.conf import settings
 from django.urls import reverse
 
 from utils import get_random_bead
@@ -24,14 +23,7 @@ def status(request, game_id):
 
 
 def new(request):
-    this_game = Game.objects.create(
-        emergency_board=settings.EMERGENCY_START,
-        rapid_rehousing_board=settings.RAPID_REHOUSING_START,
-        outreach_board=settings.OUTREACH_START,
-        transitional_board=settings.TRANSITIONAL_START,
-        permanent_support_board=settings.PERMANENT_SUPPORT_START,
-        available_beads=settings.AVAILABLE_BEADS
-    )
+    this_game = Game.objects.create()
     return HttpResponseRedirect(reverse('game:status', args=(this_game.id,)))
 
 
