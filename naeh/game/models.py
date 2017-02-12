@@ -4,10 +4,12 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.core.validators import validate_comma_separated_integer_list
+from django.urls import reverse
 
 
 class Game(models.Model):
-    turn = models.IntegerField(default=0)
+    round_count = models.IntegerField(default=0)
+    round_over = models.BooleanField(default=False)
     diversion = models.BooleanField(default=False)
 
     available_beads = models.CharField(
@@ -37,6 +39,10 @@ class Game(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+    def get_absolute_url(self):
+        return "/game/%i" % self.id
+#        return reverse('detail', args=[self.id])
 
 
 class Score(models.Model):
