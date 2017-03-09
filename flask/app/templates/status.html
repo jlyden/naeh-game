@@ -1,0 +1,54 @@
+<!-- app/templates/status.html -->
+{% extends "base.html" %}
+{% block content %}
+
+<p><a href="">Back to index</a></p>
+
+<h1>{{ team_name }}'s Game</h1>
+
+{% if this_game %}
+
+<h1>Round {{ this_game.round_count }}
+
+<h1>All Boards</h1>
+
+<form action="" method="POST">
+    <input type="submit" value="Load Intake Board" />
+</form>
+
+<h2>Intake Board</h2>
+<p>Count: {{ this_game.intake_board|wordcount }}</p>
+<p>Beads: {{ this_game.intake_board }}</p>
+
+<h2>Emergency Board</h2>
+<p>Count: {{ this_game.emergency_board|wordcount }}</p>
+<p>Beads: {{ this_game.emergency_board }}</p>
+
+<h2>Rapid Rehousing Board</h2>
+<p>Count: {{ this_game.rapid_rehousing_board|wordcount }}</p>
+<p>Beads: {{ this_game.rapid_rehousing_board }}</p>
+
+<h2>Outreach Board</h2>
+<p>Count: {{ this_game.outreach_board|wordcount }}</p>
+<p>Beads: {{ this_game.outreach_board }}</p>
+
+<h2>Transitional Housing Board</h2>
+<p>Count: {{ this_game.transitional_board|wordcount }}</p>
+<p>Beads: {{ this_game.transitional_board }}</p>
+
+<h2>Permanent Support Board</h2>
+<p>Count: {{ this_game.permanent_support_board|wordcount }}</p>
+<p>Beads: {{ this_game.permanent_support_board }}</p>
+
+<h1>All Bins</h1>
+
+<h2>Market Housing Bin</h2>
+<p>Count: {{ this_game.market_housing|wordcount }}</p>
+<p>Beads: {{ this_game.market_housing }}</p>
+
+<h2>Unsheltered Homeless Bin</h2>
+<p>Count: {{ this_game.unsheltered_homeless|wordcount }}</p>
+<p>Beads: {{ this_game.unsheltered_homeless }}</p>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+<!-- app/templates/base.html -->
+<!-- TODO: CSS style sheet; remove in-tag styling -->
+
+<html>
+  <head>
+    <title>NAEH - Homeless Services Game</title>
+  </head>
+
+  <body>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul style="list-style: none; padding-left:0;">
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}
+  {% endblock %}
+
+  </body>
+</html>

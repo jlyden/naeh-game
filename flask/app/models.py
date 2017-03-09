@@ -1,113 +1,86 @@
 from app import db
 
-Base = db.declarative_base()
 
-
-class Game(Base):
-    __tablename__ = 'game'
-
+class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    team_name = db.Column(db.String(40))
+    start_datetime = db.Column(db.DateTime)
     round_count = db.Column(db.Integer, default=0)
     round_over = db.Column(db.Boolean, default=True)
     diversion = db.Column(db.Boolean, default=False)
 
-    available = db.relationship("available", uselist=False,
-                                back_populates="game")
-    market = db.relationship("market", uselist=False,
-                             back_populates="game")
-    unsheltered = db.relationship("unsheltered", uselist=False,
-                                  back_populates="game")
-    intake = db.relationship("intake", uselist=False,
-                             back_populates="game")
-    emergency = db.relationship("emergency", uselist=False,
-                                back_populates="game")
-    rapid = db.relationship("rapid", uselist=False,
-                            back_populates="game")
-    outreach = db.relationship("outreach", uselist=False,
-                               back_populates="game")
-    transitional = db.relationship("transitional",
-                                   uselist=False,
-                                   back_populates="game")
-    permanent = db.relationship("permanent", uselist=False,
-                                back_populates="game")
+    score = db.relationship('Score')
+    available = db.relationship('Available')
+    market = db.relationship('Market')
+    unsheltered = db.relationship('Unsheltered')
+    intake = db.relationship('Intake')
+    emergency = db.relationship('Emergency')
+    rapid = db.relationship('Rapid')
+    outreach = db.relationship('Outreach')
+    transitional = db.relationship('Transitional')
+    permanent = db.relationship('Permanent')
+
+    def __repr__(self):
+        return "<%r's Game>" % (self.team_name)
 
 
-class Available(Base):
-    __tablename__ = 'available'
-
+class Available(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="available")
     beads = db.Column(db.Array(db.Integer))
 
 
-class Market(Base):
-    __tablename__ = 'market'
-
+class Market(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="market")
     beads = db.Column(db.Array(db.Integer))
 
 
-class Unsheltered(Base):
-    __tablename__ = 'unsheltered'
-
+class Unsheltered(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="unsheltered")
     beads = db.Column(db.Array(db.Integer))
 
 
-class Intake(Base):
-    __tablename__ = 'intake'
-
+class Intake(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="intake")
     beads = db.Column(db.Array(db.Integer))
 
 
-class Emergency(Base):
-    __tablename__ = 'emergency'
-
+class Emergency(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="emergency")
     beads = db.Column(db.Array(db.Integer))
 
 
-class Rapid(Base):
-    __tablename__ = 'rapid'
-
+class Rapid(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="rapid")
     beads = db.Column(db.Array(db.Integer))
 
 
-class Outreach(Base):
-    __tablename__ = 'outreach'
-
+class Outreach(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="outreach")
     beads = db.Column(db.Array(db.Integer))
 
 
-class Transitional(Base):
-    __tablename__ = 'transitional'
-
+class Transitional(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="transitional")
     beads = db.Column(db.Array(db.Integer))
 
 
-class Permanent(Base):
-    __tablename__ = 'permanent'
-
+class Permanent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    game = db.relationship("Game", back_populates="permanent")
     beads = db.Column(db.Array(db.Integer))
+
+
+class Score(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    # Integer is added to these arrays at end of each round
+    emergency_count = db.Column(db.Array(db.Integer))
+    transitional_count = db.Column(db.Array(db.Integer))
