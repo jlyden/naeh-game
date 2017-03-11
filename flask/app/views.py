@@ -1,6 +1,7 @@
 from flask import render_template, flash, redirect
-from app import app
+from app import app, db
 from .forms import NewGameForm
+from .models import Game
 
 
 @app.route('/')
@@ -9,6 +10,9 @@ def index():
     form = NewGameForm()
     if form.validate_on_submit():
         flash('New game requested for %s' % form.team_name.data)
+        game = Game(team_name=form.team_name)
+        db.session.add(game)
+        db.session.commit()
         return redirect('/status')
     return render_template('index.html',
                            form=form)
