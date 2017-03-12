@@ -2,30 +2,23 @@
 {% extends "base.html" %}
 {% block content %}
   <h1>Begin a New Game</h1>
-
   <form action="" method="POST" name="new_game">
-    {{ form.hidden_tag() }}
-    <p>
-      Please enter a Team Name:<br>
-      {{ form.team_name(size=40) }}<br>
-      {% for error in form.team_name.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-      {% endfor %}<br>
-    </p>
     <p><input type="submit" value="Let's Go!" /></p>
   </form>
 
   <h1>Games in Progress</h1>
-  {% if current_games %}
+  {% if recent_games %}
     <ul>
-    {% for this_game in current_games %}
+    {% for this_game in recent_games %}
       <li>
-        <a href="">{{ this_game.id }}</a>
+        <a href="{{ url_for('status', game_id=this_game.id) }}">
+          {{ this_game.id }}
+        </a>
       </li>
     {% endfor %}
     </ul>
   {% else %}
-    <p>No games in progress.</p>
+    <p>No games started yet.</p>
   {% endif %}
 
 {% endblock %}

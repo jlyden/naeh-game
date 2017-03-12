@@ -13,7 +13,6 @@ AVAILABLE_BEADS = list(range(26, 66)) + list(range(115, 325))
 
 class Game(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
-    team_name       = db.Column(db.String(40), index=True)
     start_datetime  = db.Column(db.DateTime, default=datetime.now)
     round_count     = db.Column(db.Integer, default=0)
     round_over      = db.Column(db.Boolean, default=True)

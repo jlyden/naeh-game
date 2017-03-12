@@ -1,32 +1,22 @@
-from flask import request, render_template, redirect, url_for, flash
+from flask import request, render_template, redirect, url_for
 from app import app, db
-from .forms import NewGameForm
 from .models import Game
 
 
-@app.route('/index')
+@app.route('/index', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
-
-
-@app.route('/new', methods=['GET', 'POST'])
-def new():
-    form = NewGameForm()
     if request.method == 'POST':
-        if form.validate_on_submit():
-            flash('New game requested for %s' % form.team_name.data)
-            game = Game()
-            game.team_name = form.team_name
-            db.session.add(game)
-            db.session.commit()
-            game = Game.query.get(team_name=form.team_name)
-            return redirect('/status/%s' % game.id)
+        new_game = Game()
+        db.session.add(new_game)
+        db.session.commit()
+        new_game = Game.query.order_by(Game.start_datetime.desc()).first()
+        return redirect(url_for('status', game_id=new_game.id))
+    elif request.method == 'GET':
+        recent_games = Game.query.order_by(Game.start_datetime.desc()).limit(5)
+        return render_template('index.html', recent_games=recent_games)
 
 
 @app.route('/status/<game_id>')
 def status(game_id):
-    this_game = Game.query.get(int(game_id))
-    if this_game is None:
-        flash('Game %s not found.' % game_id)
-        return redirect(url_for('index'))
+    this_game = Game.query.get_or_404(int(game_id))
     return render_template('status.html', this_game=this_game)

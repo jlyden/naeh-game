@@ -1,54 +1,47 @@
 <!-- app/templates/status.html -->
 {% extends "base.html" %}
 {% block content %}
-
-<p><a href="">Back to index</a></p>
+<a href="{{ url_for('index') }}"><button>Index</button></a>
 
 {% if this_game %}
-
-<h1>{{ this_game.team_name }}'s Game</h1>
 
 <h1>Round {{ this_game.round_count }}
 
 <h1>All Boards</h1>
 
-<form action="" method="POST">
-    <input type="submit" value="Load Intake Board" />
-</form>
-
 <h2>Intake Board</h2>
-<p>Count: {{ this_game.intake_board|wordcount }}</p>
-<p>Beads: {{ this_game.intake_board }}</p>
+<p>Count: {{ this_game.intake|length }}</p>
+<p>Beads: {{ this_game.intake }}</p>
 
 <h2>Emergency Board</h2>
-<p>Count: {{ this_game.emergency_board|wordcount }}</p>
-<p>Beads: {{ this_game.emergency_board }}</p>
+<p>Count: {{ this_game.emergency|length }}</p>
+<p>Beads: {{ this_game.emergency }}</p>
 
 <h2>Rapid Rehousing Board</h2>
-<p>Count: {{ this_game.rapid_rehousing_board|wordcount }}</p>
-<p>Beads: {{ this_game.rapid_rehousing_board }}</p>
+<p>Count: {{ this_game.rapid|length }}</p>
+<p>Beads: {{ this_game.rapid }}</p>
 
 <h2>Outreach Board</h2>
-<p>Count: {{ this_game.outreach_board|wordcount }}</p>
-<p>Beads: {{ this_game.outreach_board }}</p>
+<p>Count: {{ this_game.outreach|length }}</p>
+<p>Beads: {{ this_game.outreach }}</p>
 
 <h2>Transitional Housing Board</h2>
-<p>Count: {{ this_game.transitional_board|wordcount }}</p>
-<p>Beads: {{ this_game.transitional_board }}</p>
+<p>Count: {{ this_game.transitional|length }}</p>
+<p>Beads: {{ this_game.transitional }}</p>
 
-<h2>Permanent Support Board</h2>
-<p>Count: {{ this_game.permanent_support_board|wordcount }}</p>
-<p>Beads: {{ this_game.permanent_support_board }}</p>
+<h2>Permanent Supportive Housing Board</h2>
+<p>Count: {{ this_game.permanent|length }}</p>
+<p>Beads: {{ this_game.permanent }}</p>
 
 <h1>All Bins</h1>
 
 <h2>Market Housing Bin</h2>
-<p>Count: {{ this_game.market_housing|wordcount }}</p>
-<p>Beads: {{ this_game.market_housing }}</p>
+<p>Count: {{ this_game.market|length }}</p>
+<p>Beads: {{ this_game.market }}</p>
 
 <h2>Unsheltered Homeless Bin</h2>
-<p>Count: {{ this_game.unsheltered_homeless|wordcount }}</p>
-<p>Beads: {{ this_game.unsheltered_homeless }}</p>
+<p>Count: {{ this_game.unsheltered|length }}</p>
+<p>Beads: {{ this_game.unsheltered }}</p>
 
 {% endif %}
 {% endblock %}
