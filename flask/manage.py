@@ -1,3 +1,10 @@
+#!/usr/bin/python3
+#
+# To initialize migration support: .\manage.py db init
+# To generate a migration: .\manage.py db migrate
+# To apply the migration: .\manage.py db upgrade
+# If NameError, add "sa." before terms lacking it
+
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
