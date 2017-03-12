@@ -9,6 +9,10 @@
 
 <h1>All Boards</h1>
 
+<a href="{{ url_for('load_intake', game_id=this_game.id) }}">
+    <button>Load Intake</button>
+</a>
+
 <h2>Intake Board</h2>
 <p>Count: {{ this_game.intake|length }}</p>
 <p>Beads: {{ this_game.intake }}</p>
