@@ -9,32 +9,40 @@
 
 <h1>All Boards</h1>
 
-<a href="{{ url_for('load_intake', game_id=this_game.id) }}">
-    <button>Load Intake</button>
-</a>
+<p>
+    <a href="{{ url_for('load_intake', game_id=this_game.id) }}">
+        <button>Load Intake</button>
+    </a>
+</p>
+
+<p>
+    <a href="{{ url_for('play', game_id=this_game.id) }}">
+        <button>Play Round</button>
+    </a>
+</p>
 
 <h2>Intake Board</h2>
 <p>Count: {{ this_game.intake|length }}</p>
 <p>Beads: {{ this_game.intake }}</p>
 
 <h2>Emergency Board</h2>
-<p>Count: {{ this_game.emergency|length }}</p>
+<p>Count: {{ this_game.emergency|length }} out of 25</p>
 <p>Beads: {{ this_game.emergency }}</p>
 
 <h2>Rapid Rehousing Board</h2>
-<p>Count: {{ this_game.rapid|length }}</p>
+<p>Count: {{ this_game.rapid|length }} out of 10</p>
 <p>Beads: {{ this_game.rapid }}</p>
 
 <h2>Outreach Board</h2>
-<p>Count: {{ this_game.outreach|length }}</p>
+<p>Count: {{ this_game.outreach|length }} out of 10</p>
 <p>Beads: {{ this_game.outreach }}</p>
 
 <h2>Transitional Housing Board</h2>
-<p>Count: {{ this_game.transitional|length }}</p>
+<p>Count: {{ this_game.transitional|length }} out of 20</p>
 <p>Beads: {{ this_game.transitional }}</p>
 
 <h2>Permanent Supportive Housing Board</h2>
-<p>Count: {{ this_game.permanent|length }}</p>
+<p>Count: {{ this_game.permanent|length }} out of 20</p>
 <p>Beads: {{ this_game.permanent }}</p>
 
 <h1>All Bins</h1>

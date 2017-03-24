@@ -1,7 +1,7 @@
 from flask import request, render_template, redirect, url_for, flash
 from app import app, db
 from .models import Game
-from .utils import get_random_bead
+from .utils import get_random_bead, play_round
 
 
 @app.route('/index', methods=['GET', 'POST'])
@@ -46,3 +46,9 @@ def load_intake(game_id):
         db.session.commit()
 
     return redirect(url_for('status', game_id=this_game.id))
+
+
+@app.route('/play/<game_id>')
+def play(game_id):
+    play_round(game_id)
+    return redirect(url_for('status', game_id=game_id))

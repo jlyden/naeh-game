@@ -31,7 +31,7 @@ class Game(db.Model):
     score           = db.relationship('Score')
 
     def __repr__(self):
-        return "<%r's Game>" % (self.team_name)
+        return "<Game %r, round %r>" % (self.id, self.round_count)
 
 
 class Score(db.Model):
@@ -47,3 +47,17 @@ class Score(db.Model):
     market          = db.Column(db.Integer, default=0)
     rapid           = db.Column(db.Integer, default=0)
     permanent       = db.Column(db.Integer, default=0)
+
+
+class Rules(db.Model):
+    id              = db.Column(db.Integer, primary_key=True)
+    round_count     = db.Column(db.Integer)
+    bead_count      = db.Column(db.Integer)
+    from_board      = db.Column(db.String)
+    to_board        = db.Column(db.String)
+    diversion       = db.Column(db.Boolean)
+
+    def __repr__(self):
+        return "<Rule for round %r, from %r to %r>" % (self.round_count,
+                                                       self.from_board,
+                                                       self.to_board)
