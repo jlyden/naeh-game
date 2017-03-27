@@ -59,40 +59,39 @@ def single_board_transfer(board_name, beads, from_board, to_board):
 def play_round(game_id):
     this_game = Game.query.get_or_404(int(game_id))
 
-    LOOKUP = {'unsheltered': this_game.unsheltered,
-              'market': this_game.market,
-              'intake': this_game.intake,
-              'emergency': this_game.emergency,
-              'rapid': this_game.rapid,
-              'outreach': this_game.outreach,
-              'transitional': this_game.transitional,
-              'permanent': this_game.permanent}
-
-    REV_LOOKUP = {this_game.unsheltered: 'unsheltered',
-                  this_game.market: 'market',
-                  this_game.intake: 'intake',
-                  this_game.emergency: 'emergency',
-                  this_game.rapid: 'rapid',
-                  this_game.outreach: 'outreach',
-                  this_game.transitional: 'transitional',
-                  this_game.permanent: 'permanent'}
+    LOOKUP = [('unsheltered', this_game.unsheltered),
+              ('market', this_game.market),
+              ('intake', this_game.intake),
+              ('emergency', this_game.emergency),
+              ('rapid', this_game.rapid),
+              ('outreach', this_game.outreach),
+              ('transitional', this_game.transitional),
+              ('permanent', this_game.permanent), ]
 
     # Get moves for this round
     moves = Rules.query.filter_by(round_count=this_game.round_count).all()
     for move in moves:
         if move.to_board == 'unsheltered':
+            from_board_name, from_board = [board for board in LOOKUP if move.from_board in board][0]
+            to_board_name, to_board = [board for board in LOOKUP if move.to_board in board][0]
             print('Moving ' + str(move.bead_count) + ' beads to unsheltered')
-            LOOKUP[move.from_board], \
-                LOOKUP[move.to_board] = move_beads(move.bead_count,
-                                                   LOOKUP[move.from_board],
-                                                   LOOKUP['unsheltered'])
-            print(LOOKUP[move.from_board], LOOKUP[move.to_board])
-            from_board_name = REV_LOOKUP[LOOKUP[move.from_board]]
-            to_board_name = REV_LOOKUP[LOOKUP[move.to_board]]
-            print(from_board_name, to_board_name)
-            this_game.intake = LOOKUP[move.from_board]
-            this_game.unsheltered = LOOKUP[move.to_board]
+            print('from_board is ' + from_board_name + ': ' + str(from_board))
+            print('to_board is ' + to_board_name + ': ' + str(to_board))
+            from_board, to_board = move_beads(move.bead_count, from_board, to_board)
+            print(str(from_board), str(to_board))
+            from_board_ref = 'this_game.' + from_board_name
+            print(str(from_board), from_board_ref)
+            from_board_ref = from_board
             db.session.commit()
+            print(from_board_ref, str(this_game.intake))
+
+    #         print(LOOKUP[move.from_board], LOOKUP[move.to_board])
+    #         from_board_name = REV_LOOKUP[LOOKUP[move.from_board]]
+    #         to_board_name = REV_LOOKUP[LOOKUP[move.to_board]]
+    #         print(from_board_name, to_board_name)
+    #         this_game.intake = LOOKUP[move.from_board]
+    #         this_game.unsheltered = LOOKUP[move.to_board]
+    #         db.session.add(this_game)
         # elif move.to_board == 'somewhere':
         #     print('Moving ' + str(move.bead_count) + ' beads somewhere')
         #     extra = move.bead_count
@@ -107,7 +106,7 @@ def play_round(game_id):
         #             LOOKUP['unsheltered'] = move_beads(extra,
         #                                                LOOKUP[move.from_board],
         #                                                LOOKUP['unsheltered'])
-        #     db.session.commit()
+        #     db.session.add(this_game)
         # elif move.to_board != 'somewhere':
         #     print('Moving ' + str(move.bead_count) + ' beads to ' +
         #           move.to_board)
@@ -122,7 +121,7 @@ def play_round(game_id):
         #             LOOKUP['unsheltered'] = move_beads(extra,
         #                                                LOOKUP[move.from_board],
         #                                                LOOKUP['unsheltered'])
-        #     db.session.commit()
+        #     db.session.add(this_game)
         # # Now the round is over, so toggle flag
         # this_game.round_over = True
         # db.session.commit()
