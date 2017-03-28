@@ -22,16 +22,56 @@ class Game(db.Model):
     market          = db.Column(db.ARRAY(db.Integer), default=[])
     unsheltered     = db.Column(db.ARRAY(db.Integer), default=[])
     intake          = db.Column(db.ARRAY(db.Integer), default=[])
-    emergency       = db.Column(db.ARRAY(db.Integer), default=EMERGENCY_START)
-    rapid           = db.Column(db.ARRAY(db.Integer), default=RAPID_START)
     outreach        = db.Column(db.ARRAY(db.Integer), default=OUTREACH_START)
-    transitional    = db.Column(db.ARRAY(db.Integer), default=TRANSITIONAL_START)
-    permanent       = db.Column(db.ARRAY(db.Integer), default=PERMANENT_START)
 
+    emergency       = db.relationship('Emergency')
+    rapid           = db.relationship('Rapid')
+    transitional    = db.relationship('Transitional')
+    permanent       = db.relationship('Permanent')
     score           = db.relationship('Score')
 
     def __repr__(self):
         return "<Game %r, round %r>" % (self.id, self.round_count)
+
+
+class Emergency(db.Model):
+    id              = db.Column(db.Integer, primary_key=True)
+    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
+    board           = db.Column(db.ARRAY(db.Integer), default=EMERGENCY_START)
+    maximum         = db.Column(db.Integer, default=25)
+
+    def __repr__(self):
+        return "<Game %r Emergency: %r>" % (self.game_id, str(self.board))
+
+
+class Rapid(db.Model):
+    id              = db.Column(db.Integer, primary_key=True)
+    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
+    board           = db.Column(db.ARRAY(db.Integer), default=RAPID_START)
+    maximum         = db.Column(db.Integer, default=10)
+
+    def __repr__(self):
+        return "<Game %r Rapid: %r>" % (self.game_id, str(self.board))
+
+
+class Transitional(db.Model):
+    id              = db.Column(db.Integer, primary_key=True)
+    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
+    board           = db.Column(db.ARRAY(db.Integer), default=TRANSITIONAL_START)
+    maximum         = db.Column(db.Integer, default=20)
+
+    def __repr__(self):
+        return "<Game %r Transitional: %r>" % (self.game_id, str(self.board))
+
+
+class Permanent(db.Model):
+    id              = db.Column(db.Integer, primary_key=True)
+    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
+    board           = db.Column(db.ARRAY(db.Integer), default=PERMANENT_START)
+    maximum         = db.Column(db.Integer, default=20)
+
+    def __repr__(self):
+        return "<Game %r Permanent: %r>" % (self.game_id, str(self.board))
 
 
 class Score(db.Model):
@@ -48,16 +88,5 @@ class Score(db.Model):
     rapid           = db.Column(db.Integer, default=0)
     permanent       = db.Column(db.Integer, default=0)
 
-
-class Rules(db.Model):
-    id              = db.Column(db.Integer, primary_key=True)
-    round_count     = db.Column(db.Integer)
-    bead_count      = db.Column(db.Integer)
-    from_board      = db.Column(db.String)
-    to_board        = db.Column(db.String)
-    diversion       = db.Column(db.Boolean)
-
     def __repr__(self):
-        return "<Rule for round %r, from %r to %r>" % (self.round_count,
-                                                       self.from_board,
-                                                       self.to_board)
+        return "<Game %r Scoreboard>" % (self.game_id)

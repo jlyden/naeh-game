@@ -7,7 +7,15 @@
 
 <h1>Round {{ this_game.round_count }}
 
+<hr>
+
 <h1>All Boards</h1>
+
+<hr>
+
+<h2>Intake Board</h2>
+<p>Count: {{ this_game.intake|length }}</p>
+<p>Beads: {{ this_game.intake }}</p>
 
 <p>
     <a href="{{ url_for('load_intake', game_id=this_game.id) }}">
@@ -16,14 +24,12 @@
 </p>
 
 <p>
-    <a href="{{ url_for('play', game_id=this_game.id) }}">
-        <button>Play Round</button>
+    <a href="{{ url_for('play_intake', game_id=this_game.id) }}">
+        <button>Play Intake</button>
     </a>
 </p>
 
-<h2>Intake Board</h2>
-<p>Count: {{ this_game.intake|length }}</p>
-<p>Beads: {{ this_game.intake }}</p>
+<hr>
 
 <h2>Emergency Board</h2>
 <p>Count: {{ this_game.emergency|length }} out of 25</p>
