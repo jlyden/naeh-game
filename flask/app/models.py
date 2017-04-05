@@ -39,9 +39,10 @@ class Emergency(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
     board           = db.Column(db.ARRAY(db.Integer), default=EMERGENCY_START)
     maximum         = db.Column(db.Integer, default=25)
+    room            = db.Column(db.Integer, default=5)
 
     def __repr__(self):
-        return "<Game %r Emergency: %r>" % (self.game_id, str(self.board))
+        return "room = %r || %r" % (str(self.room), str(self.board))
 
 
 class Rapid(db.Model):
@@ -49,9 +50,10 @@ class Rapid(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
     board           = db.Column(db.ARRAY(db.Integer), default=RAPID_START)
     maximum         = db.Column(db.Integer, default=10)
+    room            = db.Column(db.Integer, default=0)
 
     def __repr__(self):
-        return "<Game %r Rapid: %r>" % (self.game_id, str(self.board))
+        return "room = %r || %r" % (str(self.room), str(self.board))
 
 
 class Transitional(db.Model):
@@ -59,9 +61,10 @@ class Transitional(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
     board           = db.Column(db.ARRAY(db.Integer), default=TRANSITIONAL_START)
     maximum         = db.Column(db.Integer, default=20)
+    room            = db.Column(db.Integer, default=4)
 
     def __repr__(self):
-        return "<Game %r Transitional: %r>" % (self.game_id, str(self.board))
+        return "room = %r || %r" % (str(self.room), str(self.board))
 
 
 class Permanent(db.Model):
@@ -69,9 +72,10 @@ class Permanent(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
     board           = db.Column(db.ARRAY(db.Integer), default=PERMANENT_START)
     maximum         = db.Column(db.Integer, default=20)
+    room            = db.Column(db.Integer, default=0)
 
     def __repr__(self):
-        return "<Game %r Permanent: %r>" % (self.game_id, str(self.board))
+        return "room = %r || %r" % (str(self.room), str(self.board))
 
 
 class Score(db.Model):
