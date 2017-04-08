@@ -1,11 +1,4 @@
 import random
-from flask import flash
-
-
-maximum = {'emergency': 25,
-           'rapid': 10,
-           'transitional': 20,
-           'permanent': 20}
 
 
 def get_random_bead(number, available_beads):
@@ -14,7 +7,7 @@ def get_random_bead(number, available_beads):
         selection = random.choice(available_beads)
         collection.append(selection)
         available_beads.remove(selection)
-    return collection, available_beads
+    return available_beads, collection
 
 
 def move_beads(number, from_board, to_board):

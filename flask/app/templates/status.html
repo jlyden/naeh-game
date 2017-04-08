@@ -3,9 +3,9 @@
 {% block content %}
 <a href="{{ url_for('index') }}"><button>Index</button></a>
 
-{% if this_game %}
+{% if game %}
 
-<h1>Round {{ this_game.round_count }}
+<h1>Round {{ game.round_count }}
 
 <hr>
 
@@ -14,15 +14,15 @@
 <hr>
 
 <h2>Intake Board</h2>
-<p>[TOTAL = '{{ this_game.intake|length }}' || '{{ this_game.intake }}']</p>
+<p>[TOTAL = '{{ game.intake|length }}' || '{{ game.intake }}']</p>
 
 <p>
 <span style="padding:10;">
-    <a href="{{ url_for('load_intake', game_id=this_game.id) }}">
+    <a href="{{ url_for('load_intake', game_id=game.id) }}">
         <button>Load Intake</button></a>
 </span>
 <span style="padding:10;">
-    <a href="{{ url_for('play_intake', game_id=this_game.id) }}">
+    <a href="{{ url_for('play_intake', game_id=game.id) }}">
         <button>Play Intake</button></a>
 </span>
 </p>
@@ -30,27 +30,27 @@
 <hr>
 
 <h2>Emergency Board</h2>
-<p>{{ this_game.emergency }}</p>
+<p>[TOTAL = '{{ emergency.board|length }}' || '{{ emergency.board }}']</p>
 
 <h2>Rapid Rehousing Board</h2>
-<p>{{ this_game.rapid }}</p>
+<p>[TOTAL = '{{ rapid.board|length }}' || '{{ rapid.board }}']</p>
 
 <h2>Outreach Board</h2>
-<p>[room = '{{ 10 - (this_game.outreach|length) }}' || '{{ this_game.outreach }}']</p>
+<p>[room = '{{ 10 - (game.outreach|length) }}' || '{{ game.outreach }}']</p>
 
 <h2>Transitional Housing Board</h2>
-<p>{{ this_game.transitional }}</p>
+<p>[TOTAL = '{{ transitional.board|length }}' || '{{ transitional.board }}']</p>
 
 <h2>Permanent Supportive Housing Board</h2>
-<p>{{ this_game.permanent }}</p>
+<p>[TOTAL = '{{ permanent.board|length }}' || '{{ permanent.board }}']</p>
 
 <h1>All Bins</h1>
 
 <h2>Market Housing Bin</h2>
-<p>[TOTAL = '{{ this_game.market|length }}' || '{{ this_game.market }}']</p>
+<p>[TOTAL = '{{ game.market|length }}' || '{{ game.market }}']</p>
 
 <h2>Unsheltered Homeless Bin</h2>
-<p>[TOTAL = '{{ this_game.unsheltered|length }}' || '{{ this_game.unsheltered }}']</p>
+<p>[TOTAL = '{{ game.unsheltered|length }}' || '{{ game.unsheltered }}']</p>
 
 {% endif %}
 {% endblock %}

@@ -27,8 +27,14 @@ def index():
 
 @app.route('/status/<game_id>')
 def status(game_id):
-    this_game = Game.query.get_or_404(int(game_id))
-    return render_template('status.html', this_game=this_game)
+    game = Game.query.get_or_404(int(game_id))
+    emergency = db.session.query(Emergency).filter_by(game_id=game_id).first()
+    rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
+    transitional = db.session.query(Transitional).filter_by(game_id=game_id).first()
+    permanent = db.session.query(Permanent).filter_by(game_id=game_id).first()
+    return render_template('status.html', game=game, emergency=emergency,
+                           rapid=rapid, transitional=transitional,
+                           permanent=permanent)
 
 
 @app.route('/load_intake/<game_id>')
@@ -44,16 +50,7 @@ def load_intake(game_id):
     elif this_game.round_count > 4:
         flash('Only load intake board once per round.', 'error')
     else:
-        collection, available = get_random_bead(50, this_game.available)
-        this_game.intake = collection
-        this_game.available = available
-
-        # Now the round has begun, so up-counter and toggle flag
-        this_game.round_count += 1
-        this_game.round_over = False
-        db.session.add(this_game)
-        db.session.commit()
-
+        this_game.load_intake()
     return redirect(url_for('status', game_id=this_game.id))
 
 

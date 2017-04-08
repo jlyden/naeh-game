@@ -1,5 +1,6 @@
 from datetime import datetime
 from app import db
+from .utils import get_random_bead, single_board_transfer, move_beads
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
@@ -32,6 +33,15 @@ class Game(db.Model):
 
     def __repr__(self):
         return "<Game %r, round %r>" % (self.id, self.round_count)
+
+    def load_intake(self):
+        self.available, self.intake = get_random_bead(50, self.available)
+
+        # This move begins round, so up-counter and toggle flag
+        self.round_count += 1
+        self.round_over = False
+        db.session.commit()
+        return
 
 
 class Emergency(db.Model):
