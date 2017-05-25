@@ -1,7 +1,7 @@
 from flask import request, render_template, redirect, url_for, flash
 from app import app, db
-from .models import Game, Emergency, Rapid, Transitional, Permanent
-from .utils import get_random_bead, single_board_transfer, move_beads
+from .models import Game, Emergency, Rapid, Transitional, Permanent, Score
+from .utils import move_beads
 
 
 @app.route('/index', methods=['GET', 'POST'])
@@ -9,19 +9,21 @@ def index():
     if request.method == 'POST':
         new_game = Game()
         db.session.add(new_game)
-        new_game = Game.query.order_by(Game.start_datetime.desc()).first()
-        emergency = Emergency(game_id=new_game.id)
-        rapid = Rapid(game_id=new_game.id)
-        transitional = Transitional(game_id=new_game.id)
-        permanent = Permanent(game_id=new_game.id)
-        db.session.add(emergency)
-        db.session.add(rapid)
-        db.session.add(transitional)
-        db.session.add(permanent)
+        db.session.commit()
+        new_Emergency = Emergency(game_id=new_game.id)
+        db.session.add(new_Emergency)
+        new_Rapid = Rapid(game_id=new_game.id)
+        db.session.add(new_Rapid)
+        new_Transitional = Transitional(game_id=new_game.id)
+        db.session.add(new_Transitional)
+        new_Permanent = Permanent(game_id=new_game.id)
+        db.session.add(new_Permanent)
+        new_Score = Score(game_id=new_game.id)
+        db.session.add(new_Score)
         db.session.commit()
         return redirect(url_for('status', game_id=new_game.id))
     elif request.method == 'GET':
-        recent_games = Game.query.order_by(Game.start_datetime.desc()).limit(5)
+        recent_games = Game.query.order_by(Game.start_datetime.desc())
         return render_template('index.html', recent_games=recent_games)
 
 
@@ -42,12 +44,7 @@ def load_intake(game_id):
     this_game = Game.query.get_or_404(int(game_id))
 
     # Validation: Only load intake board after end of previous round
-    if not this_game.round_over:
-        flash('Only load intake board once per round.', 'error')
-    elif this_game.intake:
-        flash('Only load intake board once per round.', 'error')
-    # If already at round 5, round 6 would be started by load_intake
-    elif this_game.round_count > 4:
+    if this_game.intake or not this_game.round_over:
         flash('Only load intake board once per round.', 'error')
     else:
         this_game.load_intake()
@@ -59,68 +56,34 @@ def play_intake(game_id):
     this_game = Game.query.get_or_404(int(game_id))
 
     # Validation
-    if not this_game.intake:
-        flash('Load intake board to start round.', 'error')
-    elif this_game.round_over:
+    if this_game.round_over or not this_game.intake:
         flash('Load intake board to start round.', 'error')
     else:
         intake = this_game.intake
         unsheltered = this_game.unsheltered
 
-        this_emergency = db.session.query(
-            Emergency).filter_by(game_id=game_id).first()
-        surplus, intake,\
-            emergency = single_board_transfer(10, intake,
-                                              this_emergency.board,
-                                              this_emergency.maximum)
-        print('after load, this_emergency.board=' + str(emergency))
-
-        this_emergency.board = emergency
-        db.session.add(this_emergency)
-        db.session.commit()
-        print('After emergency, ' + str(surplus) + ' extra beads')
-
+        emergency = db.session.query(Emergency).filter_by(game_id=game_id).first()
+        # surplus will be added to extra later; extra is dynamic
+        surplus, intake = emergency.receive_beads(10, intake)
         intake, unsheltered = move_beads(10, intake, unsheltered)
+        extra, intake = emergency.receive_beads(30, intake)
 
-        # extra, intake,\
-        #     emergency.board = single_board_transfer(30, intake,
-        #                                             emergency.board,
-        #                                             emergency.maximum)
-        # db.session.add(emergency)
-        # print('After emergency #2, ' + str(extra) + ' extra beads')
+        rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
+        extra, intake = rapid.receive_beads(extra, intake)
 
-        # rapid = Rapid.query.filter_by(game_id=game_id).first()
-        # extra, intake, rapid.board = single_board_transfer(extra, intake,
-        #                                                    rapid.board,
-        #                                                    rapid.maximum)
-        # db.session.add(rapid)
-        # print('After rapid, ' + str(extra) + ' extra beads')
+        transitional = db.session.query(Transitional).filter_by(game_id=game_id).first()
+        extra, intake = transitional.receive_beads(extra, intake)
 
-        # transitional = Transitional.query.filter_by(game_id=game_id).first()
-        # extra, intake,\
-        #     transitional.board = single_board_transfer(extra, intake,
-        #                                                transitional.board,
-        #                                                transitional.maximum)
-        # db.session.add(transitional)
-        # print('After transitional, ' + str(extra) + ' extra beads')
+        permanent = db.session.query(Permanent).filter_by(game_id=game_id).first()
+        extra, intake = permanent.receive_beads(extra, intake)
 
-        # permanent = Permanent.query.filter_by(game_id=game_id).first()
-        # extra, intake,\
-        #     permanent.board = single_board_transfer(extra, intake,
-        #                                             permanent.board,
-        #                                             permanent.maximum)
-        # db.session.add(permanent)
-        # print('After permanent, ' + str(extra) + ' extra beads')
-
-        # surplus += extra
-        # print('Move ' + str(surplus) + ' beads to unsheltered')
-        # intake, unsheltered = move_beads(surplus, intake, unsheltered)
+        surplus += extra
+        intake, unsheltered = move_beads(surplus, intake, unsheltered)
+        print("Moved " + str(surplus) + " beads to unsheltered")
 
         this_game.intake = intake
-        this_game.unsheltered = unsheltered
+        this_game.unsheletered = unsheltered
         db.session.add(this_game)
-        print('Intake = ' + str(len(this_game.intake)) + ' beads')
-
         db.session.commit()
 
     return redirect(url_for('status', game_id=this_game.id))

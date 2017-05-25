@@ -5,7 +5,7 @@
 
 {% if game %}
 
-<h1>Round {{ game.round_count }}
+<h1>Game {{ game.id }}: Round {{ game.round_count }}</h1>
 
 <hr>
 
@@ -36,7 +36,7 @@
 <p>[TOTAL = '{{ rapid.board|length }}' || '{{ rapid.board }}']</p>
 
 <h2>Outreach Board</h2>
-<p>[room = '{{ 10 - (game.outreach|length) }}' || '{{ game.outreach }}']</p>
+<p>[TOTAL = '{{ game.outreach|length }}' || '{{ game.outreach }}']</p>
 
 <h2>Transitional Housing Board</h2>
 <p>[TOTAL = '{{ transitional.board|length }}' || '{{ transitional.board }}']</p>

@@ -1,6 +1,6 @@
 from datetime import datetime
 from app import db
-from .utils import get_random_bead, single_board_transfer, move_beads
+from .utils import get_random_bead, find_room, use_room, move_beads
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
@@ -35,8 +35,8 @@ class Game(db.Model):
         return "<Game %r, round %r>" % (self.id, self.round_count)
 
     def load_intake(self):
+        print("Loading intake board")
         self.available, self.intake = get_random_bead(50, self.available)
-
         # This move begins round, so up-counter and toggle flag
         self.round_count += 1
         self.round_over = False
@@ -49,10 +49,20 @@ class Emergency(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
     board           = db.Column(db.ARRAY(db.Integer), default=EMERGENCY_START)
     maximum         = db.Column(db.Integer, default=25)
-    room            = db.Column(db.Integer, default=5)
 
     def __repr__(self):
-        return "room = %r || %r" % (str(self.room), str(self.board))
+        return "%r" % str(self.board)
+
+    def receive_beads(self, beads, from_board):
+        room = find_room(self.board, self.maximum)
+        if room is 0:
+            extra = beads
+        else:
+            extra, from_board, self.board = use_room(room, beads, from_board,
+                                                     self.board)
+        print("Had " + str(extra) + " extra beads after move to emergency")
+        db.session.commit()
+        return extra, from_board
 
 
 class Rapid(db.Model):
@@ -60,10 +70,20 @@ class Rapid(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
     board           = db.Column(db.ARRAY(db.Integer), default=RAPID_START)
     maximum         = db.Column(db.Integer, default=10)
-    room            = db.Column(db.Integer, default=0)
 
     def __repr__(self):
-        return "room = %r || %r" % (str(self.room), str(self.board))
+        return "%r" % str(self.board)
+
+    def receive_beads(self, beads, from_board):
+        room = find_room(self.board, self.maximum)
+        if room is 0:
+            extra = beads
+        else:
+            extra, from_board, self.board = use_room(room, beads, from_board,
+                                                     self.board)
+        print("Had " + str(extra) + " extra beads after move to rapid")
+        db.session.commit()
+        return extra, from_board
 
 
 class Transitional(db.Model):
@@ -71,10 +91,20 @@ class Transitional(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
     board           = db.Column(db.ARRAY(db.Integer), default=TRANSITIONAL_START)
     maximum         = db.Column(db.Integer, default=20)
-    room            = db.Column(db.Integer, default=4)
 
     def __repr__(self):
-        return "room = %r || %r" % (str(self.room), str(self.board))
+        return "%r" % str(self.board)
+
+    def receive_beads(self, beads, from_board):
+        room = find_room(self.board, self.maximum)
+        if room is 0:
+            extra = beads
+        else:
+            extra, from_board, self.board = use_room(room, beads, from_board,
+                                                     self.board)
+        print("Had " + str(extra) + " extra beads after move to transitional")
+        db.session.commit()
+        return extra, from_board
 
 
 class Permanent(db.Model):
@@ -82,10 +112,20 @@ class Permanent(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
     board           = db.Column(db.ARRAY(db.Integer), default=PERMANENT_START)
     maximum         = db.Column(db.Integer, default=20)
-    room            = db.Column(db.Integer, default=0)
 
     def __repr__(self):
-        return "room = %r || %r" % (str(self.room), str(self.board))
+        return "%r" % str(self.board)
+
+    def receive_beads(self, beads, from_board):
+        room = find_room(self.board, self.maximum)
+        if room is 0:
+            extra = beads
+        else:
+            extra, from_board, self.board = use_room(room, beads, from_board,
+                                                     self.board)
+        print("Had " + str(extra) + " extra beads after move to permanent")
+        db.session.commit()
+        return extra, from_board
 
 
 class Score(db.Model):
