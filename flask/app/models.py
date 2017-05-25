@@ -60,7 +60,9 @@ class Emergency(db.Model):
         else:
             extra, from_board, self.board = use_room(room, beads, from_board,
                                                      self.board)
+        print("Emergency board is now " + str(self.board))
         print("Had " + str(extra) + " extra beads after move to emergency")
+        db.session.add(self)
         db.session.commit()
         return extra, from_board
 
@@ -82,6 +84,7 @@ class Rapid(db.Model):
             extra, from_board, self.board = use_room(room, beads, from_board,
                                                      self.board)
         print("Had " + str(extra) + " extra beads after move to rapid")
+        db.session.add(self)
         db.session.commit()
         return extra, from_board
 
