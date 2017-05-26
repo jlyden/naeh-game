@@ -14,7 +14,7 @@
 <hr>
 
 <h2>Intake Board</h2>
-<p>[TOTAL = '{{ game.intake|length }}' || '{{ game.intake }}']</p>
+<p>[TOTAL = '{{ intake|length }}' || '{{ intake }}']</p>
 
 <p>
 <span style="padding:10;">
@@ -30,27 +30,27 @@
 <hr>
 
 <h2>Emergency Board</h2>
-<p>[TOTAL = '{{ emergency.board|length }}' || '{{ emergency.board }}']</p>
+<p>[TOTAL = '{{ emergency|length }}' || '{{ emergency }}']</p>
 
 <h2>Rapid Rehousing Board</h2>
-<p>[TOTAL = '{{ rapid.board|length }}' || '{{ rapid.board }}']</p>
+<p>[TOTAL = '{{ rapid|length }}' || '{{ rapid }}']</p>
 
 <h2>Outreach Board</h2>
-<p>[TOTAL = '{{ game.outreach|length }}' || '{{ game.outreach }}']</p>
+<p>[TOTAL = '{{ outreach|length }}' || '{{ outreach }}']</p>
 
 <h2>Transitional Housing Board</h2>
-<p>[TOTAL = '{{ transitional.board|length }}' || '{{ transitional.board }}']</p>
+<p>[TOTAL = '{{ transitional|length }}' || '{{ transitional }}']</p>
 
 <h2>Permanent Supportive Housing Board</h2>
-<p>[TOTAL = '{{ permanent.board|length }}' || '{{ permanent.board }}']</p>
+<p>[TOTAL = '{{ permanent|length }}' || '{{ permanent }}']</p>
 
 <h1>All Bins</h1>
 
 <h2>Market Housing Bin</h2>
-<p>[TOTAL = '{{ game.market|length }}' || '{{ game.market }}']</p>
+<p>[TOTAL = '{{ market|length }}' || '{{ market }}']</p>
 
 <h2>Unsheltered Homeless Bin</h2>
-<p>[TOTAL = '{{ game.unsheltered|length }}' || '{{ game.unsheltered }}']</p>
+<p>[TOTAL = '{{ unsheltered|length }}' || '{{ unsheltered }}']</p>
 
 {% endif %}
 {% endblock %}

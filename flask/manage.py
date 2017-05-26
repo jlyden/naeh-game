@@ -4,6 +4,7 @@
 # To generate a migration: .\manage.py db migrate
 # To apply the migration: .\manage.py db upgrade
 # If NameError, add "sa." before terms lacking it
+# From https://realpython.com/blog/python/flask-by-example-part-2-postgres-sqlalchemy-and-alembic/
 
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand

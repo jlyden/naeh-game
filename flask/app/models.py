@@ -1,15 +1,17 @@
+import pickle
 from datetime import datetime
 from app import db
 from .utils import get_random_bead, find_room, use_room, move_beads
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
-EMERGENCY_START = list(range(1, 7)) + list(range(66, 80))
-RAPID_START = list(range(7, 8)) + list(range(80, 89))
-OUTREACH_START = list(range(8, 10)) + list(range(89, 95))
-TRANSITIONAL_START = list(range(10, 14)) + list(range(95, 107))
-PERMANENT_START = list(range(14, 26)) + list(range(107, 115))
-AVAILABLE_BEADS = list(range(26, 66)) + list(range(115, 325))
+EMERGENCY_START = pickle.dumps(list(range(1, 7)) + list(range(66, 80)))
+OUTREACH_START = pickle.dumps(list(range(8, 10)) + list(range(89, 95)))
+RAPID_START = pickle.dumps(list(range(7, 8)) + list(range(80, 89)))
+TRANSITIONAL_START = pickle.dumps(list(range(10, 14)) + list(range(95, 107)))
+PERMANENT_START = pickle.dumps(list(range(14, 26)) + list(range(107, 115)))
+AVAILABLE_BEADS = pickle.dumps(list(range(26, 66)) + list(range(115, 325)))
+EMPTY_LIST = pickle.dumps([])
 
 
 class Game(db.Model):
@@ -19,11 +21,11 @@ class Game(db.Model):
     round_over      = db.Column(db.Boolean, default=True)
     diversion       = db.Column(db.Boolean, default=False)
 
-    available       = db.Column(db.ARRAY(db.Integer), default=AVAILABLE_BEADS)
-    market          = db.Column(db.ARRAY(db.Integer), default=[])
-    unsheltered     = db.Column(db.ARRAY(db.Integer), default=[])
-    intake          = db.Column(db.ARRAY(db.Integer), default=[])
-    outreach        = db.Column(db.ARRAY(db.Integer), default=OUTREACH_START)
+    available       = db.Column(db.PickleType, default=AVAILABLE_BEADS)
+    market          = db.Column(db.PickleType, default=EMPTY_LIST)
+    unsheltered     = db.Column(db.PickleType, default=EMPTY_LIST)
+    intake          = db.Column(db.PickleType, default=EMPTY_LIST)
+    outreach        = db.Column(db.PickleType, default=OUTREACH_START)
 
     emergency       = db.relationship('Emergency')
     rapid           = db.relationship('Rapid')
@@ -35,11 +37,16 @@ class Game(db.Model):
         return "<Game %r, round %r>" % (self.id, self.round_count)
 
     def load_intake(self):
-        print("Loading intake board")
-        self.available, self.intake = get_random_bead(50, self.available)
         # This move begins round, so up-counter and toggle flag
         self.round_count += 1
         self.round_over = False
+        print("Loading intake board for " + str(self.round_count))
+
+        # Unpickle, move beads, pickle
+        available_list = pickle.loads(self.available)
+        available_list, intake_list = get_random_bead(50, available_list)
+        self.intake = pickle.dumps(intake_list)
+        self.available = pickle.dumps(available_list)
         db.session.commit()
         return
 
@@ -47,87 +54,103 @@ class Game(db.Model):
 class Emergency(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board           = db.Column(db.ARRAY(db.Integer), default=EMERGENCY_START)
+    board           = db.Column(db.PickleType, default=EMERGENCY_START)
     maximum         = db.Column(db.Integer, default=25)
 
     def __repr__(self):
-        return "%r" % str(self.board)
+        board = pickle.loads(self.board)
+        return "%r" % str(board)
 
     def receive_beads(self, beads, from_board):
-        room = find_room(self.board, self.maximum)
+        board_list = pickle.loads(self.board)
+        room = find_room(board_list, self.maximum)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, self.board = use_room(room, beads, from_board,
-                                                     self.board)
-        print("Emergency board is now " + str(self.board))
-        print("Had " + str(extra) + " extra beads after move to emergency")
-        db.session.add(self)
+            extra, from_board, board_list = use_room(room, beads, from_board,
+                                                     board_list)
+        self.board = pickle.dumps(board_list)
         db.session.commit()
+        print("Emergency board is now " + str(board_list))
+        print("Had " + str(extra) + " extra beads after move to emergency")
         return extra, from_board
 
 
 class Rapid(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board           = db.Column(db.ARRAY(db.Integer), default=RAPID_START)
+    board           = db.Column(db.PickleType, default=RAPID_START)
     maximum         = db.Column(db.Integer, default=10)
 
     def __repr__(self):
-        return "%r" % str(self.board)
+        board = pickle.loads(self.board)
+        return "%r" % str(board)
 
     def receive_beads(self, beads, from_board):
-        room = find_room(self.board, self.maximum)
+        board_list = pickle.loads(self.board)
+        room = find_room(board_list, self.maximum)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, self.board = use_room(room, beads, from_board,
-                                                     self.board)
-        print("Had " + str(extra) + " extra beads after move to rapid")
-        db.session.add(self)
+            extra, from_board, board_list = use_room(room, beads, from_board,
+                                                     board_list)
+
+        self.board = pickle.dumps(board_list)
         db.session.commit()
+        print("Rapid board is now " + str(board_list))
+        print("Had " + str(extra) + " extra beads after move to rapid")
         return extra, from_board
 
 
 class Transitional(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board           = db.Column(db.ARRAY(db.Integer), default=TRANSITIONAL_START)
+    board           = db.Column(db.PickleType, default=TRANSITIONAL_START)
     maximum         = db.Column(db.Integer, default=20)
 
     def __repr__(self):
-        return "%r" % str(self.board)
+        board = pickle.loads(self.board)
+        return "%r" % str(board)
 
     def receive_beads(self, beads, from_board):
-        room = find_room(self.board, self.maximum)
+        board_list = pickle.loads(self.board)
+        room = find_room(board_list, self.maximum)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, self.board = use_room(room, beads, from_board,
-                                                     self.board)
-        print("Had " + str(extra) + " extra beads after move to transitional")
+            extra, from_board, board_list = use_room(room, beads, from_board,
+                                                     board_list)
+
+        self.board = pickle.dumps(board_list)
         db.session.commit()
+        print("Transitional board is now " + str(board_list))
+        print("Had " + str(extra) + " extra beads after move to transitional")
         return extra, from_board
 
 
 class Permanent(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board           = db.Column(db.ARRAY(db.Integer), default=PERMANENT_START)
+    board           = db.Column(db.PickleType, default=PERMANENT_START)
     maximum         = db.Column(db.Integer, default=20)
 
     def __repr__(self):
-        return "%r" % str(self.board)
+        board = pickle.loads(self.board)
+        return "%r" % str(board)
 
     def receive_beads(self, beads, from_board):
-        room = find_room(self.board, self.maximum)
+        board_list = pickle.loads(self.board)
+        room = find_room(board_list, self.maximum)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, self.board = use_room(room, beads, from_board,
-                                                     self.board)
-        print("Had " + str(extra) + " extra beads after move to permanent")
+            extra, from_board, board_list = use_room(room, beads, from_board,
+                                                     board_list)
+
+        self.board = pickle.dumps(board_list)
         db.session.commit()
+        print("Permanent board is now " + str(board_list))
+        print("Had " + str(extra) + " extra beads after move to permanent")
         return extra, from_board
 
 
@@ -136,8 +159,8 @@ class Score(db.Model):
     game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
 
     # An integer is added to these arrays at end of each round
-    emergency_count    = db.Column(db.ARRAY(db.Integer), default=[])
-    transitional_count = db.Column(db.ARRAY(db.Integer), default=[])
+    emergency_count    = db.Column(db.PickleType, default=[])
+    transitional_count = db.Column(db.PickleType, default=[])
 
     # These values are entered after the game ends
     unsheltered     = db.Column(db.Integer, default=0)

@@ -1,3 +1,4 @@
+import pickle
 from flask import request, render_template, redirect, url_for, flash
 from app import app, db
 from .models import Game, Emergency, Rapid, Transitional, Permanent, Score
@@ -30,11 +31,21 @@ def index():
 @app.route('/status/<game_id>')
 def status(game_id):
     game = Game.query.get_or_404(int(game_id))
-    emergency = db.session.query(Emergency).filter_by(game_id=game_id).first()
-    rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
-    transitional = db.session.query(Transitional).filter_by(game_id=game_id).first()
-    permanent = db.session.query(Permanent).filter_by(game_id=game_id).first()
-    return render_template('status.html', game=game, emergency=emergency,
+    intake = pickle.loads(game.intake)
+    outreach = pickle.loads(game.outreach)
+    market = pickle.loads(game.market)
+    unsheltered = pickle.loads(game.unsheltered)
+    emergency_obj = db.session.query(Emergency).filter_by(game_id=game_id).first()
+    emergency = pickle.loads(emergency_obj.board)
+    rapid_obj = db.session.query(Rapid).filter_by(game_id=game_id).first()
+    rapid = pickle.loads(rapid_obj.board)
+    transitional_obj = db.session.query(Transitional).filter_by(game_id=game_id).first()
+    transitional = pickle.loads(transitional_obj.board)
+    permanent_obj = db.session.query(Permanent).filter_by(game_id=game_id).first()
+    permanent = pickle.loads(permanent_obj.board)
+    return render_template('status.html', game=game, intake=intake,
+                           outreach=outreach, market=market,
+                           unsheltered=unsheltered, emergency=emergency,
                            rapid=rapid, transitional=transitional,
                            permanent=permanent)
 
@@ -42,9 +53,10 @@ def status(game_id):
 @app.route('/load_intake/<game_id>')
 def load_intake(game_id):
     this_game = Game.query.get_or_404(int(game_id))
+    intake = pickle.loads(this_game.intake)
 
     # Validation: Only load intake board after end of previous round
-    if this_game.intake or not this_game.round_over:
+    if intake or not this_game.round_over:
         flash('Only load intake board once per round.', 'error')
     else:
         this_game.load_intake()
@@ -54,13 +66,13 @@ def load_intake(game_id):
 @app.route('/play_intake/<game_id>')
 def play_intake(game_id):
     this_game = Game.query.get_or_404(int(game_id))
+    intake = pickle.loads(this_game.intake)
 
     # Validation
-    if this_game.round_over or not this_game.intake:
+    if this_game.round_over or not intake:
         flash('Load intake board to start round.', 'error')
     else:
-        intake = this_game.intake
-        unsheltered = this_game.unsheltered
+        unsheltered = pickle.loads(this_game.unsheltered)
 
         emergency = db.session.query(Emergency).filter_by(game_id=game_id).first()
         # surplus will be added to extra later; extra is dynamic
@@ -81,8 +93,8 @@ def play_intake(game_id):
         intake, unsheltered = move_beads(surplus, intake, unsheltered)
         print("Moved " + str(surplus) + " beads to unsheltered")
 
-        this_game.intake = intake
-        this_game.unsheletered = unsheltered
+        this_game.intake = pickle.dumps(intake)
+        this_game.unsheletered = pickle.dumps(unsheltered)
         db.session.add(this_game)
         db.session.commit()
 
