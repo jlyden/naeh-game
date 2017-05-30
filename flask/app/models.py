@@ -1,7 +1,7 @@
 import pickle
 from datetime import datetime
 from app import db
-from .utils import get_random_bead, find_room, use_room, move_beads
+from .utils import get_random_bead, find_room, use_room
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
@@ -11,27 +11,27 @@ RAPID_START = pickle.dumps(list(range(7, 8)) + list(range(80, 89)))
 TRANSITIONAL_START = pickle.dumps(list(range(10, 14)) + list(range(95, 107)))
 PERMANENT_START = pickle.dumps(list(range(14, 26)) + list(range(107, 115)))
 AVAILABLE_BEADS = pickle.dumps(list(range(26, 66)) + list(range(115, 325)))
-EMPTY_LIST = pickle.dumps([])
+EMPTY_LIST = pickle.dumps(list())
 
 
 class Game(db.Model):
-    id              = db.Column(db.Integer, primary_key=True)
-    start_datetime  = db.Column(db.DateTime, default=datetime.now)
-    round_count     = db.Column(db.Integer, default=0)
-    round_over      = db.Column(db.Boolean, default=True)
-    diversion       = db.Column(db.Boolean, default=False)
+    id = db.Column(db.Integer, primary_key=True)
+    start_datetime = db.Column(db.DateTime, default=datetime.now)
+    round_count = db.Column(db.Integer, default=0)
+    round_over = db.Column(db.Boolean, default=True)
+    diversion = db.Column(db.Boolean, default=False)
 
-    available       = db.Column(db.PickleType, default=AVAILABLE_BEADS)
-    market          = db.Column(db.PickleType, default=EMPTY_LIST)
-    unsheltered     = db.Column(db.PickleType, default=EMPTY_LIST)
-    intake          = db.Column(db.PickleType, default=EMPTY_LIST)
-    outreach        = db.Column(db.PickleType, default=OUTREACH_START)
+    available = db.Column(db.PickleType, default=AVAILABLE_BEADS)
+    market = db.Column(db.PickleType, default=EMPTY_LIST)
+    unsheltered = db.Column(db.PickleType, default=EMPTY_LIST)
+    intake = db.Column(db.PickleType, default=EMPTY_LIST)
+    outreach = db.Column(db.PickleType, default=OUTREACH_START)
 
-    emergency       = db.relationship('Emergency')
-    rapid           = db.relationship('Rapid')
-    transitional    = db.relationship('Transitional')
-    permanent       = db.relationship('Permanent')
-    score           = db.relationship('Score')
+    emergency = db.relationship('Emergency')
+    rapid = db.relationship('Rapid')
+    transitional = db.relationship('Transitional')
+    permanent = db.relationship('Permanent')
+    score = db.relationship('Score')
 
     def __repr__(self):
         return "<Game %r, round %r>" % (self.id, self.round_count)
@@ -40,7 +40,7 @@ class Game(db.Model):
         # This move begins round, so up-counter and toggle flag
         self.round_count += 1
         self.round_over = False
-        print("Loading intake board for " + str(self.round_count))
+        print("Loading intake board for round " + str(self.round_count))
 
         # Unpickle, move beads, pickle
         available_list = pickle.loads(self.available)
@@ -52,10 +52,10 @@ class Game(db.Model):
 
 
 class Emergency(db.Model):
-    id              = db.Column(db.Integer, primary_key=True)
-    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board           = db.Column(db.PickleType, default=EMERGENCY_START)
-    maximum         = db.Column(db.Integer, default=25)
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    board = db.Column(db.PickleType, default=EMERGENCY_START)
+    maximum = db.Column(db.Integer, default=25)
 
     def __repr__(self):
         board = pickle.loads(self.board)
@@ -77,10 +77,10 @@ class Emergency(db.Model):
 
 
 class Rapid(db.Model):
-    id              = db.Column(db.Integer, primary_key=True)
-    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board           = db.Column(db.PickleType, default=RAPID_START)
-    maximum         = db.Column(db.Integer, default=10)
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    board = db.Column(db.PickleType, default=RAPID_START)
+    maximum = db.Column(db.Integer, default=10)
 
     def __repr__(self):
         board = pickle.loads(self.board)
@@ -103,10 +103,10 @@ class Rapid(db.Model):
 
 
 class Transitional(db.Model):
-    id              = db.Column(db.Integer, primary_key=True)
-    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board           = db.Column(db.PickleType, default=TRANSITIONAL_START)
-    maximum         = db.Column(db.Integer, default=20)
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    board = db.Column(db.PickleType, default=TRANSITIONAL_START)
+    maximum = db.Column(db.Integer, default=20)
 
     def __repr__(self):
         board = pickle.loads(self.board)
@@ -129,10 +129,10 @@ class Transitional(db.Model):
 
 
 class Permanent(db.Model):
-    id              = db.Column(db.Integer, primary_key=True)
-    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board           = db.Column(db.PickleType, default=PERMANENT_START)
-    maximum         = db.Column(db.Integer, default=20)
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    board = db.Column(db.PickleType, default=PERMANENT_START)
+    maximum = db.Column(db.Integer, default=20)
 
     def __repr__(self):
         board = pickle.loads(self.board)
@@ -155,18 +155,29 @@ class Permanent(db.Model):
 
 
 class Score(db.Model):
-    id              = db.Column(db.Integer, primary_key=True)
-    game_id         = db.Column(db.Integer, db.ForeignKey('game.id'))
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
 
     # An integer is added to these arrays at end of each round
-    emergency_count    = db.Column(db.PickleType, default=[])
-    transitional_count = db.Column(db.PickleType, default=[])
+    emergency_count = db.Column(db.PickleType, default=EMPTY_LIST)
+    transitional_count = db.Column(db.PickleType, default=EMPTY_LIST)
 
     # These values are entered after the game ends
-    unsheltered     = db.Column(db.Integer, default=0)
-    market          = db.Column(db.Integer, default=0)
-    rapid           = db.Column(db.Integer, default=0)
-    permanent       = db.Column(db.Integer, default=0)
+    unsheltered = db.Column(db.Integer, default=0)
+    market = db.Column(db.Integer, default=0)
+    rapid = db.Column(db.Integer, default=0)
+    permanent = db.Column(db.Integer, default=0)
 
     def __repr__(self):
         return "<Game %r Scoreboard>" % (self.game_id)
+
+    def add_score(self, emergency, transitional):
+        this_emergency_count = pickle.loads(self.emergency_count)
+        this_emergency_count.append(emergency)
+        this_transitional_count = pickle.loads(self.transitional_count)
+        this_transitional_count.append(transitional)
+
+        self.emergency_count = pickle.dumps(this_emergency_count)
+        self.transitional_count = pickle.dumps(this_transitional_count)
+        db.session.commit()
+        return

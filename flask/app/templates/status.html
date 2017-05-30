@@ -14,7 +14,7 @@
 <hr>
 
 <h2>Intake Board</h2>
-<p>[TOTAL = '{{ intake|length }}' || '{{ intake }}']</p>
+<p>TOTAL = {{ intake|length }} || {{ intake }}</p>
 
 <p>
 <span style="padding:10;">
@@ -30,27 +30,32 @@
 <hr>
 
 <h2>Emergency Board</h2>
-<p>[TOTAL = '{{ emergency|length }}' || '{{ emergency }}']</p>
+<p>TOTAL = {{ emergency|length }} || {{ emergency }}</p>
 
 <h2>Rapid Rehousing Board</h2>
-<p>[TOTAL = '{{ rapid|length }}' || '{{ rapid }}']</p>
+<p>TOTAL = {{ rapid|length }} || {{ rapid }}</p>
 
 <h2>Outreach Board</h2>
-<p>[TOTAL = '{{ outreach|length }}' || '{{ outreach }}']</p>
+<p>TOTAL = {{ outreach|length }} || {{ outreach }}</p>
 
 <h2>Transitional Housing Board</h2>
-<p>[TOTAL = '{{ transitional|length }}' || '{{ transitional }}']</p>
+<p>TOTAL = {{ transitional|length }} || {{ transitional }}</p>
 
 <h2>Permanent Supportive Housing Board</h2>
-<p>[TOTAL = '{{ permanent|length }}' || '{{ permanent }}']</p>
+<p>TOTAL = {{ permanent|length }} || {{ permanent }}</p>
 
 <h1>All Bins</h1>
 
 <h2>Market Housing Bin</h2>
-<p>[TOTAL = '{{ market|length }}' || '{{ market }}']</p>
+<p>TOTAL = {{ market|length }} || {{ market }}</p>
 
 <h2>Unsheltered Homeless Bin</h2>
-<p>[TOTAL = '{{ unsheltered|length }}' || '{{ unsheltered }}']</p>
+<p>TOTAL = {{ unsheltered|length }} || {{ unsheltered }}</p>
+
+<h1>Score</h1>
+
+<h4>Emergency Count: {{ emergency_count }} </h4>
+<h4>Transitional Count: {{ transitional_count }} </h4>
 
 {% endif %}
 {% endblock %}
