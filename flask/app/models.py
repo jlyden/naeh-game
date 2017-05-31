@@ -1,7 +1,7 @@
 import pickle
 from datetime import datetime
 from app import db
-from .utils import get_random_bead, find_room, use_room
+from .utils import get_random_bead, find_room, use_room, move_beads
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
@@ -22,10 +22,10 @@ class Game(db.Model):
     diversion = db.Column(db.Boolean, default=False)
 
     available = db.Column(db.PickleType, default=AVAILABLE_BEADS)
-    market = db.Column(db.PickleType, default=EMPTY_LIST)
-    unsheltered = db.Column(db.PickleType, default=EMPTY_LIST)
     intake = db.Column(db.PickleType, default=EMPTY_LIST)
+    unsheltered = db.Column(db.PickleType, default=EMPTY_LIST)
     outreach = db.Column(db.PickleType, default=OUTREACH_START)
+    market = db.Column(db.PickleType, default=EMPTY_LIST)
 
     emergency = db.relationship('Emergency')
     rapid = db.relationship('Rapid')
@@ -41,14 +41,27 @@ class Game(db.Model):
         self.round_count += 1
         self.round_over = False
         print("Loading intake board for round " + str(self.round_count))
-
-        # Unpickle, move beads, pickle
         available_list = pickle.loads(self.available)
         available_list, intake_list = get_random_bead(50, available_list)
         self.intake = pickle.dumps(intake_list)
         self.available = pickle.dumps(available_list)
         db.session.commit()
         return
+
+    def send_to_unsheltered(self, beads, from_board):
+        to_board = pickle.loads(self.unsheltered)
+        from_board, to_board = move_beads(beads, from_board, to_board)
+        self.unsheltered = pickle.dumps(to_board)
+        db.session.commit()
+        print("after Unsheltered, intake has " + str(len(from_board)) + " beads")
+        return from_board
+
+    def send_to_market(self, beads, from_board):
+        to_board = pickle.loads(self.market)
+        from_board, to_board = move_beads(10, from_board, to_board)
+        self.market = pickle.dumps(to_board)
+        db.session.commit()
+        return from_board
 
 
 class Emergency(db.Model):
@@ -62,18 +75,18 @@ class Emergency(db.Model):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board):
-        board_list = pickle.loads(self.board)
-        room = find_room(board_list, self.maximum)
+        to_board = pickle.loads(self.board)
+        room = find_room(to_board, self.maximum)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, board_list = use_room(room, beads, from_board,
-                                                     board_list)
-        self.board = pickle.dumps(board_list)
+            extra, from_board, to_board = use_room(room, beads, from_board,
+                                                   to_board)
+        count = len(to_board)
+        self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("Emergency board is now " + str(board_list))
-        print("Had " + str(extra) + " extra beads after move to emergency")
-        return extra, from_board
+        print("after Emergency, intake has " + str(len(from_board)) + " beads")
+        return extra, from_board, count
 
 
 class Rapid(db.Model):
@@ -87,18 +100,16 @@ class Rapid(db.Model):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board):
-        board_list = pickle.loads(self.board)
-        room = find_room(board_list, self.maximum)
+        to_board = pickle.loads(self.board)
+        room = find_room(to_board, self.maximum)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, board_list = use_room(room, beads, from_board,
-                                                     board_list)
-
-        self.board = pickle.dumps(board_list)
+            extra, from_board, to_board = use_room(room, beads, from_board,
+                                                   to_board)
+        self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("Rapid board is now " + str(board_list))
-        print("Had " + str(extra) + " extra beads after move to rapid")
+        print("after Rapid, from_board has " + str(len(from_board)) + " beads")
         return extra, from_board
 
 
@@ -113,19 +124,18 @@ class Transitional(db.Model):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board):
-        board_list = pickle.loads(self.board)
-        room = find_room(board_list, self.maximum)
+        to_board = pickle.loads(self.board)
+        room = find_room(to_board, self.maximum)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, board_list = use_room(room, beads, from_board,
-                                                     board_list)
-
-        self.board = pickle.dumps(board_list)
+            extra, from_board, to_board = use_room(room, beads, from_board,
+                                                   to_board)
+        count = len(to_board)
+        self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("Transitional board is now " + str(board_list))
-        print("Had " + str(extra) + " extra beads after move to transitional")
-        return extra, from_board
+        print("after Transitional, intake has " + str(len(from_board)) + " beads")
+        return extra, from_board, count
 
 
 class Permanent(db.Model):
@@ -139,18 +149,16 @@ class Permanent(db.Model):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board):
-        board_list = pickle.loads(self.board)
-        room = find_room(board_list, self.maximum)
+        to_board = pickle.loads(self.board)
+        room = find_room(to_board, self.maximum)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, board_list = use_room(room, beads, from_board,
-                                                     board_list)
-
-        self.board = pickle.dumps(board_list)
+            extra, from_board, to_board = use_room(room, beads, from_board,
+                                                   to_board)
+        self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("Permanent board is now " + str(board_list))
-        print("Had " + str(extra) + " extra beads after move to permanent")
+        print("after Permanent, intake has " + str(len(from_board)) + " beads")
         return extra, from_board
 
 
@@ -176,7 +184,6 @@ class Score(db.Model):
         this_emergency_count.append(emergency)
         this_transitional_count = pickle.loads(self.transitional_count)
         this_transitional_count.append(transitional)
-
         self.emergency_count = pickle.dumps(this_emergency_count)
         self.transitional_count = pickle.dumps(this_transitional_count)
         db.session.commit()
