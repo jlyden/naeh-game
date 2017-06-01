@@ -31,6 +31,10 @@
 
 <h2>Emergency Board</h2>
 <p>TOTAL = {{ emergency|length }} || {{ emergency }}</p>
+<span style="padding:10;">
+    <a href="{{ url_for('play_emergency', game_id=game.id) }}">
+        <button>Play Emergency</button></a>
+</span>
 
 <h2>Rapid Rehousing Board</h2>
 <p>TOTAL = {{ rapid|length }} || {{ rapid }}</p>

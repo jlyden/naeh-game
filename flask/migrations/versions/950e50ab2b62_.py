@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: dd714c750b4a
+Revision ID: 950e50ab2b62
 Revises: 
-Create Date: 2017-05-30 00:53:44.485690
+Create Date: 2017-05-31 23:53:24.430156
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'dd714c750b4a'
+revision = '950e50ab2b62'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,12 +23,12 @@ def upgrade():
     sa.Column('start_datetime', sa.DateTime(), nullable=True),
     sa.Column('round_count', sa.Integer(), nullable=True),
     sa.Column('round_over', sa.Boolean(), nullable=True),
-    sa.Column('diversion', sa.Boolean(), nullable=True),
+    sa.Column('intake_cols', sa.Integer(), nullable=True),
     sa.Column('available', sa.PickleType(), nullable=True),
-    sa.Column('market', sa.PickleType(), nullable=True),
-    sa.Column('unsheltered', sa.PickleType(), nullable=True),
     sa.Column('intake', sa.PickleType(), nullable=True),
+    sa.Column('unsheltered', sa.PickleType(), nullable=True),
     sa.Column('outreach', sa.PickleType(), nullable=True),
+    sa.Column('market', sa.PickleType(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('emergency',

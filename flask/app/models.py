@@ -19,7 +19,7 @@ class Game(db.Model):
     start_datetime = db.Column(db.DateTime, default=datetime.now)
     round_count = db.Column(db.Integer, default=0)
     round_over = db.Column(db.Boolean, default=True)
-    diversion = db.Column(db.Boolean, default=False)
+    intake_cols = db.Column(db.Integer, default=5)
 
     available = db.Column(db.PickleType, default=AVAILABLE_BEADS)
     intake = db.Column(db.PickleType, default=EMPTY_LIST)
@@ -53,7 +53,6 @@ class Game(db.Model):
         from_board, to_board = move_beads(beads, from_board, to_board)
         self.unsheltered = pickle.dumps(to_board)
         db.session.commit()
-        print("after Unsheltered, intake has " + str(len(from_board)) + " beads")
         return from_board
 
     def send_to_market(self, beads, from_board):
@@ -82,11 +81,10 @@ class Emergency(db.Model):
         else:
             extra, from_board, to_board = use_room(room, beads, from_board,
                                                    to_board)
-        count = len(to_board)
         self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("after Emergency, intake has " + str(len(from_board)) + " beads")
-        return extra, from_board, count
+        print("after Emergency, from_board has " + str(len(from_board)) + " beads")
+        return extra, from_board
 
 
 class Rapid(db.Model):
@@ -131,11 +129,10 @@ class Transitional(db.Model):
         else:
             extra, from_board, to_board = use_room(room, beads, from_board,
                                                    to_board)
-        count = len(to_board)
         self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("after Transitional, intake has " + str(len(from_board)) + " beads")
-        return extra, from_board, count
+        print("after Transitional, from_board has " + str(len(from_board)) + " beads")
+        return extra, from_board
 
 
 class Permanent(db.Model):
@@ -158,7 +155,7 @@ class Permanent(db.Model):
                                                    to_board)
         self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("after Permanent, intake has " + str(len(from_board)) + " beads")
+        print("after Permanent, from_board has " + str(len(from_board)) + " beads")
         return extra, from_board
 
 

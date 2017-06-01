@@ -1,4 +1,4 @@
-import pickle
+import pickle, math
 from flask import request, render_template, redirect, url_for, flash
 from app import app, db
 from .models import Game, Emergency, Rapid, Transitional, Permanent, Score
@@ -84,32 +84,60 @@ def play_intake(game_id):
     if this_game.round_over or not intake:
         flash('Load intake board to start round.', 'error')
     else:
+        # factor = one "column" in game instructions
+        factor = math.ceil(50 / this_game.intake_cols)
+        print("factor is " + str(factor))
         emergency = Emergency.query.filter_by(game_id=game_id).first()
-        # surplus will be added to extra later; extra is dynamic
-        surplus, intake, emergency_count = emergency.receive_beads(10, intake)
-        intake = this_game.send_to_unsheltered(10, intake)
-        extra, intake, emergency_count = emergency.receive_beads(30, intake)
+        surplus, intake = emergency.receive_beads(factor, intake)
+        intake = this_game.send_to_unsheltered(factor, intake)
 
-        rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
+        print("before find room anywhere, intake is  " + str(len(intake)))
+        extra, intake = emergency.receive_beads(len(intake), intake)
+        rapid = Rapid.query.filter_by(game_id=game_id).first()
         extra, intake = rapid.receive_beads(extra, intake)
-
         transitional = Transitional.query.filter_by(game_id=game_id).first()
-        extra, intake, trans_count = transitional.receive_beads(extra, intake)
-
+        extra, intake = transitional.receive_beads(extra, intake)
         permanent = Permanent.query.filter_by(game_id=game_id).first()
         extra, intake = permanent.receive_beads(extra, intake)
 
-        surplus += extra
-        print("before last load, surplus is " + str(surplus))
-        print("before last load, intake has " + str(len(intake)) + " beads")
-        intake = this_game.send_to_unsheltered(surplus, intake)
+        print("before last unsheltered, intake has " + str(len(intake)) + " beads")
+        intake = this_game.send_to_unsheltered(len(intake), intake)
         print("after last load, intake has " + str(len(intake)) + " beads")
 
         this_game.intake = pickle.dumps(intake)
-        this_game.round_over = True
         db.session.commit()
-
-        this_score = Score.query.filter_by(game_id=game_id).first()
-        this_score.add_score(emergency_count, trans_count)
-
     return redirect(url_for('status', game_id=game_id))
+
+
+@app.route('/play_emergency/<game_id>')
+def play_emergency(game_id):
+    this_game = Game.query.get_or_404(int(game_id))
+    intake = pickle.loads(this_game.intake)
+
+    # Validation
+    if this_game.round_over or intake:
+        flash('Play intake board first.', 'error')
+    else:
+        emergency = Emergency.query.filter_by(game_id=game_id).first()
+        emerg_board = pickle.loads(emergency.board)
+        emerg_board = this_game.send_to_market(8, emerg_board)
+        emerg_board = this_game.send_to_unsheltered(8, emerg_board)
+
+        extra = len(emerg_board)
+        rapid = Rapid.query.filter_by(game_id=game_id).first()
+        extra, emerg_board = rapid.receive_beads(extra, emerg_board)
+        transitional = Transitional.query.filter_by(game_id=game_id).first()
+        extra, emerg_board = transitional.receive_beads(extra, emerg_board)
+        permanent = Permanent.query.filter_by(game_id=game_id).first()
+        extra, emerg_board = permanent.receive_beads(extra, emerg_board)
+        emerg_board = this_game.send_to_unsheltered(extra, emerg_board)
+        emergency.board = pickle.dumps(emerg_board)
+        db.session.commit()
+    return redirect(url_for('status', game_id=game_id))
+
+
+#        this_game.round_over = True
+# Need to query for these counts
+#        this_score = Score.query.filter_by(game_id=game_id).first()
+#        this_score.add_score(emerg_count, trans_count)
+
