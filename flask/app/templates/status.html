@@ -53,9 +53,17 @@
 
 <h2>Transitional Housing Board</h2>
 <p>TOTAL = {{ transitional|length }} || {{ transitional }}</p>
+<span style="padding:10;">
+    <a href="{{ url_for('play_transitional', game_id=game.id) }}">
+        <button>Play Transitional</button></a>
+</span>
 
 <h2>Permanent Supportive Housing Board</h2>
 <p>TOTAL = {{ permanent|length }} || {{ permanent }}</p>
+<span style="padding:10;">
+    <a href="{{ url_for('play_permanent', game_id=game.id) }}">
+        <button>Play Permanent</button></a>
+</span>
 
 <h1>All Bins</h1>
 
