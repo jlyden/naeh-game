@@ -17,7 +17,7 @@ def move_beads(number, from_board, to_board):
     return from_board, to_board
 
 
-def find_room(board, board_max):
+def find_room(board_max, board):
     room = board_max - len(board)
     return room
 

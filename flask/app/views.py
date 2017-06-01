@@ -1,6 +1,8 @@
-import pickle, math
+import math
+import pickle
 from flask import request, render_template, redirect, url_for, flash
 from app import app, db
+from .utils import find_room, move_beads
 from .models import Game, Emergency, Rapid, Transitional, Permanent, Score
 
 
@@ -102,8 +104,6 @@ def play_intake(game_id):
 
         print("before last unsheltered, intake has " + str(len(intake)) + " beads")
         intake = this_game.send_to_unsheltered(len(intake), intake)
-        print("after last load, intake has " + str(len(intake)) + " beads")
-
         this_game.intake = pickle.dumps(intake)
         db.session.commit()
     return redirect(url_for('status', game_id=game_id))
@@ -136,8 +136,64 @@ def play_emergency(game_id):
     return redirect(url_for('status', game_id=game_id))
 
 
+@app.route('/play_rapid/<game_id>')
+def play_rapid(game_id):
+    this_game = Game.query.get_or_404(int(game_id))
+    intake = pickle.loads(this_game.intake)
+
+    # Validation
+    if this_game.round_over or intake:
+        flash('Play intake board first.', 'error')
+    else:
+        rapid = Rapid.query.filter_by(game_id=game_id).first()
+        rapid_board = pickle.loads(rapid.board)
+        rapid_board = this_game.send_to_market(6, rapid_board)
+        print("after market, rapid_board is " + str(rapid_board))
+        emergency = Emergency.query.filter_by(game_id=game_id).first()
+        extra, rapid_board = emergency.receive_beads(2, rapid_board)
+        rapid_board = this_game.send_to_unsheltered(len(rapid_board), rapid_board)
+        print("after unsheltered, rapid_board is " + str(rapid_board))
+        rapid.board = pickle.dumps(rapid_board)
+        db.session.commit()
+    return redirect(url_for('status', game_id=game_id))
+
+
+@app.route('/play_outreach/<game_id>')
+def play_outreach(game_id):
+    this_game = Game.query.get_or_404(int(game_id))
+    intake = pickle.loads(this_game.intake)
+
+    # Validation
+    if this_game.round_over or intake:
+        flash('Play intake board first.', 'error')
+    else:
+        outreach_board = pickle.loads(this_game.outreach)
+        room = find_room(10, outreach_board)
+        print("Outreach room is " + str(room))
+        unsheltered_board = pickle.loads(this_game.unsheltered)
+        unsheltered_board, outreach_board = move_beads(room, unsheltered_board, outreach_board)
+        print("at max, outreach_board is " + str(len(outreach_board)))
+
+        # TODO: add check for while extra > 0
+        extra = len(outreach_board)
+        emergency = Emergency.query.filter_by(game_id=game_id).first()
+        extra, outreach_board = emergency.receive_beads(extra, outreach_board)
+        rapid = Rapid.query.filter_by(game_id=game_id).first()
+        extra, outreach_board = rapid.receive_beads(extra, outreach_board)
+        trans = Transitional.query.filter_by(game_id=game_id).first()
+        extra, outreach_board = trans.receive_beads(extra, outreach_board)
+        permanent = Permanent.query.filter_by(game_id=game_id).first()
+        extra, outreach_board = permanent.receive_beads(extra, outreach_board)
+        outreach_board = this_game.send_to_unsheltered(extra, outreach_board)
+        this_game.outreach = pickle.dumps(outreach_board)
+        db.session.commit()
+    return redirect(url_for('status', game_id=game_id))
+
+# TODO: Transitional and Permanent and Round Over
+
+# and diff rules in rounds!
+
 #        this_game.round_over = True
 # Need to query for these counts
 #        this_score = Score.query.filter_by(game_id=game_id).first()
 #        this_score.add_score(emerg_count, trans_count)
-

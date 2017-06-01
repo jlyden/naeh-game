@@ -57,7 +57,7 @@ class Game(db.Model):
 
     def send_to_market(self, beads, from_board):
         to_board = pickle.loads(self.market)
-        from_board, to_board = move_beads(10, from_board, to_board)
+        from_board, to_board = move_beads(beads, from_board, to_board)
         self.market = pickle.dumps(to_board)
         db.session.commit()
         return from_board
@@ -75,7 +75,8 @@ class Emergency(db.Model):
 
     def receive_beads(self, beads, from_board):
         to_board = pickle.loads(self.board)
-        room = find_room(to_board, self.maximum)
+        room = find_room(self.maximum, to_board)
+        print("Emergency room is " + str(room))
         if room is 0:
             extra = beads
         else:
@@ -83,7 +84,7 @@ class Emergency(db.Model):
                                                    to_board)
         self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("after Emergency, from_board has " + str(len(from_board)) + " beads")
+        print("after Emergency_receive, from_board has " + str(len(from_board)) + " beads")
         return extra, from_board
 
 
@@ -99,7 +100,7 @@ class Rapid(db.Model):
 
     def receive_beads(self, beads, from_board):
         to_board = pickle.loads(self.board)
-        room = find_room(to_board, self.maximum)
+        room = find_room(self.maximum, to_board)
         if room is 0:
             extra = beads
         else:
@@ -107,7 +108,7 @@ class Rapid(db.Model):
                                                    to_board)
         self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("after Rapid, from_board has " + str(len(from_board)) + " beads")
+        print("after Rapid_receive, from_board has " + str(len(from_board)) + " beads")
         return extra, from_board
 
 
@@ -123,7 +124,7 @@ class Transitional(db.Model):
 
     def receive_beads(self, beads, from_board):
         to_board = pickle.loads(self.board)
-        room = find_room(to_board, self.maximum)
+        room = find_room(self.maximum, to_board)
         if room is 0:
             extra = beads
         else:
@@ -131,7 +132,7 @@ class Transitional(db.Model):
                                                    to_board)
         self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("after Transitional, from_board has " + str(len(from_board)) + " beads")
+        print("after Transitional_receive, from_board has " + str(len(from_board)) + " beads")
         return extra, from_board
 
 
@@ -147,7 +148,7 @@ class Permanent(db.Model):
 
     def receive_beads(self, beads, from_board):
         to_board = pickle.loads(self.board)
-        room = find_room(to_board, self.maximum)
+        room = find_room(self.maximum, to_board)
         if room is 0:
             extra = beads
         else:
@@ -155,7 +156,7 @@ class Permanent(db.Model):
                                                    to_board)
         self.board = pickle.dumps(to_board)
         db.session.commit()
-        print("after Permanent, from_board has " + str(len(from_board)) + " beads")
+        print("after Permanent_receive, from_board has " + str(len(from_board)) + " beads")
         return extra, from_board
 
 
