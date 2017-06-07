@@ -3,31 +3,29 @@
 {% block content %}
 <a href="{{ url_for('index') }}"><button>Index</button></a>
 
-{% if game %}
-
 <h1>Game {{ game.id }}: Round {{ game.round_count }}</h1>
-
+<h2>Board to Play: {{ BOARD_LIST[game.board_to_play] }}</h2>
+<h3>Most recent moves:</h3>
+    {% if last_moves %}
+    <ul>
+        {% for move in last_moves %}
+        <li>{{ move }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <h4>No recent moves</h4>
+    {% endif %}
 <hr>
-
-<h1>All Boards</h1>
-
 <hr>
 
 <h2>Intake Board</h2>
 <p>TOTAL = {{ intake|length }} || {{ intake }}</p>
 
-<p>
-<span style="padding:10;">
-    <a href="{{ url_for('load_intake', game_id=game.id) }}">
-        <button>Load Intake</button></a>
-</span>
 <span style="padding:10;">
     <a href="{{ url_for('play_intake', game_id=game.id) }}">
         <button>Play Intake</button></a>
 </span>
 </p>
-
-<hr>
 
 <h2>Emergency Board</h2>
 <p>TOTAL = {{ emergency|length }} || {{ emergency }}</p>
@@ -78,5 +76,4 @@
 <h4>Emergency Count: {{ emergency_count }} </h4>
 <h4>Transitional Count: {{ transitional_count }} </h4>
 
-{% endif %}
 {% endblock %}
