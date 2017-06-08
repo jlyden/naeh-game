@@ -15,6 +15,9 @@
     {% else %}
     <h4>No recent moves</h4>
     {% endif %}
+<a href="{{ url_for('system_event', game_id=game.id) }}">
+    <button>Final Score</button>
+</a>
 <hr>
 <hr>
 

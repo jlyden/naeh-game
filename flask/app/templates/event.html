@@ -1,0 +1,146 @@
+<!-- app/templates/event.html -->
+<script>
+// Credit: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
+
+window.onload = function() {
+  // progs is an object but you can think of it as a lookup table
+  var progs = {
+        'Emergency': ['Rapid Re-Housing', 'Outreach', 'Transitional', 'Permanent Supportive'],
+        'Rapid Re-Housing': ['Emergency', 'Outreach', 'Transitional', 'Permanent Supportive'],
+        'Outreach': ['Emergency', 'Rapid Re-Housing', 'Transitional', 'Permanent Supportive'],
+        'Transitional': ['Emergency', 'Rapid Re-Housing', 'Outreach', 'Permanent Supportive'],
+        'Permanent Supportive': ['Emergency', 'Rapid Re-Housing', 'Outreach', 'Transitional']
+      },
+      // just grab references to the two drop-downs
+      from_select = document.querySelector('#from_program'),
+      to_select = document.querySelector('#to_program');
+
+  // populate the from_program drop-down
+  setOptions(from_select, Object.keys(progs));
+  // populate the to_program drop-from_progn
+  setOptions(to_select, progs[from_select.value]);
+
+  // attach a change event listener to the from_prog drop-down
+  from_select.addEventListener('change', function() {
+    // get the to_progs for the selected from_prog
+    setOptions(to_select, progs[from_select.value]);
+  });
+
+  function setOptions(dropDown, options) {
+    // clear out any existing values
+    dropDown.innerHTML = '';
+    // insert the new options into the drop-down
+    options.forEach(function(value) {
+      dropDown.innerHTML += '<option name="' + value + '">' + value + '</option>';
+    });
+  }
+};
+</script>
+
+{% extends "base.html" %}
+{% block content %}
+<h1>System Event Page</h1>+
+
+<h1>Game {{ game.id }}: After Round {{ game.round_count }}</h1>
+
+<hr>
+
+{% if game.board_to_play != 0 %}
+  <p>
+    Sorry, you have to finish the round
+    before making a system event decision.
+  </p>
+  <a href="{{ url_for('status', game_id=game.id) }}">
+    Go back to Status Page
+  </a>
+{% else %}
+  {% if game.round_count == 1 %}
+    <!-- Add Program or Open Diversion -->
+    <p>Select a program to add, or open the Diversion Column.</p>
+    <form action="" method="POST" name="new_program">
+      <label for="program"></label>
+        <input type="radio" name="program" value="emergency">Emergency
+        </input></br>
+        <input type="radio" name="program" value="rapid">Rapid Re-Housing
+        </input></br>
+        <input type="radio" name="program" value="outreach">Outreach
+        </input></br>
+        <input type="radio" name="program" value="transitional">
+          Transitional</input></br>
+        <input type="radio" name="program" value="permanent">
+          Permanent Supportive</input></br></br>
+        <input type="radio" name="program" value="diversion">
+          Diversion Column</input></br>
+      <p><input type="submit" value="Submit" /></p>
+    </form>
+
+  {% elif game.round_count == 2 or game.round_count == 3 %}
+    <!-- Convert Program -->
+    <!-- This form uses the script above to populate the dropdowns -->
+    <form action="" method="POST" name="convert_program">
+      <label for="from_program"></label>
+        <p>Choose the program to convert from:</p>
+        <select id="from_program" name="from_program"></select></br>
+      <label for="to_program"></label>
+        <p>Choose the program to covert it to:</p>
+        <select id="to_program" name="to_program"></select></br>
+      <p><input type ="submit" value="Submit" /></p>
+    </form>
+
+  {% elif game.round_count == 5 %}
+    <!-- Show Score -->
+    <h2>Game Over!</h2>
+    <h3>Final Score</h3>
+
+    <h4>Final Score = Homeless Score - Housing Score = {{ ((score.unsheltered * 3) + score.emergency_total + score.transitional_total) - (score.market + score.rapid + score.permanent) }}</h4>
+
+    <table>
+      <tr>
+        <th>Item</th>
+        <th>Value</th>
+        <th>Item</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Unsheltered * 3</td>
+        <td>{{ score.unsheltered * 3 }}</td>
+        <td>Market</td>
+        <td>{{ score.market}}</td>
+      </tr>
+      <tr>
+        <td>Emergency</td>
+        <td>{{ score.emergency_total }}</td>
+        <td>Rapid</td>
+        <td>{{ score.rapid}}</td>
+      </tr>
+      <tr>
+        <td>Transitional</td>
+        <td>{{ score.transitional_total }}</td>
+        <td>Permanent</td>
+        <td>{{ score.permanent}}</td>
+      </tr>
+      <tr>
+        <th>Homeless Score</th>
+        <th>{{ (score.unsheltered * 3) + score.emergency_total + score.transitional_total }}</th>
+        <th>Housing Score</th>
+        <th>{{ score.market + score.rapid + score.permanent }}</th>
+      </tr>
+    </table>
+
+    <a href="{{ url_for('status', game_id=game.id) }}">
+          Go to status
+    </a>
+
+  {% else %}
+    <!-- No system events for this round -->
+    <p>Sorry, no system event choices for this round.</p>
+    <a href="{{ url_for('status', game_id=game.id) }}">
+          Go to status
+    </a>
+
+
+  {% endif %}
+
+{% endif %}
+
+{% endblock %}

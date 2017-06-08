@@ -335,10 +335,13 @@ def system_event(game_id):
         db.session.commit()
         return redirect(url_for('status', game_id=game_id))
     elif request.method == 'GET':
-        return render_template('event.html', game=this_game)
+        # Time to calculate Final Score
+        if this_game.round_count == 5:
+            this_score = Score.query.filter_by(game_id=game_id).first()
+            this_score.calculate_final_score()
+        return render_template('event.html', game=this_game, score=this_score)
 
-
-# TODO: Present Score page
+# TODO: move board_count +1 to end of previous round
 # TODO: add game logic for board conversion
 # TODO: diff rules in rounds!
 # TODO: add check for while extra > 0

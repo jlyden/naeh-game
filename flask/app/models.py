@@ -1,5 +1,6 @@
 import pickle
 from datetime import datetime
+from flask import flash
 from app import db
 from .utils import get_random_bead, find_room, use_room, move_beads
 
@@ -224,6 +225,8 @@ class Score(db.Model):
     market = db.Column(db.Integer, default=0)
     rapid = db.Column(db.Integer, default=0)
     permanent = db.Column(db.Integer, default=0)
+    emergency_total = db.Column(db.Integer, default=0)
+    transitional_total = db.Column(db.Integer, default=0)
 
     def __repr__(self):
         return "<Game %r Scoreboard>" % (self.game_id)
@@ -237,6 +240,24 @@ class Score(db.Model):
         self.transitional_count = pickle.dumps(this_transitional_count)
         db.session.commit()
         return
+
+    def calculate_final_score(self):
+        this_game = Game.query.filter_by(id=self.game_id).first()
+        this_emergency_count = pickle.loads(self.emergency_count)
+        this_transitional_count = pickle.loads(self.transitional_count)
+        this_unsheltered = pickle.loads(this_game.unsheltered)
+        this_market = pickle.loads(this_game.market)
+        this_rapid = Rapid.query.filter_by(game_id=self.game_id).first()
+        this_rapid_board = pickle.loads(this_rapid.board)
+        this_permanent = Permanent.query.filter_by(game_id=self.game_id).first()
+        this_permanent_board = pickle.loads(this_permanent.board)
+        self.emergency_total = sum(this_emergency_count)
+        self.transitional_total = sum(this_transitional_count)
+        self.unsheltered = len(this_unsheltered)
+        self.market = len(this_market)
+        self.rapid = len(this_rapid_board)
+        self.permanent = len(this_permanent_board)
+        db.session.commit()
 
 
 class Log(db.Model):
