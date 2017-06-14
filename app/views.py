@@ -64,6 +64,7 @@ def status(game_id):
 
     # Pull last move info from Log table
     this_log = Log.query.filter(Log.game_id == game_id).order_by(desc(Log.id)).first();
+    print("this_log.moves = " + str(this_log.moves))
     last_moves = pickle.loads(this_log.moves)
     # Boards have to be passed individually because of unpickling
     return render_template('status.html',
@@ -307,9 +308,10 @@ def system_event(game_id):
         if this_game.round_count == 6:
             this_score = Score.query.filter_by(game_id=game_id).first()
             this_score.calculate_final_score()
-        return render_template('event.html', game=this_game, score=this_score)
+            return render_template('event.html', game=this_game, score=this_score)
+        else:
+            return render_template('event.html', game=this_game)
 
-# TODO: move board_count +1 to end of previous round
 # TODO: add game logic for board conversion
 # TODO: diff rules in rounds!
 # TODO: add check for while extra > 0

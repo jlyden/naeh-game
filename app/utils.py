@@ -26,7 +26,7 @@ def use_room(room, beads, from_board, to_board):
     if room > beads:
         from_board, to_board = move_beads(beads, from_board, to_board)
         extra = 0
-    elif beads > room:
+    elif beads >= room:
         from_board, to_board = move_beads(room, from_board, to_board)
         extra = beads - room
     return extra, from_board, to_board
