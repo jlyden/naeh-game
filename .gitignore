@@ -9,3 +9,5 @@ Vagrantfile
 *.log
 
 *~
+
+apache/
