@@ -19,7 +19,7 @@ EXTRA_BOARD = 25
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_datetime = db.Column(db.DateTime, default=datetime.now)
-    round_count = db.Column(db.Integer, default=0)
+    round_count = db.Column(db.Integer, default=1)
     board_to_play = db.Column(db.Integer, default=0)
     intake_cols = db.Column(db.Integer, default=5)
     outreach_max = db.Column(db.Integer, default=10)
@@ -43,8 +43,6 @@ class Game(db.Model):
         return "<Game %r, round %r>" % (self.id, self.round_count)
 
     def load_intake(self, moves):
-        # This move begins round, so up-counter
-        self.round_count += 1
         available_list = pickle.loads(self.available)
         available_list, intake_list = get_random_bead(50, available_list)
         self.intake = pickle.dumps(intake_list)

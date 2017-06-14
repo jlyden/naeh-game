@@ -15,9 +15,12 @@
     {% else %}
     <h4>No recent moves</h4>
     {% endif %}
+
+{% if game.round_count == 6 %}
 <a href="{{ url_for('system_event', game_id=game.id) }}">
     <button>Final Score</button>
 </a>
+{% endif %}
 <hr>
 <hr>
 

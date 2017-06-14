@@ -1,7 +1,7 @@
 import math
 import pickle
 from flask import request, render_template, redirect, url_for, flash
-from sqlalchemy import and_
+from sqlalchemy import desc
 from app import app, db
 from .utils import find_room, move_beads
 from .models import Game, Emergency, Rapid, Transitional, Permanent, Score, Log
@@ -29,7 +29,7 @@ def index():
         moves = []
         message = "Game " + str(new_game.id) + " initiated"
         moves.append(message)
-        move_log = Log(new_game.id, 0, 0, moves)
+        move_log = Log(new_game.id, 1, 0, moves)
         db.session.add(move_log)
         db.session.commit()
         return redirect(url_for('status', game_id=new_game.id))
@@ -63,41 +63,7 @@ def status(game_id):
     transitional_count = pickle.loads(this_score.transitional_count)
 
     # Pull last move info from Log table
-    # If beginning of entire game (before first load/play of Intake)
-    if this_game.round_count == 0:
-        this_log = Log.query.filter(and_(Log.game_id == game_id,
-                                         Log.round_count == 0,
-                                         Log.board_played == 0)
-                                    ).order_by(Log.id).first()
-    # After first play of Intake board (round_count == 1)
-    elif this_game.board_to_play == 1 and this_game.round_count == 1:
-        this_log = Log.query.filter(and_(Log.game_id == game_id,
-                                         Log.round_count == 1,
-                                         Log.board_played ==
-                                         this_game.board_to_play - 1)
-                                    ).order_by(Log.id).first()
-    # After future plays of Intake board (round_count > 1)
-    elif this_game.board_to_play == 1 and this_game.round_count > 1:
-        this_log = Log.query.filter(and_(Log.game_id == game_id,
-                                         Log.round_count ==
-                                         this_game.round_count - 1,
-                                         Log.board_played ==
-                                         this_game.board_to_play - 1)
-                                    ).order_by(Log.id).first()
-    # After play of Permanent board
-    elif this_game.board_to_play == 0:
-        this_log = Log.query.filter(and_(Log.game_id == game_id,
-                                         Log.round_count ==
-                                         this_game.round_count,
-                                         Log.board_played == 5)
-                                    ).order_by(Log.id).first()
-    else:
-        this_log = Log.query.filter(and_(Log.game_id == game_id,
-                                         Log.round_count ==
-                                         this_game.round_count,
-                                         Log.board_played ==
-                                         this_game.board_to_play - 1)
-                                    ).order_by(Log.id).first()
+    this_log = Log.query.filter(Log.game_id == game_id).order_by(desc(Log.id)).first();
     last_moves = pickle.loads(this_log.moves)
     # Boards have to be passed individually because of unpickling
     return render_template('status.html',
@@ -158,7 +124,7 @@ def play_intake(game_id):
     return redirect(url_for('status', game_id=game_id))
 
 
-# Something is wrong in this log
+# TODO: Something is wrong in this log
 @app.route('/play_emergency/<game_id>')
 def play_emergency(game_id):
     this_game = Game.query.get_or_404(int(game_id))
@@ -309,6 +275,8 @@ def play_permanent(game_id):
         move_log = Log(game_id, this_game.round_count,
                        this_game.board_to_play, moves)
         db.session.add(move_log)
+        # Reset counters
+        this_game.round_count += 1
         this_game.board_to_play = 0
         db.session.commit()
     return redirect(url_for('system_event', game_id=game_id))
@@ -319,24 +287,24 @@ def system_event(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if request.method == 'POST':
         moves = []
-        if this_game.round_count == 1:
+        if this_game.round_count == 2:
             program = request.form.get('program')
             moves = this_game.open_new(program, moves)
-        elif this_game.round_count == 2 or this_game.round_count == 3:
+        elif this_game.round_count == 3 or this_game.round_count == 4:
             from_program = request.form.get('from_program')
             to_program = request.form.get('to_program')
             print('from_program is ' + str(from_program))
             print('to_program is ' + str(to_program))
             moves = this_game.convert_program(from_program, to_program, moves)
 
-        # Set "board_to_play == 5" for sake of log
-        move_log = Log(game_id, this_game.round_count, 5, moves)
+        # Set "board_played == 6" for sake of log
+        move_log = Log(game_id, this_game.round_count, 6, moves)
         db.session.add(move_log)
         db.session.commit()
         return redirect(url_for('status', game_id=game_id))
     elif request.method == 'GET':
         # Time to calculate Final Score
-        if this_game.round_count == 5:
+        if this_game.round_count == 6:
             this_score = Score.query.filter_by(game_id=game_id).first()
             this_score.calculate_final_score()
         return render_template('event.html', game=this_game, score=this_score)

@@ -41,7 +41,7 @@ window.onload = function() {
 {% block content %}
 <h1>System Event Page</h1>+
 
-<h1>Game {{ game.id }}: After Round {{ game.round_count }}</h1>
+<h1>Game {{ game.id }}: Before Round {{ game.round_count }}</h1>
 
 <hr>
 
@@ -54,7 +54,7 @@ window.onload = function() {
     Go back to Status Page
   </a>
 {% else %}
-  {% if game.round_count == 1 %}
+  {% if game.round_count == 2 %}
     <!-- Add Program or Open Diversion -->
     <p>Select a program to add, or open the Diversion Column.</p>
     <form action="" method="POST" name="new_program">
@@ -74,7 +74,7 @@ window.onload = function() {
       <p><input type="submit" value="Submit" /></p>
     </form>
 
-  {% elif game.round_count == 2 or game.round_count == 3 %}
+  {% elif game.round_count == 3 or game.round_count == 4 %}
     <!-- Convert Program -->
     <!-- This form uses the script above to populate the dropdowns -->
     <form action="" method="POST" name="convert_program">
@@ -87,7 +87,7 @@ window.onload = function() {
       <p><input type ="submit" value="Submit" /></p>
     </form>
 
-  {% elif game.round_count == 5 %}
+  {% elif game.round_count == 6 %}
     <!-- Show Score -->
     <h2>Game Over!</h2>
     <h3>Final Score</h3>
