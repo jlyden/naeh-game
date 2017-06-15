@@ -313,6 +313,8 @@ def system_event(game_id):
         else:
             return render_template('event.html', game=this_game)
 
+# TODO: add check for round six - no more playing - maybe disappear play buttons
+# TODO: gameplay where you make 1 or more choices, then play entire round with 1 click, then results are displayed; rinse, repeat
 # TODO: add game logic for board conversion
 # TODO: diff rules in rounds!
 # TODO: add check for while extra > 0
