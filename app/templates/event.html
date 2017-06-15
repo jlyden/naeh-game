@@ -38,52 +38,84 @@ window.onload = function() {
 
 {% extends "base.html" %}
 {% block content %}
-{% if game.board_to_play != 0 %}
-  <p>
-    Sorry, you have to finish the round
-    before making a system event decision.
-  </p>
-  <a href="{{ url_for('status', game_id=game.id) }}">
-    Go back to Status Page
-  </a>
-{% else %}
-  {% if game.round_count == 2 %}
-    <!-- Add Program or Open Diversion -->
-    <p>Select a program to add, or open the Diversion Column.</p>
-    <form action="" method="POST" name="new_program">
-      <label for="program"></label>
-        <input type="radio" name="program" value="emergency">Emergency
-        </input></br>
-        <input type="radio" name="program" value="rapid">Rapid Re-Housing
-        </input></br>
-        <input type="radio" name="program" value="outreach">Outreach
-        </input></br>
-        <input type="radio" name="program" value="transitional">
-          Transitional</input></br>
-        <input type="radio" name="program" value="permanent">
-          Permanent Supportive</input></br></br>
-        <input type="radio" name="program" value="diversion">
-          Diversion Column</input></br>
-      <p><input type="submit" value="Submit" /></p>
-    </form>
-
-  {% elif game.round_count == 3 or game.round_count == 4 %}
-    <!-- Convert Program -->
-    <!-- This form uses the script above to populate the dropdowns -->
-    <form action="" method="POST" name="convert_program">
-      <label for="from_program"></label>
-        <p>Choose the program to convert from:</p>
-        <select id="from_program" name="from_program"></select></br>
-      <label for="to_program"></label>
-        <p>Choose the program to covert it to:</p>
-        <select id="to_program" name="to_program"></select></br>
-      <p><input type ="submit" value="Submit" /></p>
-    </form>
-
-  {% elif game.round_count == 6 %}
-    <!-- Show Score -->
-    <h2>Game Over!</h2>
-    <h3>Final Score</h3>
+  <div class="row">
+    <div class="col-sm-2">
+    </div>
+    <div class="panel panel-info col-sm-4">
+      {% if game.board_to_play != 0 %}
+      <div class="panel-body">
+        <p>
+          Sorry, you have to finish the round
+          before making a system event decision.
+        </p>
+        <a href="{{ url_for('status', game_id=game.id) }}">
+          Status Page
+        </a>
+      </div><!--./panel-body -->
+      {% else %}
+        {% if game.round_count == 2 %}
+          <!-- Add Program or Open Diversion -->          
+          <div class="panel-heading">
+            <h2 class="panel-title">Select a program to add,<br> or open the Diversion Column.</h2>
+          </div>
+          <div class="panel-body">
+          <form method="POST">
+              <div class="radio">
+                <label>
+                  <input type="radio" name="program" value="emergency">Emergency Housing
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="program" value="rapid">Rapid Rehousing Program
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="program" value="outreach">Outreach Program
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="program" value="transitional">Transitional Housing
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="program" value="permanent">Permanent Supportive Housing
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="program" value="diversion">Diversion Column
+                </label>
+              </div>
+            <button type="submit" class="btn btn-success">Submit</button>
+          </form>
+        </div><!--./panel-body -->
+        {% elif game.round_count == 3 or game.round_count == 4 %}
+          <!-- Convert Program -->
+          <!-- This form uses the script above to populate the dropdowns -->
+          <div class="panel-heading">
+            <h2 class="panel-title">Convert one program to another.</h2>
+          </div>
+          <div class="panel-body">
+          <form method="POST">
+            <div class="form-group">
+                <p>Choose the program to convert from:</p>
+                <select class="form-control" id="from_program" name="from_program"></select>
+            </div>
+            <div class="form-group">
+              <p>Choose the program to covert it to:</p>
+                <select class="form-control"id="to_program" name="to_program"></select>
+            </div>
+            <button type="submit" class="btn btn-success">Submit</button>
+          </form>
+        </div><!--./panel-body -->
+        {% elif game.round_count == 6 %}
+          <!-- Show Score -->
+          <h2>Game Over!</h2>
+          <h3>Final Score</h3>
 
     <h4>Final Score = Homeless Score - Housing Score = {{ ((score.unsheltered * 3) + score.emergency_total + score.transitional_total) - (score.market + score.rapid + score.permanent) }}</h4>
 

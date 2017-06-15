@@ -10,6 +10,7 @@ BOARD_LIST = ["Intake", "Emergency", "Rapid",
               "Outreach", "Transitional", "Permanent"]
 
 
+@app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -312,7 +313,6 @@ def system_event(game_id):
         else:
             return render_template('event.html', game=this_game)
 
-# TODO: move game id, round_count to header
 # TODO: add game logic for board conversion
 # TODO: diff rules in rounds!
 # TODO: add check for while extra > 0
