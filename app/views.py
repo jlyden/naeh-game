@@ -87,8 +87,8 @@ def status(game_id):
 def play_intake(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if BOARD_LIST[this_game.board_to_play] != 'Intake':
-        flash('Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'error')
+        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
+              ' board.', 'warning')
     else:
         moves = []
         moves = this_game.load_intake(moves)
@@ -130,8 +130,8 @@ def play_intake(game_id):
 def play_emergency(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if BOARD_LIST[this_game.board_to_play] != 'Emergency':
-        flash('Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'error')
+        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
+              ' board.', 'warning')
     else:
         moves = []
         # Emergency board = 5x5, so 1 col = 5; 1.5 col = 8
@@ -163,8 +163,8 @@ def play_emergency(game_id):
 def play_rapid(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if BOARD_LIST[this_game.board_to_play] != 'Rapid':
-        flash('Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'error')
+        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
+              ' board.', 'warning')
     else:
         moves = []
         # Rapid board = 5x2, so 1 col = 2
@@ -188,8 +188,8 @@ def play_rapid(game_id):
 def play_outreach(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if BOARD_LIST[this_game.board_to_play] != 'Outreach':
-        flash('Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'error')
+        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
+              ' board.', 'warning')
     else:
         moves = []
         outreach_board = pickle.loads(this_game.outreach)
@@ -224,8 +224,8 @@ def play_outreach(game_id):
 def play_transitional(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if BOARD_LIST[this_game.board_to_play] != 'Transitional':
-        flash('Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'error')
+        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
+              ' board.', 'warning')
     else:
         moves = []
         # Transitional board = 5x4, so 1 col = 4
@@ -252,8 +252,8 @@ def play_transitional(game_id):
 def play_permanent(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if BOARD_LIST[this_game.board_to_play] != 'Permanent':
-        flash('Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'error')
+        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
+              ' board.', 'warning')
     else:
         moves = []
         permanent = Permanent.query.filter_by(game_id=game_id).first()
@@ -312,6 +312,7 @@ def system_event(game_id):
         else:
             return render_template('event.html', game=this_game)
 
+# TODO: move game id, round_count to header
 # TODO: add game logic for board conversion
 # TODO: diff rules in rounds!
 # TODO: add check for while extra > 0

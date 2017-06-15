@@ -1,24 +1,27 @@
-<!-- app/templates/index.html -->
 {% extends "base.html" %}
 {% block content %}
-  <h1>Begin a New Game</h1>
-  <form action="" method="POST" name="new_game">
-    <p><input type="submit" value="New Game" /></p>
-  </form>
-
-  <h1>Games in Progress</h1>
-  {% if recent_games %}
-    <ul>
-    {% for this_game in recent_games %}
-      <li>
-        <a href="{{ url_for('status', game_id=this_game.id) }}">
-          {{ this_game.id }}
-        </a>
-      </li>
-    {% endfor %}
-    </ul>
-  {% else %}
-    <p>No games started yet.</p>
-  {% endif %}
-
+  <div class="row">
+    <div class="col-sm-2">
+    </div>
+    <div class="panel panel-warning col-sm-4">
+      <div class="panel-heading">
+        <h2 class="panel-title">Games in Progress</h2>
+      </div>
+      <div class="panel-body">
+        {% if recent_games %}
+        <ul class="list-group">
+          {% for this_game in recent_games %}
+            <li class="list-group-item">
+              <a href="{{ url_for('status', game_id=this_game.id) }}">
+                {{ this_game.id }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+          <p>No games started yet.</p>
+       {% endif %}
+    </div>
+    <div class="col-sm-6">
+  </div>
 {% endblock %}

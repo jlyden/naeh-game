@@ -1,6 +1,5 @@
 import pickle
 from datetime import datetime
-from flask import flash
 from app import db
 from .utils import get_random_bead, find_room, use_room, move_beads
 

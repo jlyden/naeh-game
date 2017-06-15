@@ -1,25 +1,54 @@
-<!-- app/templates/base.html -->
-<!-- TODO: CSS style sheet; remove in-tag styling -->
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The 3 meta tags above *must* come first in the head -->
+    <link rel="shortcut icon" href="../static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../static/img/favicon.ico" type="image/x-icon">
     <title>NAEH - Homeless Services Game</title>
+    <!-- Bootstrap -->
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/bootstrap-theme.min.css" rel="stylesheet">
+    <script src="../static/js/ie-emulation-modes-warning.js"></script>
   </head>
-
   <body>
+    <div class="container" style="min-height:100% width:80%">
+      <nav class="navbar navbar-default">
+        <div class="navbar-header">
+          <img class="navbar-left" alt="Logo" src="../static/img/sm-blue-house.png">
+          <h3 class="navbar-text">NAEH Game</h3>
+          {% if game %}
+            <h4 class="navbar-text">Game {{ game.id }}: Round {{ game.round_count }}</h4>
+          {% else %}
+            <form class="navbar-form navbar-right" role="new" action="" method="POST" name="new_game">
+              <div class="form-group">
+                <h4>Begin a New Game
+                  <button type="submit" class="btn btn-success">Go</button>
+                </h4>
+              </div>
+            </form>          
+          {% endif %}
+          <h4 class="navbar-text navbar-right"><a href="{{ url_for('index') }}" class="navbar-link">Index</a></p>
+        </div>
+      </nav>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">
+          <!-- <strong>Title</strong> --> {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <ul style="list-style: none; padding-left:0;">
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
-
-  {% block content %}
-  {% endblock %}
-
+    {% block content %}
+    {% endblock %}
+    </div><!-- /.container -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="../static/js/bootstrap.min.js"></script>
   </body>
 </html>

@@ -1,85 +1,121 @@
-<!-- app/templates/status.html -->
 {% extends "base.html" %}
 {% block content %}
-<a href="{{ url_for('index') }}"><button>Index</button></a>
-
-<h1>Game {{ game.id }}: Round {{ game.round_count }}</h1>
-<h2>Board to Play: {{ BOARD_LIST[game.board_to_play] }}</h2>
-<h3>Most recent moves:</h3>
-    {% if last_moves %}
-    <ul>
-        {% for move in last_moves %}
-        <li>{{ move }}</li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <h4>No recent moves</h4>
-    {% endif %}
-
-{% if game.round_count == 6 %}
-<a href="{{ url_for('system_event', game_id=game.id) }}">
-    <button>Final Score</button>
-</a>
-{% endif %}
-<hr>
-<hr>
-
-<h2>Intake Board</h2>
-<p>TOTAL = {{ intake|length }} || {{ intake }}</p>
-
-<span style="padding:10;">
-    <a href="{{ url_for('play_intake', game_id=game.id) }}">
-        <button>Play Intake</button></a>
-</span>
-</p>
-
-<h2>Emergency Board</h2>
-<p>TOTAL = {{ emergency|length }} || {{ emergency }}</p>
-<span style="padding:10;">
-    <a href="{{ url_for('play_emergency', game_id=game.id) }}">
-        <button>Play Emergency</button></a>
-</span>
-
-<h2>Rapid Rehousing Board</h2>
-<p>TOTAL = {{ rapid|length }} || {{ rapid }}</p>
-<span style="padding:10;">
-    <a href="{{ url_for('play_rapid', game_id=game.id) }}">
-        <button>Play Rapid</button></a>
-</span>
-
-<h2>Outreach Board</h2>
-<p>TOTAL = {{ outreach|length }} || {{ outreach }}</p>
-<span style="padding:10;">
-    <a href="{{ url_for('play_outreach', game_id=game.id) }}">
-        <button>Play Outreach</button></a>
-</span>
-
-
-<h2>Transitional Housing Board</h2>
-<p>TOTAL = {{ transitional|length }} || {{ transitional }}</p>
-<span style="padding:10;">
-    <a href="{{ url_for('play_transitional', game_id=game.id) }}">
-        <button>Play Transitional</button></a>
-</span>
-
-<h2>Permanent Supportive Housing Board</h2>
-<p>TOTAL = {{ permanent|length }} || {{ permanent }}</p>
-<span style="padding:10;">
-    <a href="{{ url_for('play_permanent', game_id=game.id) }}">
-        <button>Play Permanent</button></a>
-</span>
-
-<h1>All Bins</h1>
-
-<h2>Market Housing Bin</h2>
-<p>TOTAL = {{ market|length }} || {{ market }}</p>
-
-<h2>Unsheltered Homeless Bin</h2>
-<p>TOTAL = {{ unsheltered|length }} || {{ unsheltered }}</p>
-
-<h1>Score</h1>
-
-<h4>Emergency Count: {{ emergency_count }} </h4>
-<h4>Transitional Count: {{ transitional_count }} </h4>
-
+  <div class="row">
+    <div class="col-sm-1">
+    </div>
+    <div class="panel panel-primary col-sm-5">
+      <div class="panel-heading">
+        <h2 class="panel-title">Board to Play: {{ BOARD_LIST[game.board_to_play] }}</h2>
+      </div>
+      <div class="panel-body">
+        <ul class="list-group">
+          <li class="list-group-item">
+              <h4>
+                  Intake Program
+                <span class="label label-info ">{{ intake|length }}</span>
+                <a href="{{ url_for('play_intake', game_id=game.id) }}">
+                    <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
+                </a>
+              </h4>
+          </li>
+          <li class="list-group-item">
+              <h4>
+                  Emergency Housing
+                  <span class="label label-info ">{{ emergency|length }}</span>
+                  <a href="{{ url_for('play_emergency', game_id=game.id) }}">
+                    <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
+                  </a>
+              </h4>
+          </li>
+          <li class="list-group-item">
+            <h4>
+              Rapid Rehousing
+              <span class="label label-info ">{{ rapid|length }}</span>
+              <a href="{{ url_for('play_rapid', game_id=game.id) }}">
+                <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
+              </a>
+            </h4>
+          </li>
+          <li class="list-group-item">
+            <h4>
+              Outreach Program
+              <span class="label label-info ">{{ outreach|length }}</span>
+              <a href="{{ url_for('play_outreach', game_id=game.id) }}">
+                <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
+              </a>
+            </h4>
+          </li>
+          <li class="list-group-item">
+            <h4>
+              Transitional Housing
+              <span class="label label-info ">{{ transitional|length }}</span>
+              <a href="{{ url_for('play_transitional', game_id=game.id) }}">
+                <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
+              </a>
+            </h4>
+          </li>
+          <li class="list-group-item">
+            <h4>
+              Permanent Supportive Housing
+              <span class="label label-info ">{{ permanent|length }}</span>
+              <a href="{{ url_for('play_permanent', game_id=game.id) }}">
+                <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
+              </a>
+            </h4>
+          </li>
+        </ul>
+      </div>
+    </div><!-- ./panel left -->
+    <div class="col-sm-1">
+    </div><!-- ./panel center -->
+    <div class="col-sm-4">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+            <h2 class="panel-title">Most Recent Moves</h2>
+        </div>
+        <div class="panel-body">
+            {% if last_moves %}
+            <ul class="list-group">
+                {% for move in last_moves %}
+                <li class="list-group-item">{{ move }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <h4>No recent moves</h4>
+            {% endif %}
+            {% if game.round_count == 6 %}
+            <a href="{{ url_for('system_event', game_id=game.id) }}">
+                <button class="btn btn-success">Primary</button>
+            </a>
+            {% endif %}
+        </div>
+      </div><!-- ./div panel Moves -->
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+            <h2 class="panel-title">Stats</h2>
+        </div>
+        <div class="panel-body">
+        <ul class="list-group">
+          <li class="list-group-item">
+              People in Market Housing
+              <span class="label label-info ">{{ market|length }}</span>
+          </li>
+          <li class="list-group-item">
+              Unsheltered People
+              <span class="label label-info ">{{ unsheltered|length }}</span>
+          </li>
+          <li class="list-group-item">
+              Emergency Housing Per Round
+              <span class="label label-info ">{{ emergency_count }}</span>
+          </li>
+          <li class="list-group-item">
+              Transitional Housing Per Round
+              <span class="label label-info ">{{ transitional_count }}</span>
+          </li>
+        </ul>
+      </div><!-- ./div panel Bins -->
+    </div><!-- ./panel right -->
+    <div class="col-sm-1">
+    </div>
+  </div><!-- ./row -->
 {% endblock %}

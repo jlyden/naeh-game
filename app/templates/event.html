@@ -1,4 +1,3 @@
-<!-- app/templates/event.html -->
 <script>
 // Credit: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
 
@@ -39,12 +38,6 @@ window.onload = function() {
 
 {% extends "base.html" %}
 {% block content %}
-<h1>System Event Page</h1>
-
-<h1>Game {{ game.id }}: Before Round {{ game.round_count }}</h1>
-
-<hr>
-
 {% if game.board_to_play != 0 %}
   <p>
     Sorry, you have to finish the round
