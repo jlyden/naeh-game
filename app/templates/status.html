@@ -26,6 +26,8 @@
                     <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
                   </a>
               </h4>
+              <!-- chart canvas element 
+              <canvas id="emerg_chart" width="200" height="300"></canvas> -->
           </li>
           <li class="list-group-item">
             <h4>
@@ -118,4 +120,39 @@
     <div class="col-sm-1">
     </div>
   </div><!-- ./row -->
+
+<script>
+  // emerg_chart data
+  var barData = {
+  e_counts : [{% for count in e_counts %}
+                "{{count}}",
+              {% endfor %}],
+  datasets : [
+      {
+        fillColor: "rgba(151,187,205,0.2)",
+        strokeColor: "rgba(151,187,205,1)",
+        pointColor: "rgba(151,187,205,1)",
+        data : [{% for count in e_counts %}
+                  {{count}},
+                {% endfor %}]
+      }
+    ]
+  }
+ 
+  // get emerg_chart canvas
+  var e_chart = document.getElementById("emerg_chart").getContext("2d");
+  steps = 25
+  max = 25
+  // draw emerg_chart
+  new Chart(e_chart).Bar(barData, {
+      scaleOverride: true,
+      scaleSteps: steps,
+      scaleStepWidth: Math.ceil(max / steps),
+      scaleStartValue: 0,
+      scaleShowVerticalLines: true,
+      scaleShowGridLines : true,
+      barShowStroke : true,
+      scaleShowLabels: true
+  });
+</script>
 {% endblock %}

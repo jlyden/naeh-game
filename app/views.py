@@ -51,6 +51,7 @@ def status(game_id):
     # Pull info from other board tables
     this_emergency = Emergency.query.filter_by(game_id=game_id).first()
     emergency_board = pickle.loads(this_emergency.board)
+    e_counts = pickle.loads(this_emergency.record)
     this_rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
     rapid_board = pickle.loads(this_rapid.board)
     this_transitional = Transitional.query.filter_by(game_id=game_id).first()
@@ -76,6 +77,7 @@ def status(game_id):
                            market=market_board,
                            unsheltered=unsheltered_board,
                            emergency=emergency_board,
+                           e_counts=e_counts,
                            rapid=rapid_board,
                            transitional=transitional_board,
                            permanent=permanent_board,
@@ -152,6 +154,9 @@ def play_emergency(game_id):
         emerg_board, moves = this_game.send_to_unsheltered(extra, emerg_board, moves)
         emergency.board = pickle.dumps(emerg_board)
 
+        record = pickle.loads(emergency.record)
+        record.append(len(emerg_board))
+        emergency.record = pickle.dumps(record)
         move_log = Log(game_id, this_game.round_count,
                        this_game.board_to_play, moves)
         db.session.add(move_log)

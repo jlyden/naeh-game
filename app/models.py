@@ -113,6 +113,7 @@ class Emergency(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     board = db.Column(db.PickleType, default=EMERGENCY_START)
+    record = db.Column(db.PickleType, default=pickle.dumps([20]))
     maximum = db.Column(db.Integer, default=25)
 
     def __repr__(self):
@@ -127,6 +128,10 @@ class Emergency(db.Model):
         else:
             extra, from_board, to_board = use_room(room, beads, from_board,
                                                    to_board)
+        # Add to record current Emergency count
+        record = pickle.loads(self.record)
+        record.append(len(to_board))
+        self.record = pickle.dumps(record)
         self.board = pickle.dumps(to_board)
         db.session.commit()
         message = str(beads - extra) + " beads to emergency"
