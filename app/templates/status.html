@@ -26,8 +26,6 @@
                     <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
                   </a>
               </h4>
-              <!-- chart canvas element 
-              <canvas id="emerg_chart" width="200" height="300"></canvas> -->
           </li>
           <li class="list-group-item">
             <h4>
@@ -64,6 +62,10 @@
                 <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
               </a>
             </h4>
+          </li>
+          <li class="list-group-item">
+            <!-- chart canvas element  -->
+            <canvas id="program_chart" width="400" height="200"></canvas>
           </li>
         </ul>
       </div>
@@ -108,11 +110,11 @@
           </li>
           <li class="list-group-item">
               Emergency Housing Per Round
-              <span class="label label-info ">{{ emergency_count }}</span>
+              <span class="label label-info ">{{ e_counts }}</span>
           </li>
           <li class="list-group-item">
               Transitional Housing Per Round
-              <span class="label label-info ">{{ transitional_count }}</span>
+              <span class="label label-info ">{{ t_counts }}</span>
           </li>
         </ul>
       </div><!-- ./div panel Bins -->
@@ -122,37 +124,58 @@
   </div><!-- ./row -->
 
 <script>
-  // emerg_chart data
-  var barData = {
-  e_counts : [{% for count in e_counts %}
-                "{{count}}",
-              {% endfor %}],
-  datasets : [
-      {
-        fillColor: "rgba(151,187,205,0.2)",
+  // program_chart data
+  var lineData = {
+  labels : [0, 1, 2, 3, 4, 5, 6],
+  datasets : [{
+        data: [{% for count in e_counts %}
+                  {{count}},
+                {% endfor %}],
+        label: "Emergency",
+        fillColor: "rgba(255,255,255,.2)",
         strokeColor: "rgba(151,187,205,1)",
         pointColor: "rgba(151,187,205,1)",
-        data : [{% for count in e_counts %}
+      },{ 
+        data: [{% for count in r_counts %}
                   {{count}},
-                {% endfor %}]
+                {% endfor %}],
+        label: "Rapid",
+        fillColor: "rgba(255,255,255,.2)",
+        strokeColor: "rgba(255,51,51,.2)",
+        pointColor: "rgba(255,51,51,.2)",
+      },{ 
+        data: [{% for count in t_counts %}
+                  {{count}},
+                {% endfor %}],
+        label: "Transitional",
+        fillColor: "rgba(255,255,255,.2)",
+        strokeColor: "rgba(51,204,51,.2)",
+        pointColor: "rgba(51,204,51,.2)",
+      },{ 
+        data: [{% for count in p_counts %}
+                  {{count}},
+                {% endfor %}],
+        label: "Permanent",
+        fillColor: "rgba(255,255,255,.2)",
+        strokeColor: "rgba(204,0,102,.2)",
+        pointColor: "rgba(204,0,102,.2)",
       }
     ]
   }
- 
-  // get emerg_chart canvas
-  var e_chart = document.getElementById("emerg_chart").getContext("2d");
+  // Set line-chart-related defaults
+  Chart.defaults.global.responsive = false;
+  Chart.defaults.global.scaleLineColor = "black";
+  Chart.defaults.global.scaleFontSize = 16;
+  // get program_chart canvas
+  var prog_chart = document.getElementById("program_chart").getContext("2d");
   steps = 25
   max = 25
-  // draw emerg_chart
-  new Chart(e_chart).Bar(barData, {
-      scaleOverride: true,
-      scaleSteps: steps,
-      scaleStepWidth: Math.ceil(max / steps),
-      scaleStartValue: 0,
-      scaleShowVerticalLines: true,
-      scaleShowGridLines : true,
+  // draw program_chart
+  new Chart(prog_chart).Line(lineData, {
+      display: true,
+      scaleShowGridLines : false,
       barShowStroke : true,
-      scaleShowLabels: true
+      bezierCurve: false,
   });
 </script>
 {% endblock %}

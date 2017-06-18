@@ -3,8 +3,8 @@ import pickle
 from flask import request, render_template, redirect, url_for, flash
 from sqlalchemy import desc
 from app import app, db
-from .utils import find_room, move_beads
 from .models import Game, Emergency, Rapid, Transitional, Permanent, Score, Log
+from .utils import find_room, move_beads
 
 BOARD_LIST = ["Intake", "Emergency", "Rapid",
               "Outreach", "Transitional", "Permanent"]
@@ -54,35 +54,33 @@ def status(game_id):
     e_counts = pickle.loads(this_emergency.record)
     this_rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
     rapid_board = pickle.loads(this_rapid.board)
+    r_counts = pickle.loads(this_rapid.record)
     this_transitional = Transitional.query.filter_by(game_id=game_id).first()
     transitional_board = pickle.loads(this_transitional.board)
+    t_counts = pickle.loads(this_transitional.record)
     this_permanent = Permanent.query.filter_by(game_id=game_id).first()
     permanent_board = pickle.loads(this_permanent.board)
-
-    # Pull info from Score table
-    this_score = Score.query.filter_by(game_id=game_id).first()
-    emergency_count = pickle.loads(this_score.emergency_count)
-    transitional_count = pickle.loads(this_score.transitional_count)
+    p_counts = pickle.loads(this_permanent.record)
 
     # Pull last move info from Log table
     this_log = Log.query.filter(Log.game_id == game_id).order_by(desc(Log.id)).first();
-    print("this_log.moves = " + str(this_log.moves))
     last_moves = pickle.loads(this_log.moves)
     # Boards have to be passed individually because of unpickling
     return render_template('status.html',
-                           game=this_game,
                            BOARD_LIST=BOARD_LIST,
+                           game=this_game,
                            intake=intake_board,
                            outreach=outreach_board,
                            market=market_board,
                            unsheltered=unsheltered_board,
                            emergency=emergency_board,
-                           e_counts=e_counts,
                            rapid=rapid_board,
                            transitional=transitional_board,
                            permanent=permanent_board,
-                           emergency_count=emergency_count,
-                           transitional_count=transitional_count,
+                           e_counts=e_counts,
+                           r_counts=r_counts,
+                           t_counts=t_counts,
+                           p_counts=p_counts,
                            last_moves=last_moves)
 
 
@@ -154,9 +152,6 @@ def play_emergency(game_id):
         emerg_board, moves = this_game.send_to_unsheltered(extra, emerg_board, moves)
         emergency.board = pickle.dumps(emerg_board)
 
-        record = pickle.loads(emergency.record)
-        record.append(len(emerg_board))
-        emergency.record = pickle.dumps(record)
         move_log = Log(game_id, this_game.round_count,
                        this_game.board_to_play, moves)
         db.session.add(move_log)
@@ -270,19 +265,11 @@ def play_permanent(game_id):
         else:
             permanent_board, moves = this_game.send_to_market(1, permanent_board, moves)
         permanent.board = pickle.dumps(permanent_board)
-
-        # This ends round - time to score
-        emergency = Emergency.query.filter_by(game_id=game_id).first()
-        emerg_count = len(pickle.loads(emergency.board))
-        trans = Transitional.query.filter_by(game_id=game_id).first()
-        trans_count = len(pickle.loads(trans.board))
-        this_score = Score.query.filter_by(game_id=game_id).first()
-        this_score.add_score(emerg_count, trans_count)
-
         move_log = Log(game_id, this_game.round_count,
                        this_game.board_to_play, moves)
         db.session.add(move_log)
-        # Reset counters
+        # Update record and reset counters
+        this_game.update_records
         this_game.round_count += 1
         this_game.board_to_play = 0
         db.session.commit()
@@ -318,6 +305,8 @@ def system_event(game_id):
         else:
             return render_template('event.html', game=this_game)
 
+# TODO: Adjust record to record only at end of round - label by round
+# TODO: Chart all boards together
 # TODO: add check for round six - no more playing - maybe disappear play buttons
 # TODO: gameplay where you make 1 or more choices, then play entire round with 1 click, then results are displayed; rinse, repeat
 # TODO: add game logic for board conversion

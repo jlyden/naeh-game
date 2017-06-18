@@ -1,7 +1,7 @@
 import pickle
 from datetime import datetime
 from app import db
-from .utils import get_random_bead, find_room, use_room, move_beads
+from .utils import get_random_bead, find_room, use_room, move_beads, add_record
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
@@ -69,6 +69,24 @@ class Game(db.Model):
         moves.append(message)
         return from_board, moves
 
+    def update_records(self):
+        # add_record() accepts and returns a pickle object
+        print("Here come the records.")
+        emergency = Emergency.query.filter_by(game_id=self.id).first()
+        emerg_board = pickle.loads(emergency.board)
+        emergency.record = add_record(emergency.record, len(emerg_board))
+        rapid = Rapid.query.filter_by(game_id=self.id).first()
+        rapid_board = pickle.loads(rapid.board)
+        rapid.record = add_record(rapid.record, len(rapid_board))
+        trans = Transitional.query.filter_by(game_id=self.id).first()
+        trans_board = pickle.loads(trans.board)
+        trans.record = add_record(trans.record, len(trans_board))
+        permanent = Permanent.query.filter_by(game_id=self.id).first()
+        permanent_board = pickle.loads(permanent.board)
+        permanent.record = add_record(permanent.record, len(permanent_board))
+        db.session.commit()
+        return
+
     def open_new(self, program, moves):
         print('program is ' + program)
         # Add 'extra' board (i.e. 25 slots to selected board/program)
@@ -128,10 +146,6 @@ class Emergency(db.Model):
         else:
             extra, from_board, to_board = use_room(room, beads, from_board,
                                                    to_board)
-        # Add to record current Emergency count
-        record = pickle.loads(self.record)
-        record.append(len(to_board))
-        self.record = pickle.dumps(record)
         self.board = pickle.dumps(to_board)
         db.session.commit()
         message = str(beads - extra) + " beads to emergency"
@@ -143,6 +157,7 @@ class Rapid(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     board = db.Column(db.PickleType, default=RAPID_START)
+    record = db.Column(db.PickleType, default=pickle.dumps([10]))
     maximum = db.Column(db.Integer, default=10)
 
     def __repr__(self):
@@ -168,6 +183,7 @@ class Transitional(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     board = db.Column(db.PickleType, default=TRANSITIONAL_START)
+    record = db.Column(db.PickleType, default=pickle.dumps([16]))
     maximum = db.Column(db.Integer, default=20)
 
     def __repr__(self):
@@ -193,6 +209,7 @@ class Permanent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     board = db.Column(db.PickleType, default=PERMANENT_START)
+    record = db.Column(db.PickleType, default=pickle.dumps([20]))
     maximum = db.Column(db.Integer, default=20)
 
     def __repr__(self):
@@ -217,12 +234,6 @@ class Permanent(db.Model):
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-
-    # An integer is added to these arrays at end of each round
-    emergency_count = db.Column(db.PickleType, default=EMPTY_LIST)
-    transitional_count = db.Column(db.PickleType, default=EMPTY_LIST)
-
-    # These values are entered after the game ends
     unsheltered = db.Column(db.Integer, default=0)
     market = db.Column(db.Integer, default=0)
     rapid = db.Column(db.Integer, default=0)
@@ -233,31 +244,23 @@ class Score(db.Model):
     def __repr__(self):
         return "<Game %r Scoreboard>" % (self.game_id)
 
-    def add_score(self, emergency, transitional):
-        this_emergency_count = pickle.loads(self.emergency_count)
-        this_emergency_count.append(emergency)
-        this_transitional_count = pickle.loads(self.transitional_count)
-        this_transitional_count.append(transitional)
-        self.emergency_count = pickle.dumps(this_emergency_count)
-        self.transitional_count = pickle.dumps(this_transitional_count)
-        db.session.commit()
-        return
-
     def calculate_final_score(self):
         this_game = Game.query.filter_by(id=self.game_id).first()
-        this_emergency_count = pickle.loads(self.emergency_count)
-        this_transitional_count = pickle.loads(self.transitional_count)
         this_unsheltered = pickle.loads(this_game.unsheltered)
         this_market = pickle.loads(this_game.market)
+        this_emerg = Emergency.query.filter_by(game_id=self.game_id).first()
+        this_emerg_record = pickle.loads(this_emerg.record)
         this_rapid = Rapid.query.filter_by(game_id=self.game_id).first()
         this_rapid_board = pickle.loads(this_rapid.board)
+        this_trans = Rapid.query.filter_by(game_id=self.game_id).first()
+        this_trans_record = pickle.loads(this_trans.record)
         this_permanent = Permanent.query.filter_by(game_id=self.game_id).first()
         this_permanent_board = pickle.loads(this_permanent.board)
-        self.emergency_total = sum(this_emergency_count)
-        self.transitional_total = sum(this_transitional_count)
         self.unsheltered = len(this_unsheltered)
         self.market = len(this_market)
+        self.emergency_total = sum(this_emergency_record)
         self.rapid = len(this_rapid_board)
+        self.transitional_total = sum(this_transitional_record)
         self.permanent = len(this_permanent_board)
         db.session.commit()
 

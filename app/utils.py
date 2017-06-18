@@ -1,4 +1,5 @@
 import random
+import pickle
 
 
 def get_random_bead(number, available_beads):
@@ -30,3 +31,12 @@ def use_room(room, beads, from_board, to_board):
         from_board, to_board = move_beads(room, from_board, to_board)
         extra = beads - room
     return extra, from_board, to_board
+
+
+def add_record(record_pickle, value):
+    record = pickle.loads(record_pickle)
+    record.append(value)
+    print("record is " + record)
+    record_pickle = pickle.dumps(record)
+    print("record pickle is " + record_pickle)
+    return record_pickle
