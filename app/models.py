@@ -51,7 +51,7 @@ class Game(db.Model):
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         elif BOARD_LIST[self.board_to_play] != board:
-            flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
+            flash(u'Time to play ' + BOARD_LIST[self.board_to_play] +
                   ' board.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         else:

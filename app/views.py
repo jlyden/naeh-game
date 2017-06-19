@@ -276,6 +276,7 @@ def system_event(game_id):
 # TODO: add check for round six - no more playing - maybe disappear play buttons
 # TODO: add game logic for board conversion
 # TODO: diff rules in rounds!
+# TODO: change "round 6" to "game over" somehow
 # TODO: add check for while extra > 0 - maybe accomplished by send_anywhere?
 # TODO: randomize order in lists (for red beads)
 # TODO: Add charts and major game choices to score board
