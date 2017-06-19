@@ -1,7 +1,10 @@
+import random
 import pickle
 from datetime import datetime
+from flask import redirect, url_for, flash
 from app import db
-from .utils import get_random_bead, find_room, use_room, move_beads, add_record
+from .utils import get_random_bead, find_room, use_room, move_beads
+from .utils import add_record, BOARD_LIST
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
@@ -25,9 +28,11 @@ class Game(db.Model):
 
     available = db.Column(db.PickleType, default=AVAILABLE_BEADS)
     intake = db.Column(db.PickleType, default=EMPTY_LIST)
-    unsheltered = db.Column(db.PickleType, default=EMPTY_LIST)
     outreach = db.Column(db.PickleType, default=OUTREACH_START)
+    unsheltered = db.Column(db.PickleType, default=EMPTY_LIST)
+    unsheltered_record = db.Column(db.PickleType, default=pickle.dumps([0]))
     market = db.Column(db.PickleType, default=EMPTY_LIST)
+    market_record = db.Column(db.PickleType, default=pickle.dumps([0]))
 
     # One to One relationships
     emergency = db.relationship('Emergency', uselist=False)
@@ -41,6 +46,17 @@ class Game(db.Model):
     def __repr__(self):
         return "<Game %r, round %r>" % (self.id, self.round_count)
 
+    def verify_board_to_play(self, board):
+        if self.round_count == 6:
+            flash(u'Game over - no more plays.', 'warning')
+            return redirect(url_for('status', game_id=self.id))
+        elif BOARD_LIST[self.board_to_play] != board:
+            flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
+                  ' board.', 'warning')
+            return redirect(url_for('status', game_id=self.id))
+        else:
+            return
+    
     def load_intake(self, moves):
         available_list = pickle.loads(self.available)
         available_list, intake_list = get_random_bead(50, available_list)
@@ -68,6 +84,34 @@ class Game(db.Model):
         message = str(beads) + " beads to market"
         moves.append(message)
         return from_board, moves
+    
+    def send_anywhere(self, extra, from_board, moves):
+        order = random.sample(range(1,5), 4)
+        print("order = " + str(order))
+        while len(order) > 0 and len(from_board) > 0:
+            value = order.pop(0)
+            if value == 1:
+                emergency = Emergency.query.filter_by(game_id=self.id).first()
+                extra, from_board, moves = emergency.receive_beads(extra, from_board, moves)
+                print("Anywhere: moved beads to Emergency")
+            elif value == 2:
+                rapid = Rapid.query.filter_by(game_id=self.id).first()
+                extra, from_board, moves = rapid.receive_beads(extra, from_board, moves)
+                print("Anywhere: moved beads to Rapid")
+            elif value == 3:
+                transitional = Transitional.query.filter_by(game_id=self.id).first()
+                extra, from_board, moves = transitional.receive_beads(extra, from_board, moves)
+                print("Anywhere: moved beads to Transitional")
+            elif value == 4:
+                permanent = Permanent.query.filter_by(game_id=self.id).first()
+                extra, from_board, moves = permanent.receive_beads(extra, from_board, moves)
+                print("Anywhere: moved beads to Permanent")
+        print("from_board is now " + str(from_board))
+        if len(from_board) > 0:
+            from_board, moves = self.send_to_unsheltered(len(from_board), from_board, moves)
+            print("Anywhere: moved beads to Unsheltered")
+        return from_board, moves 
+
 
     def update_records(self):
         # add_record() accepts and returns a pickle object
@@ -84,6 +128,10 @@ class Game(db.Model):
         permanent = Permanent.query.filter_by(game_id=self.id).first()
         permanent_board = pickle.loads(permanent.board)
         permanent.record = add_record(permanent.record, len(permanent_board))
+        unsheltered_board = pickle.loads(self.unsheltered)
+        self.unsheltered_record = add_record(self.unsheltered_record, len(unsheltered_board))
+        market_board = pickle.loads(self.market)
+        self.market_record = add_record(self.market_record, len(market_board))
         db.session.commit()
         return
 
@@ -258,9 +306,9 @@ class Score(db.Model):
         this_permanent_board = pickle.loads(this_permanent.board)
         self.unsheltered = len(this_unsheltered)
         self.market = len(this_market)
-        self.emergency_total = sum(this_emergency_record)
+        self.emergency_total = sum(this_emerg_record)
         self.rapid = len(this_rapid_board)
-        self.transitional_total = sum(this_transitional_record)
+        self.transitional_total = sum(this_trans_record)
         self.permanent = len(this_permanent_board)
         db.session.commit()
 

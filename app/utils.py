@@ -2,6 +2,10 @@ import random
 import pickle
 
 
+BOARD_LIST = ["Intake", "Emergency", "Rapid",
+              "Outreach", "Transitional", "Permanent"]
+
+
 def get_random_bead(number, available_beads):
     collection = []
     for i in range(number):
@@ -36,7 +40,7 @@ def use_room(room, beads, from_board, to_board):
 def add_record(record_pickle, value):
     record = pickle.loads(record_pickle)
     record.append(value)
-    print("record is " + record)
+    print("record is " + str(record))
     record_pickle = pickle.dumps(record)
-    print("record pickle is " + record_pickle)
+    print("record pickle is " + str(record_pickle))
     return record_pickle

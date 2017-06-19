@@ -4,10 +4,7 @@ from flask import request, render_template, redirect, url_for, flash
 from sqlalchemy import desc
 from app import app, db
 from .models import Game, Emergency, Rapid, Transitional, Permanent, Score, Log
-from .utils import find_room, move_beads
-
-BOARD_LIST = ["Intake", "Emergency", "Rapid",
-              "Outreach", "Transitional", "Permanent"]
+from .utils import find_room, move_beads, BOARD_LIST
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -15,6 +12,7 @@ BOARD_LIST = ["Intake", "Emergency", "Rapid",
 def index():
     if request.method == 'POST':
         new_game = Game()
+        # TODO: fold these inits into game init?
         db.session.add(new_game)
         db.session.commit()
         new_Emergency = Emergency(game_id=new_game.id)
@@ -46,7 +44,9 @@ def status(game_id):
     intake_board = pickle.loads(this_game.intake)
     outreach_board = pickle.loads(this_game.outreach)
     market_board = pickle.loads(this_game.market)
+    m_counts = pickle.loads(this_game.market_record)
     unsheltered_board = pickle.loads(this_game.unsheltered)
+    u_counts = pickle.loads(this_game.unsheltered_record)
 
     # Pull info from other board tables
     this_emergency = Emergency.query.filter_by(game_id=game_id).first()
@@ -77,6 +77,8 @@ def status(game_id):
                            rapid=rapid_board,
                            transitional=transitional_board,
                            permanent=permanent_board,
+                           m_counts=m_counts,
+                           u_counts=u_counts,
                            e_counts=e_counts,
                            r_counts=r_counts,
                            t_counts=t_counts,
@@ -84,45 +86,37 @@ def status(game_id):
                            last_moves=last_moves)
 
 
+#@app.route('/play_round/<game_id>')
+#def play_round(game_id):
+
+
 @app.route('/play_intake/<game_id>')
 def play_intake(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    if BOARD_LIST[this_game.board_to_play] != 'Intake':
-        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'warning')
-    else:
-        moves = []
-        moves = this_game.load_intake(moves)
+    this_game.verify_board_to_play('Intake')
+    print("Playing Intake Board")
+    moves = []
+    moves = this_game.load_intake(moves)
 
-        # col = one 'column' in game instructions
-        col = math.ceil(50 / this_game.intake_cols)
-        intake = pickle.loads(this_game.intake)
-        # If Diversion column is open
-        if this_game.intake_cols == 6:
-            message = "Diversion column being played"
-            moves.append(message)
-            intake, moves = this_game.send_to_market(col, intake, moves)
-        emergency = Emergency.query.filter_by(game_id=game_id).first()
-        surplus, intake, moves = emergency.receive_beads(col, intake, moves)
-        intake, moves = this_game.send_to_unsheltered(col, intake, moves)
-
-        # Find room anywhere
-        extra, intake, moves = emergency.receive_beads(len(intake), intake, moves)
-        rapid = Rapid.query.filter_by(game_id=game_id).first()
-        extra, intake, moves = rapid.receive_beads(extra, intake, moves)
-        transitional = Transitional.query.filter_by(game_id=game_id).first()
-        extra, intake, moves = transitional.receive_beads(extra, intake, moves)
-        permanent = Permanent.query.filter_by(game_id=game_id).first()
-        extra, intake, moves = permanent.receive_beads(extra, intake, moves)
-
-        intake, moves = this_game.send_to_unsheltered(len(intake), intake, moves)
-        this_game.intake = pickle.dumps(intake)
-
-        move_log = Log(game_id, this_game.round_count,
-                       this_game.board_to_play, moves)
-        db.session.add(move_log)
-        this_game.board_to_play += 1
-        db.session.commit()
+    # col = one 'column' in game instructions
+    col = math.ceil(50 / this_game.intake_cols)
+    intake = pickle.loads(this_game.intake)
+    # If Diversion column is open
+    if this_game.intake_cols == 6:
+        message = "Diversion column being played"
+        moves.append(message)
+        intake, moves = this_game.send_to_market(col, intake, moves)
+    emergency = Emergency.query.filter_by(game_id=game_id).first()
+    # surplus doesn't matter, b/c len(intake) will be passed later
+    surplus, intake, moves = emergency.receive_beads(col, intake, moves)
+    intake, moves = this_game.send_to_unsheltered(col, intake, moves)
+    intake, moves = this_game.send_anywhere(len(intake), intake, moves)
+    this_game.intake = pickle.dumps(intake)
+    move_log = Log(game_id, this_game.round_count,
+               this_game.board_to_play, moves)
+    db.session.add(move_log)
+    this_game.board_to_play += 1
+    db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
 
@@ -130,121 +124,93 @@ def play_intake(game_id):
 @app.route('/play_emergency/<game_id>')
 def play_emergency(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    if BOARD_LIST[this_game.board_to_play] != 'Emergency':
-        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'warning')
-    else:
-        moves = []
-        # Emergency board = 5x5, so 1 col = 5; 1.5 col = 8
-        col = math.ceil(1.5 * 5)
-        emergency = Emergency.query.filter_by(game_id=game_id).first()
-        emerg_board = pickle.loads(emergency.board)
-        emerg_board, moves = this_game.send_to_market(col, emerg_board, moves)
-        emerg_board, moves = this_game.send_to_unsheltered(col, emerg_board, moves)
-        # Send rest of Emergency Board wherever there is room
-        extra = len(emerg_board)
-        rapid = Rapid.query.filter_by(game_id=game_id).first()
-        extra, emerg_board, moves = rapid.receive_beads(extra, emerg_board, moves)
-        transitional = Transitional.query.filter_by(game_id=game_id).first()
-        extra, emerg_board, moves = transitional.receive_beads(extra, emerg_board, moves)
-        permanent = Permanent.query.filter_by(game_id=game_id).first()
-        extra, emerg_board, moves = permanent.receive_beads(extra, emerg_board, moves)
-        emerg_board, moves = this_game.send_to_unsheltered(extra, emerg_board, moves)
-        emergency.board = pickle.dumps(emerg_board)
-
-        move_log = Log(game_id, this_game.round_count,
-                       this_game.board_to_play, moves)
-        db.session.add(move_log)
-        this_game.board_to_play += 1
-        db.session.commit()
+    this_game.verify_board_to_play('Emergency')
+    print("Playing Emergency Board")
+    moves = []
+    # Emergency board = 5x5, so 1 col = 5; 1.5 col = 8
+    col = math.ceil(1.5 * 5)
+    emergency = Emergency.query.filter_by(game_id=game_id).first()
+    emerg_board = pickle.loads(emergency.board)
+    emerg_board, moves = this_game.send_to_market(col, emerg_board, moves)
+    emerg_board, moves = this_game.send_to_unsheltered(col, emerg_board, moves)
+    # Send rest of Emergency Board wherever there is room
+    emerg_board, moves = this_game.send_anywhere(len(emerg_board), emerg_board, moves)
+    emergency.board = pickle.dumps(emerg_board)
+    move_log = Log(game_id, this_game.round_count,
+                   this_game.board_to_play, moves)
+    db.session.add(move_log)
+    this_game.board_to_play += 1
+    db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
 
 @app.route('/play_rapid/<game_id>')
 def play_rapid(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    if BOARD_LIST[this_game.board_to_play] != 'Rapid':
-        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'warning')
-    else:
-        moves = []
-        # Rapid board = 5x2, so 1 col = 2
-        col = 2
-        rapid = Rapid.query.filter_by(game_id=game_id).first()
-        rapid_board = pickle.loads(rapid.board)
-        rapid_board, moves = this_game.send_to_market(3 * col, rapid_board, moves)
-        emergency = Emergency.query.filter_by(game_id=game_id).first()
-        extra, rapid_board, moves = emergency.receive_beads(col, rapid_board, moves)
-        rapid.board = pickle.dumps(rapid_board)
+    this_game.verify_board_to_play('Rapid')
+    print("Playing Rapid Board")
+    moves = []
+    # Rapid board = 5x2, so 1 col = 2
+    col = 2
+    rapid = Rapid.query.filter_by(game_id=game_id).first()
+    rapid_board = pickle.loads(rapid.board)
+    rapid_board, moves = this_game.send_to_market(3 * col, rapid_board, moves)
+    emergency = Emergency.query.filter_by(game_id=game_id).first()
+    extra, rapid_board, moves = emergency.receive_beads(col, rapid_board, moves)
+    rapid.board = pickle.dumps(rapid_board)
 
-        move_log = Log(game_id, this_game.round_count,
-                       this_game.board_to_play, moves)
-        db.session.add(move_log)
-        this_game.board_to_play += 1
-        db.session.commit()
+    move_log = Log(game_id, this_game.round_count,
+               this_game.board_to_play, moves)
+    db.session.add(move_log)
+    this_game.board_to_play += 1
+    db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
 
 @app.route('/play_outreach/<game_id>')
 def play_outreach(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    if BOARD_LIST[this_game.board_to_play] != 'Outreach':
-        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'warning')
-    else:
-        moves = []
-        outreach_board = pickle.loads(this_game.outreach)
-        room = find_room(this_game.outreach_max, outreach_board)
-        unsheltered_board = pickle.loads(this_game.unsheltered)
-        unsheltered_board, outreach_board = move_beads(room, unsheltered_board, outreach_board)
-        message = str(room) + " beads to outreach"
-        moves.append(message)
-
-        # Send rest of Outreach Board wherever there is room
-        extra = len(outreach_board)
-        emergency = Emergency.query.filter_by(game_id=game_id).first()
-        extra, outreach_board, moves = emergency.receive_beads(extra, outreach_board, moves)
-        rapid = Rapid.query.filter_by(game_id=game_id).first()
-        extra, outreach_board, moves = rapid.receive_beads(extra, outreach_board, moves)
-        trans = Transitional.query.filter_by(game_id=game_id).first()
-        extra, outreach_board, moves = trans.receive_beads(extra, outreach_board, moves)
-        permanent = Permanent.query.filter_by(game_id=game_id).first()
-        extra, outreach_board, moves = permanent.receive_beads(extra, outreach_board, moves)
-        outreach_board, moves = this_game.send_to_unsheltered(extra, outreach_board, moves)
-        this_game.outreach = pickle.dumps(outreach_board)
-
-        move_log = Log(game_id, this_game.round_count,
-                       this_game.board_to_play, moves)
-        db.session.add(move_log)
-        this_game.board_to_play += 1
-        db.session.commit()
+    this_game.verify_board_to_play('Outreach')
+    print("Playing Outreach Board")
+    moves = []
+    outreach_board = pickle.loads(this_game.outreach)
+    room = find_room(this_game.outreach_max, outreach_board)
+    unsheltered_board = pickle.loads(this_game.unsheltered)
+    unsheltered_board, outreach_board = move_beads(room, unsheltered_board, outreach_board)
+    message = str(room) + " beads to outreach"
+    moves.append(message)
+    outreach_board, moves = this_game.send_anywhere(len(outreach_board), outreach_board, moves)
+    this_game.outreach = pickle.dumps(outreach_board)
+    move_log = Log(game_id, this_game.round_count,
+                   this_game.board_to_play, moves)
+    db.session.add(move_log)
+    this_game.board_to_play += 1
+    db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
 
 @app.route('/play_transitional/<game_id>')
 def play_transitional(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    if BOARD_LIST[this_game.board_to_play] != 'Transitional':
-        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'warning')
-    else:
-        moves = []
-        # Transitional board = 5x4, so 1 col = 4
-        col = 4
-        trans = Transitional.query.filter_by(game_id=game_id).first()
-        trans_board = pickle.loads(trans.board)
-        trans_board, moves = this_game.send_to_market(col, trans_board, moves)
-        emergency = Emergency.query.filter_by(game_id=game_id).first()
-        extra, trans_board, moves = emergency.receive_beads(col, trans_board, moves)
-        if extra:
-            trans_board, moves = this_game.send_to_unsheltered(extra, trans_board, moves)
-        trans.board = pickle.dumps(trans_board)
+    this_game.verify_board_to_play('Transitional')
+    print("Playing Transitional Board")
+    moves = []
+    # Transitional board = 5x4, so 1 col = 4
+    col = 4
+    trans = Transitional.query.filter_by(game_id=game_id).first()
+    trans_board = pickle.loads(trans.board)
+    trans_board, moves = this_game.send_to_market(col, trans_board, moves)
+    emergency = Emergency.query.filter_by(game_id=game_id).first()
+    extra, trans_board, moves = emergency.receive_beads(col, trans_board, moves)
+    if extra:
+        trans_board, moves = this_game.send_to_unsheltered(extra, trans_board, moves)
+    trans.board = pickle.dumps(trans_board)
 
-        move_log = Log(game_id, this_game.round_count,
-                       this_game.board_to_play, moves)
-        db.session.add(move_log)
-        this_game.board_to_play += 1
-        db.session.commit()
+    move_log = Log(game_id, this_game.round_count,
+                   this_game.board_to_play, moves)
+    db.session.add(move_log)
+    this_game.board_to_play += 1
+    db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
 
@@ -252,27 +218,25 @@ def play_transitional(game_id):
 @app.route('/play_permanent/<game_id>')
 def play_permanent(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    if BOARD_LIST[this_game.board_to_play] != 'Permanent':
-        flash(u'Time to play ' + BOARD_LIST[this_game.board_to_play] +
-              ' board.', 'warning')
+    this_game.verify_board_to_play('Permanent')
+    print("Playing Permanent Board")
+    moves = []
+    permanent = Permanent.query.filter_by(game_id=game_id).first()
+    permanent_board = pickle.loads(permanent.board)
+    # if even round
+    if this_game.round_count % 2 == 0:
+        permanent_board, moves = this_game.send_to_unsheltered(1, permanent_board, moves)
     else:
-        moves = []
-        permanent = Permanent.query.filter_by(game_id=game_id).first()
-        permanent_board = pickle.loads(permanent.board)
-        # if even round
-        if this_game.round_count % 2 == 0:
-            permanent_board, moves = this_game.send_to_unsheltered(1, permanent_board, moves)
-        else:
-            permanent_board, moves = this_game.send_to_market(1, permanent_board, moves)
-        permanent.board = pickle.dumps(permanent_board)
-        move_log = Log(game_id, this_game.round_count,
-                       this_game.board_to_play, moves)
-        db.session.add(move_log)
-        # Update record and reset counters
-        this_game.update_records
-        this_game.round_count += 1
-        this_game.board_to_play = 0
-        db.session.commit()
+        permanent_board, moves = this_game.send_to_market(1, permanent_board, moves)
+    permanent.board = pickle.dumps(permanent_board)
+    move_log = Log(game_id, this_game.round_count,
+                   this_game.board_to_play, moves)
+    db.session.add(move_log)
+    # Update record and reset counters
+    this_game.update_records()
+    this_game.round_count += 1
+    this_game.board_to_play = 0
+    db.session.commit()
     return redirect(url_for('system_event', game_id=game_id))
 
 
@@ -280,6 +244,7 @@ def play_permanent(game_id):
 def system_event(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if request.method == 'POST':
+        print("Executing System Event")
         moves = []
         if this_game.round_count == 2:
             program = request.form.get('program')
@@ -305,12 +270,12 @@ def system_event(game_id):
         else:
             return render_template('event.html', game=this_game)
 
-# TODO: Adjust record to record only at end of round - label by round
-# TODO: Chart all boards together
+# TODO: Add labels to charts
+# TODO: If 0 beads moving to board, don't log a "move"
+# TODO: gameplay where you make pre-round choices, then play entire round with 1 click
 # TODO: add check for round six - no more playing - maybe disappear play buttons
-# TODO: gameplay where you make 1 or more choices, then play entire round with 1 click, then results are displayed; rinse, repeat
 # TODO: add game logic for board conversion
 # TODO: diff rules in rounds!
-# TODO: add check for while extra > 0
-# TODO: randomize order in lists
-# TODO: randomize 'place anywhere' board order
+# TODO: add check for while extra > 0 - maybe accomplished by send_anywhere?
+# TODO: randomize order in lists (for red beads)
+# TODO: Add charts and major game choices to score board
