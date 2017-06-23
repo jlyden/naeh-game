@@ -12,7 +12,6 @@ from .utils import find_room, move_beads, BOARD_LIST
 def index():
     if request.method == 'POST':
         new_game = Game()
-        # TODO: fold these inits into game init?
         db.session.add(new_game)
         db.session.commit()
         new_Emergency = Emergency(game_id=new_game.id)
@@ -116,6 +115,7 @@ def play_intake(game_id):
                this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
+    print ("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -140,6 +140,7 @@ def play_emergency(game_id):
                    this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
+    print ("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -163,6 +164,7 @@ def play_rapid(game_id):
                this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
+    print ("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -173,18 +175,20 @@ def play_outreach(game_id):
     this_game.verify_board_to_play('Outreach')
     print("Playing Outreach Board")
     moves = []
-    outreach_board = pickle.loads(this_game.outreach)
-    room = find_room(this_game.outreach_max, outreach_board)
-    unsheltered_board = pickle.loads(this_game.unsheltered)
-    unsheltered_board, outreach_board = move_beads(room, unsheltered_board, outreach_board)
+    this_unsheltered = pickle.loads(this_game.unsheltered)
+    room = find_room(this_game.outreach_max, this_game.outreach)
+    this_unsheltered, this_game.outreach = move_beads(room, this_unsheltered, this_game.outreach)
+    this_game.unsheltered = pickle.dumps(this_unsheltered)
     message = str(room) + " beads to outreach"
     moves.append(message)
+    outreach_board = pickle.loads(this_game.outreach)
     outreach_board, moves = this_game.send_anywhere(len(outreach_board), outreach_board, moves)
     this_game.outreach = pickle.dumps(outreach_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
+    print ("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -210,6 +214,7 @@ def play_transitional(game_id):
                    this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
+    print ("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -236,6 +241,7 @@ def play_permanent(game_id):
     this_game.update_records()
     this_game.round_count += 1
     this_game.board_to_play = 0
+    print ("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('system_event', game_id=game_id))
 
@@ -270,8 +276,8 @@ def system_event(game_id):
         else:
             return render_template('event.html', game=this_game)
 
-# TODO: Add labels to charts
-# TODO: If 0 beads moving to board, don't log a "move"
+# TODO: Something is funky with validation of which board to play next
+# TODO: fold creation of other boards into game init?
 # TODO: gameplay where you make pre-round choices, then play entire round with 1 click
 # TODO: add check for round six - no more playing - maybe disappear play buttons
 # TODO: add game logic for board conversion

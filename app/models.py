@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import redirect, url_for, flash
 from app import db
 from .utils import get_random_bead, find_room, use_room, move_beads
-from .utils import add_record, BOARD_LIST
+from .utils import add_record, message_for, BOARD_LIST
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
@@ -58,37 +58,27 @@ class Game(db.Model):
             return
     
     def load_intake(self, moves):
-        available_list = pickle.loads(self.available)
-        available_list, intake_list = get_random_bead(50, available_list)
-        self.intake = pickle.dumps(intake_list)
-        self.available = pickle.dumps(available_list)
+        self.available, self.intake = get_random_bead(50, self.available)
         db.session.commit()
-        message = "50 beads to intake"
-        moves.append(message)
+        moves.append(message_for(50, "intake"))
         return moves
 
     def send_to_unsheltered(self, beads, from_board, moves):
-        to_board = pickle.loads(self.unsheltered)
-        from_board, to_board = move_beads(beads, from_board, to_board)
-        self.unsheltered = pickle.dumps(to_board)
+        from_board, self.unsheltered = move_beads(beads, from_board, self.unsheltered)
         db.session.commit()
-        message = str(beads) + " beads to unsheltered"
-        moves.append(message)
+        moves.append(message_for(beads, "unsheltered"))
         return from_board, moves
 
     def send_to_market(self, beads, from_board, moves):
-        to_board = pickle.loads(self.market)
-        from_board, to_board = move_beads(beads, from_board, to_board)
-        self.market = pickle.dumps(to_board)
+        from_board, self.market = move_beads(beads, from_board, self.market)
         db.session.commit()
-        message = str(beads) + " beads to market"
-        moves.append(message)
+        moves.append(message_for(beads, "market"))
         return from_board, moves
     
     def send_anywhere(self, extra, from_board, moves):
         order = random.sample(range(1,5), 4)
         print("order = " + str(order))
-        while len(order) > 0 and len(from_board) > 0:
+        while len(from_board) > 0 and len(order) > 0:
             value = order.pop(0)
             if value == 1:
                 emergency = Emergency.query.filter_by(game_id=self.id).first()
@@ -106,7 +96,6 @@ class Game(db.Model):
                 permanent = Permanent.query.filter_by(game_id=self.id).first()
                 extra, from_board, moves = permanent.receive_beads(extra, from_board, moves)
                 print("Anywhere: moved beads to Permanent")
-        print("from_board is now " + str(from_board))
         if len(from_board) > 0:
             from_board, moves = self.send_to_unsheltered(len(from_board), from_board, moves)
             print("Anywhere: moved beads to Unsheltered")
@@ -115,7 +104,6 @@ class Game(db.Model):
 
     def update_records(self):
         # add_record() accepts and returns a pickle object
-        print("Here come the records.")
         emergency = Emergency.query.filter_by(game_id=self.id).first()
         emerg_board = pickle.loads(emergency.board)
         emergency.record = add_record(emergency.record, len(emerg_board))
@@ -187,17 +175,14 @@ class Emergency(db.Model):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board, moves):
-        to_board = pickle.loads(self.board)
-        room = find_room(self.maximum, to_board)
+        room = find_room(self.maximum, self.board)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, to_board = use_room(room, beads, from_board,
-                                                   to_board)
-        self.board = pickle.dumps(to_board)
+            extra, from_board, to_board = use_room(room, beads, from_board, self.board)
         db.session.commit()
-        message = str(beads - extra) + " beads to emergency"
-        moves.append(message)
+        moved = str(beads - extra)
+        moves.append(message_for(moved, "emergency"))
         return extra, from_board, moves
 
 
@@ -213,17 +198,14 @@ class Rapid(db.Model):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board, moves):
-        to_board = pickle.loads(self.board)
-        room = find_room(self.maximum, to_board)
+        room = find_room(self.maximum, self.board)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, to_board = use_room(room, beads, from_board,
-                                                   to_board)
-        self.board = pickle.dumps(to_board)
+            extra, from_board, to_board = use_room(room, beads, from_board, self.board)
         db.session.commit()
-        message = str(beads - extra) + " beads to rapid"
-        moves.append(message)
+        moved = str(beads - extra)
+        moves.append(message_for(moved, "rapid"))
         return extra, from_board, moves
 
 
@@ -239,17 +221,14 @@ class Transitional(db.Model):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board, moves):
-        to_board = pickle.loads(self.board)
-        room = find_room(self.maximum, to_board)
+        room = find_room(self.maximum, self.board)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, to_board = use_room(room, beads, from_board,
-                                                   to_board)
-        self.board = pickle.dumps(to_board)
+            extra, from_board, to_board = use_room(room, beads, from_board, self.board)
         db.session.commit()
-        message = str(beads - extra) + " beads to transitional"
-        moves.append(message)
+        moved = str(beads - extra)
+        moves.append(message_for(moved, "transitional"))
         return extra, from_board, moves
 
 
@@ -265,17 +244,14 @@ class Permanent(db.Model):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board, moves):
-        to_board = pickle.loads(self.board)
-        room = find_room(self.maximum, to_board)
+        room = find_room(self.maximum, self.board)
         if room is 0:
             extra = beads
         else:
-            extra, from_board, to_board = use_room(room, beads, from_board,
-                                                   to_board)
-        self.board = pickle.dumps(to_board)
+            extra, from_board, to_board = use_room(room, beads, from_board, self.board)
         db.session.commit()
-        message = str(beads - extra) + " beads to permanent"
-        moves.append(message)
+        moved = str(beads - extra)
+        moves.append(message_for(moved, "permanent"))
         return extra, from_board, moves
 
 
