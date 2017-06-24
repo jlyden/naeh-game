@@ -85,8 +85,14 @@ def status(game_id):
                            last_moves=last_moves)
 
 
-#@app.route('/play_round/<game_id>')
-#def play_round(game_id):
+@app.route('/play_round/<game_id>')
+def play_round(game_id):
+    play_intake(game_id)
+    play_emergency(game_id)
+    play_rapid(game_id)
+    play_outreach(game_id)
+    play_transitional(game_id)
+    play_permanent(game_id)
 
 
 @app.route('/play_intake/<game_id>')
