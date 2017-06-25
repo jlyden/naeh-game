@@ -52,7 +52,7 @@ def add_record(record_pickle, value):
 
 
 def message_for(beads_moved, board):
-    if beads_moved == 0:
+    if beads_moved == "0":
         message = "no room in " + board
     else:
         message = str(beads_moved) + " beads to " + board

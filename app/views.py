@@ -1,6 +1,6 @@
 import math
 import pickle
-from flask import request, render_template, redirect, url_for, flash
+from flask import request, render_template, redirect, url_for
 from sqlalchemy import desc
 from app import app, db
 from .models import Game, Emergency, Rapid, Transitional, Permanent, Score, Log
@@ -85,6 +85,18 @@ def status(game_id):
                            last_moves=last_moves)
 
 
+@app.route('/view_log/<game_id>')
+def view_log(game_id):
+    # Pull info from Game and Log table
+    this_game = Game.query.get_or_404(int(game_id))
+    this_game_logs = Log.query.filter(Log.game_id == game_id).order_by(Log.id);
+    all_moves = []
+    for log in this_game_logs:
+        last_moves = pickle.loads(log.moves)
+        all_moves.extend(last_moves)
+    return render_template('log.html', game=this_game, moves=all_moves)
+
+
 @app.route('/play_round/<game_id>')
 def play_round(game_id):
     play_intake(game_id)
@@ -93,6 +105,7 @@ def play_round(game_id):
     play_outreach(game_id)
     play_transitional(game_id)
     play_permanent(game_id)
+    return redirect(url_for('status', game_id=game_id))
 
 
 @app.route('/play_intake/<game_id>')
@@ -117,11 +130,10 @@ def play_intake(game_id):
     intake, moves = this_game.send_to_unsheltered(col, intake, moves)
     intake, moves = this_game.send_anywhere(len(intake), intake, moves)
     this_game.intake = pickle.dumps(intake)
-    move_log = Log(game_id, this_game.round_count,
-               this_game.board_to_play, moves)
+    move_log = Log(game_id, this_game.round_count, this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
-    print ("next board to play is " + str(this_game.board_to_play))
+    print("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -146,7 +158,7 @@ def play_emergency(game_id):
                    this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
-    print ("next board to play is " + str(this_game.board_to_play))
+    print("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -166,11 +178,10 @@ def play_rapid(game_id):
     extra, rapid_board, moves = emergency.receive_beads(col, rapid_board, moves)
     rapid.board = pickle.dumps(rapid_board)
 
-    move_log = Log(game_id, this_game.round_count,
-               this_game.board_to_play, moves)
+    move_log = Log(game_id, this_game.round_count, this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
-    print ("next board to play is " + str(this_game.board_to_play))
+    print("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -194,7 +205,7 @@ def play_outreach(game_id):
                    this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
-    print ("next board to play is " + str(this_game.board_to_play))
+    print("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -220,7 +231,7 @@ def play_transitional(game_id):
                    this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
-    print ("next board to play is " + str(this_game.board_to_play))
+    print("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -247,7 +258,7 @@ def play_permanent(game_id):
     this_game.update_records()
     this_game.round_count += 1
     this_game.board_to_play = 0
-    print ("next board to play is " + str(this_game.board_to_play))
+    print("next board to play is " + str(this_game.board_to_play))
     db.session.commit()
     return redirect(url_for('system_event', game_id=game_id))
 

@@ -56,7 +56,7 @@ class Game(db.Model):
             return redirect(url_for('status', game_id=self.id))
         else:
             return
-    
+
     def load_intake(self, moves):
         self.available, self.intake = get_random_bead(50, self.available)
         db.session.commit()
@@ -74,9 +74,9 @@ class Game(db.Model):
         db.session.commit()
         moves.append(message_for(beads, "market"))
         return from_board, moves
-    
+
     def send_anywhere(self, extra, from_board, moves):
-        order = random.sample(range(1,5), 4)
+        order = random.sample(range(1, 5), 4)
         print("order = " + str(order))
         while len(from_board) > 0 and len(order) > 0:
             value = order.pop(0)
@@ -99,8 +99,7 @@ class Game(db.Model):
         if len(from_board) > 0:
             from_board, moves = self.send_to_unsheltered(len(from_board), from_board, moves)
             print("Anywhere: moved beads to Unsheltered")
-        return from_board, moves 
-
+        return from_board, moves
 
     def update_records(self):
         # add_record() accepts and returns a pickle object
