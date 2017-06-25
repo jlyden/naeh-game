@@ -10,8 +10,12 @@
       <div class="panel-body">
         {% if moves %}
           <ul class="list-group">
-            {% for move in moves %}
-              <li class="list-group-item">{{ move }}</li>
+            {% for tup in move_tuples %}
+              <li class="list-group-item">Round {{ tup[0] }}</li>
+              <li class="list-group-item">Board Played {{ BOARD_LIST[(tup[1])] }}</li>
+              {% for move in tup[2] %}
+                {{ move }}
+             {% endfor %}
             {% endfor %}
           </ul>
         {% else %}

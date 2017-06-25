@@ -89,12 +89,15 @@ def status(game_id):
 def view_log(game_id):
     # Pull info from Game and Log table
     this_game = Game.query.get_or_404(int(game_id))
-    this_game_logs = Log.query.filter(Log.game_id == game_id).order_by(Log.id);
-    all_moves = []
+    this_game_logs = Log.query.filter(Log.game_id == game_id).order_by(Log.id)
+    move_tuples = []
     for log in this_game_logs:
+        round_count = log.round_count
+        board_played = log.board_played
         last_moves = pickle.loads(log.moves)
-        all_moves.extend(last_moves)
-    return render_template('log.html', game=this_game, moves=all_moves)
+        log_tuple = (round_count, board_played, last_moves)
+        move_tuples.extend(log_tuple)
+    return render_template('log.html', BOARD_LIST=BOARD_LIST, game=this_game, move_tuples=move_tuples)
 
 
 @app.route('/play_round/<game_id>')
