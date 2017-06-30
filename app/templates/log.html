@@ -4,24 +4,66 @@
     <div class="col-sm-2">
     </div>
     <div class="panel panel-info col-sm-6">
-      <div class="panel-heading">
-        <h2 class="panel-title">All Moves</h2>
-      </div>
-      <div class="panel-body">
-        {% if moves %}
+      {% if rnd1_moves %}
+        <div class="panel-heading">
+          <h2 class="panel-title">Round One</h2>
+        </div>
+        <div class="panel-body">
           <ul class="list-group">
-            {% for tup in move_tuples %}
-              <li class="list-group-item">Round {{ tup[0] }}</li>
-              <li class="list-group-item">Board Played {{ BOARD_LIST[(tup[1])] }}</li>
-              {% for move in tup[2] %}
-                {{ move }}
-             {% endfor %}
+            {% for move in rnd1_moves %}
+              <li class="list-group-item">{{ move }}</li>
             {% endfor %}
           </ul>
-        {% else %}
-          <p>No moves yet</p>
-        {% endif %}
-      </div><!--./panel-body -->
+        </div><!--./panel-body -->
+      {% endif %}
+      {% if rnd2_moves %}
+        <div class="panel-heading">
+          <h2 class="panel-title">Round Two</h2>
+        </div>
+        <div class="panel-body">
+          <ul class="list-group">
+            {% for move in rnd2_moves %}
+              <li class="list-group-item">{{ move }}</li>
+            {% endfor %}
+          </ul>
+        </div><!--./panel-body -->
+      {% endif %}
+      {% if rnd3_moves %}
+        <div class="panel-heading">
+          <h2 class="panel-title">Round Three</h2>
+        </div>
+        <div class="panel-body">
+          <ul class="list-group">
+            {% for move in rnd3_moves %}
+              <li class="list-group-item">{{ move }}</li>
+            {% endfor %}
+          </ul>
+        </div><!--./panel-body -->
+      {% endif %}
+      {% if rnd4_moves %}
+        <div class="panel-heading">
+          <h2 class="panel-title">Round Four</h2>
+        </div>
+        <div class="panel-body">
+          <ul class="list-group">
+            {% for move in rnd4_moves %}
+              <li class="list-group-item">{{ move }}</li>
+            {% endfor %}
+          </ul>
+        </div><!--./panel-body -->
+      {% endif %}
+      {% if rnd5_moves %}
+        <div class="panel-heading">
+          <h2 class="panel-title">Round Five</h2>
+        </div>
+        <div class="panel-body">
+          <ul class="list-group">
+            {% for move in rnd5_moves %}
+              <li class="list-group-item">{{ move }}</li>
+            {% endfor %}
+          </ul>
+        </div><!--./panel-body -->
+      {% endif %}
     <div class="col-sm-4">
     </div>
   </div><!--./row -->

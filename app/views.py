@@ -90,14 +90,32 @@ def view_log(game_id):
     # Pull info from Game and Log table
     this_game = Game.query.get_or_404(int(game_id))
     this_game_logs = Log.query.filter(Log.game_id == game_id).order_by(Log.id)
-    move_tuples = []
+    rnd1_moves = []
+    rnd2_moves = []
+    rnd3_moves = []
+    rnd4_moves = []
+    rnd5_moves = []
     for log in this_game_logs:
-        round_count = log.round_count
-        board_played = log.board_played
         last_moves = pickle.loads(log.moves)
-        log_tuple = (round_count, board_played, last_moves)
-        move_tuples.extend(log_tuple)
-    return render_template('log.html', BOARD_LIST=BOARD_LIST, game=this_game, move_tuples=move_tuples)
+        if log.round_count == 1:
+            rnd1_moves.extend(last_moves)
+        if log.round_count == 2:
+            rnd2_moves.extend(last_moves)
+        if log.round_count == 3:
+            rnd3_moves.extend(last_moves)
+        if log.round_count == 4:
+            rnd4_moves.extend(last_moves)
+        if log.round_count == 5:
+            rnd5_moves.extend(last_moves)
+    print("rnd1_moves is " + str(rnd1_moves))
+    return render_template('log.html',
+                           BOARD_LIST=BOARD_LIST,
+                           game=this_game,
+                           rnd1_moves=rnd1_moves,
+                           rnd2_moves=rnd2_moves,
+                           rnd3_moves=rnd3_moves,
+                           rnd4_moves=rnd4_moves,
+                           rnd5_moves=rnd5_moves)
 
 
 @app.route('/play_round/<game_id>')
