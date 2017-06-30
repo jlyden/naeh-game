@@ -28,9 +28,9 @@
                   <button type="submit" class="btn btn-success">Go</button>
                 </h4>
               </div>
-            </form>          
+            </form>
           {% endif %}
-          <h4 class="navbar-text navbar-right"><a href="{{ url_for('index') }}" class="navbar-link">Home</a></p>
+          <h4 class="navbar-text navbar-right"><a href="{{ url_for('home') }}" class="navbar-link">Home</a></p>
         </div>
       </nav>
     {% with messages = get_flashed_messages(with_categories=true) %}

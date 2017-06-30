@@ -46,6 +46,29 @@ class Game(db.Model):
     def __repr__(self):
         return "<Game %r, round %r>" % (self.id, self.round_count)
 
+    @classmethod
+    def create(cls):
+        new_game = cls()
+        db.session.add(new_game)
+        db.session.commit()
+        new_Emergency = Emergency(game_id=new_game.id)
+        db.session.add(new_Emergency)
+        new_Rapid = Rapid(game_id=new_game.id)
+        db.session.add(new_Rapid)
+        new_Transitional = Transitional(game_id=new_game.id)
+        db.session.add(new_Transitional)
+        new_Permanent = Permanent(game_id=new_game.id)
+        db.session.add(new_Permanent)
+        new_Score = Score(game_id=new_game.id)
+        db.session.add(new_Score)
+        moves = []
+        message = "Game " + str(new_game.id) + " initiated"
+        moves.append(message)
+        move_log = Log(new_game.id, 1, 0, moves)
+        db.session.add(move_log)
+        db.session.commit()
+        return new_game
+
     def verify_board_to_play(self, board):
         if self.round_count == 6:
             flash(u'Game over - no more plays.', 'warning')

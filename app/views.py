@@ -8,32 +8,13 @@ from .utils import find_room, move_beads, BOARD_LIST
 
 
 @app.route('/', methods=['GET', 'POST'])
-@app.route('/index', methods=['GET', 'POST'])
-def index():
+def home():
     if request.method == 'POST':
-        new_game = Game()
-        db.session.add(new_game)
-        db.session.commit()
-        new_Emergency = Emergency(game_id=new_game.id)
-        db.session.add(new_Emergency)
-        new_Rapid = Rapid(game_id=new_game.id)
-        db.session.add(new_Rapid)
-        new_Transitional = Transitional(game_id=new_game.id)
-        db.session.add(new_Transitional)
-        new_Permanent = Permanent(game_id=new_game.id)
-        db.session.add(new_Permanent)
-        new_Score = Score(game_id=new_game.id)
-        db.session.add(new_Score)
-        moves = []
-        message = "Game " + str(new_game.id) + " initiated"
-        moves.append(message)
-        move_log = Log(new_game.id, 1, 0, moves)
-        db.session.add(move_log)
-        db.session.commit()
+        new_game = Game.create()
         return redirect(url_for('status', game_id=new_game.id))
     elif request.method == 'GET':
         recent_games = Game.query.order_by(Game.start_datetime.desc())
-        return render_template('index.html', recent_games=recent_games)
+        return render_template('home.html', recent_games=recent_games)
 
 
 @app.route('/status/<game_id>')
@@ -107,7 +88,6 @@ def view_log(game_id):
             rnd4_moves.extend(last_moves)
         if log.round_count == 5:
             rnd5_moves.extend(last_moves)
-    print("rnd1_moves is " + str(rnd1_moves))
     return render_template('log.html',
                            BOARD_LIST=BOARD_LIST,
                            game=this_game,
@@ -315,7 +295,6 @@ def system_event(game_id):
             return render_template('event.html', game=this_game)
 
 # TODO: Something is funky with validation of which board to play next
-# TODO: fold creation of other boards into game init?
 # TODO: gameplay where you make pre-round choices, then play entire round with 1 click
 # TODO: add check for round six - no more playing - maybe disappear play buttons
 # TODO: add game logic for board conversion
