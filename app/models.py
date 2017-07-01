@@ -84,7 +84,7 @@ class Game(db.Model):
         return new_game
 
     def verify_board_to_play(self, board):
-        if self.round_count == 6:
+        if self.round_count > 5:
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         elif BOARD_LIST[self.board_to_play] != board:
@@ -95,10 +95,14 @@ class Game(db.Model):
             return
 
     def load_intake(self, moves):
-        self.available, self.intake = get_random_bead(50, self.available)
-        db.session.commit()
-        moves.append(message_for(50, "intake"))
-        return moves
+        if len(self.available) == 0:
+            flash(u'Game over - no more plays.', 'warning')
+            return redirect(url_for('status', game_id=self.id))
+        else:
+            self.available, self.intake = get_random_bead(50, self.available)
+            db.session.commit()
+            moves.append(message_for(50, "intake"))
+            return moves
 
     def send_to_unsheltered(self, beads, from_board, moves):
         from_board, self.unsheltered = move_beads(beads, from_board,
@@ -217,11 +221,13 @@ class Other_Boards(object):
 
     def receive_beads(self, beads, from_board, moves):
         room = find_room(self.maximum, self.board)
+        print('room in ' + self.__tablename__ + ' is ' + str(room))
         if room is 0:
             extra = beads
         else:
             extra, from_board, to_board = use_room(room, beads,
                                                    from_board, self.board)
+            print('extra after move is ' + str(extras))
         db.session.commit()
         moved = str(beads - extra)
         moves.append(message_for(moved, self.__tablename__))

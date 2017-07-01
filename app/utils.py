@@ -19,12 +19,13 @@ def get_random_bead(number, available_pickle):
 
 
 def move_beads(number, from_board, to_board_pickle):
-    to_board = pickle.loads(to_board_pickle)
-    for i in range(number):
-        selection = from_board.pop()
-        to_board.append(selection)
-    to_board_pickle = pickle.dumps(to_board)
-    print(str(number) + 'beads moved')
+    if len(from_board) > 0:
+        to_board = pickle.loads(to_board_pickle)
+        for i in range(number):
+            selection = from_board.pop()
+            to_board.append(selection)
+        to_board_pickle = pickle.dumps(to_board)
+        print(str(number) + ' beads moved')
     return from_board, to_board_pickle
 
 

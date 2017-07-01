@@ -102,11 +102,11 @@ def view_log(game_id):
 @app.route('/play_round/<game_id>')
 def play_round(game_id):
     play_intake(game_id)
-    play_emerg(game_id)
+    play_emergency(game_id)
     play_rapid(game_id)
     play_outreach(game_id)
-    play_trans(game_id)
-    play_perm(game_id)
+    play_transitional(game_id)
+    play_permanent(game_id)
     return redirect(url_for('status', game_id=game_id))
 
 
@@ -143,7 +143,7 @@ def play_intake(game_id):
 
 # TODO: Something is wrong in this log
 @app.route('/play_emerg/<game_id>')
-def play_emerg(game_id):
+def play_emergency(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Emergency')
     print("Playing Emergency Board")
@@ -152,11 +152,16 @@ def play_emerg(game_id):
     col = math.ceil(1.5 * 5)
     emerg = Emergency.query.filter_by(game_id=game_id).first()
     emerg_board = pickle.loads(emerg.board)
+    print('intially, emerg_board is ' + str(len(emerg_board)))
     emerg_board, moves = this_game.send_to_market(col, emerg_board, moves)
+    print('after market, emerg_board is ' + str(len(emerg_board)))
     emerg_board, moves = this_game.send_to_unsheltered(col, emerg_board, moves)
-    # Send rest of Emergency Board wherever there is room
-    emerg_board, moves = this_game.send_anywhere(len(emerg_board),
-                                                 emerg_board, moves)
+    print('after unshelt, emerg_board is ' + str(len(emerg_board)))
+    if len(emerg_board) > 0:
+        # Send rest of Emergency Board wherever there is room
+        emerg_board, moves = this_game.send_anywhere(len(emerg_board),
+                                                     emerg_board, moves)
+        print('after anywhere, emerg_board is ' + str(len(emerg_board)))
     emerg.board = pickle.dumps(emerg_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
@@ -218,7 +223,7 @@ def play_outreach(game_id):
 
 
 @app.route('/play_trans/<game_id>')
-def play_trans(game_id):
+def play_transitional(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Transitional')
     print("Playing Transitional Board")
@@ -246,7 +251,7 @@ def play_trans(game_id):
 
 # TEMP comment: round rules implemented
 @app.route('/play_perm/<game_id>')
-def play_perm(game_id):
+def play_permanent(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Permanent')
     print("Playing Permanent Board")

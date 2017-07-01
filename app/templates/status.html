@@ -27,7 +27,7 @@
           <li class="list-group-item">
               <h4>
                   Emergency Housing
-                  <span class="label label-info ">{{ emergency|length }}</span>
+                  <span class="label label-info ">{{ emerg|length }}</span>
                   <a href="{{ url_for('play_emergency', game_id=game.id) }}">
                     <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
                   </a>
@@ -54,7 +54,7 @@
           <li class="list-group-item">
             <h4>
               Transitional Housing
-              <span class="label label-info ">{{ transitional|length }}</span>
+              <span class="label label-info ">{{ trans|length }}</span>
               <a href="{{ url_for('play_transitional', game_id=game.id) }}">
                 <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
               </a>
@@ -63,7 +63,7 @@
           <li class="list-group-item">
             <h4>
               Permanent Supportive Housing
-              <span class="label label-info ">{{ permanent|length }}</span>
+              <span class="label label-info ">{{ perm|length }}</span>
               <a href="{{ url_for('play_permanent', game_id=game.id) }}">
                 <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
               </a>
