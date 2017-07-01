@@ -51,13 +51,25 @@ class Game(db.Model):
         new_game = cls()
         db.session.add(new_game)
         db.session.commit()
-        new_Emergency = Emergency(game_id=new_game.id)
+        new_Emergency = Emergency(game_id=new_game.id,
+                                  board=EMERGENCY_START,
+                                  record=pickle.dumps([20]),
+                                  maximum=25)
         db.session.add(new_Emergency)
-        new_Rapid = Rapid(game_id=new_game.id)
+        new_Rapid = Rapid(game_id=new_game.id,
+                          board=RAPID_START,
+                          record=pickle.dumps([10]),
+                          maximum=10)
         db.session.add(new_Rapid)
-        new_Transitional = Transitional(game_id=new_game.id)
+        new_Transitional = Transitional(game_id=new_game.id,
+                                        board=TRANSITIONAL_START,
+                                        record=pickle.dumps([16]),
+                                        maximum=20)
         db.session.add(new_Transitional)
-        new_Permanent = Permanent(game_id=new_game.id)
+        new_Permanent = Permanent(game_id=new_game.id,
+                                  board=PERMANENT_START,
+                                  record=pickle.dumps([20]),
+                                  maximum=20)
         db.session.add(new_Permanent)
         new_Score = Score(game_id=new_game.id)
         db.session.add(new_Score)
@@ -185,12 +197,11 @@ class Game(db.Model):
         return moves
 
 
-class Emergency(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board = db.Column(db.PickleType, default=EMERGENCY_START)
-    record = db.Column(db.PickleType, default=pickle.dumps([20]))
-    maximum = db.Column(db.Integer, default=25)
+# Mixim class for related boards
+class Other_Boards(object):
+    board = db.Column(db.PickleType)
+    record = db.Column(db.PickleType)
+    maximum = db.Column(db.Integer)
 
     def __repr__(self):
         board = pickle.loads(self.board)
@@ -201,80 +212,32 @@ class Emergency(db.Model):
         if room is 0:
             extra = beads
         else:
-            extra, from_board, to_board = use_room(room, beads, from_board, self.board)
+            extra, from_board, to_board = use_room(room, beads,
+                                                   from_board, self.board)
         db.session.commit()
         moved = str(beads - extra)
-        moves.append(message_for(moved, "emergency"))
+        moves.append(message_for(moved, self.__tablename__))
         return extra, from_board, moves
 
 
-class Rapid(db.Model):
+class Emergency(db.Model, Other_Boards):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board = db.Column(db.PickleType, default=RAPID_START)
-    record = db.Column(db.PickleType, default=pickle.dumps([10]))
-    maximum = db.Column(db.Integer, default=10)
-
-    def __repr__(self):
-        board = pickle.loads(self.board)
-        return "%r" % str(board)
-
-    def receive_beads(self, beads, from_board, moves):
-        room = find_room(self.maximum, self.board)
-        if room is 0:
-            extra = beads
-        else:
-            extra, from_board, to_board = use_room(room, beads, from_board, self.board)
-        db.session.commit()
-        moved = str(beads - extra)
-        moves.append(message_for(moved, "rapid"))
-        return extra, from_board, moves
 
 
-class Transitional(db.Model):
+class Rapid(db.Model, Other_Boards):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board = db.Column(db.PickleType, default=TRANSITIONAL_START)
-    record = db.Column(db.PickleType, default=pickle.dumps([16]))
-    maximum = db.Column(db.Integer, default=20)
-
-    def __repr__(self):
-        board = pickle.loads(self.board)
-        return "%r" % str(board)
-
-    def receive_beads(self, beads, from_board, moves):
-        room = find_room(self.maximum, self.board)
-        if room is 0:
-            extra = beads
-        else:
-            extra, from_board, to_board = use_room(room, beads, from_board, self.board)
-        db.session.commit()
-        moved = str(beads - extra)
-        moves.append(message_for(moved, "transitional"))
-        return extra, from_board, moves
 
 
-class Permanent(db.Model):
+class Transitional(db.Model, Other_Boards):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    board = db.Column(db.PickleType, default=PERMANENT_START)
-    record = db.Column(db.PickleType, default=pickle.dumps([20]))
-    maximum = db.Column(db.Integer, default=20)
 
-    def __repr__(self):
-        board = pickle.loads(self.board)
-        return "%r" % str(board)
 
-    def receive_beads(self, beads, from_board, moves):
-        room = find_room(self.maximum, self.board)
-        if room is 0:
-            extra = beads
-        else:
-            extra, from_board, to_board = use_room(room, beads, from_board, self.board)
-        db.session.commit()
-        moved = str(beads - extra)
-        moves.append(message_for(moved, "permanent"))
-        return extra, from_board, moves
+class Permanent(db.Model, Other_Boards):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
 
 
 class Score(db.Model):

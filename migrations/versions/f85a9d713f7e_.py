@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 1a834d0ac166
+Revision ID: f85a9d713f7e
 Revises: 
-Create Date: 2017-06-25 11:32:15.601996
+Create Date: 2017-07-01 01:10:01.380867
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1a834d0ac166'
+revision = 'f85a9d713f7e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -35,11 +35,11 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('emergency',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.Column('board', sa.PickleType(), nullable=True),
     sa.Column('record', sa.PickleType(), nullable=True),
     sa.Column('maximum', sa.Integer(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -53,20 +53,20 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('permanent',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.Column('board', sa.PickleType(), nullable=True),
     sa.Column('record', sa.PickleType(), nullable=True),
     sa.Column('maximum', sa.Integer(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('rapid',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.Column('board', sa.PickleType(), nullable=True),
     sa.Column('record', sa.PickleType(), nullable=True),
     sa.Column('maximum', sa.Integer(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -83,11 +83,11 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('transitional',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.Column('board', sa.PickleType(), nullable=True),
     sa.Column('record', sa.PickleType(), nullable=True),
     sa.Column('maximum', sa.Integer(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
