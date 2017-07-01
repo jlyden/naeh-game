@@ -27,10 +27,9 @@ class Game(db.Model):
     start_datetime = db.Column(db.DateTime, default=datetime.now)
     round_count = db.Column(db.Integer, default=1)
     board_to_play = db.Column(db.Integer, default=0)
-    intake_cols = db.Column(db.Integer, default=5)
 
     available = db.Column(db.PickleType, default=AVAILABLE_BEADS)
-    intake = db.Column(db.PickleType, default=EMPTY_LIST)
+    intake_cols = db.Column(db.Integer, default=5)
 
     # One to One relationships
     emergency = db.relationship('Emergency', uselist=False)
@@ -86,6 +85,7 @@ class Game(db.Model):
         moves = []
         moves.append("Game " + str(new_game.id) + " initiated")
         move_log = Log(new_game.id, 1, 0, moves)
+
         db.session.add(new_Emergency)
         db.session.add(new_Rapid)
         db.session.add(new_Outreach)
@@ -117,10 +117,9 @@ class Game(db.Model):
             available_beads, intake_board = get_random_bead(50,
                                                             available_beads)
             self.available = pickle.dumps(available_beads)
-            self.intake = pickle.dumps(intake_board)
             db.session.commit()
-            moves.append(message_for(50, "intake"))
-            return moves
+            moves.append("50 beads to intake")
+            return intake_board, moves
 
     def send_anywhere(self, extra, from_board, moves):
         order = random.sample(range(1, 5), 4)
@@ -147,31 +146,25 @@ class Game(db.Model):
                                                               from_board,
                                                               moves)
         if len(from_board) > 0:
-            from_board, moves = self.send_to_unsheltered(len(from_board),
-                                                         from_board,
-                                                         moves)
+            unsheltered = Unsheltered.query.filter_by(game_id=self.id).first()
+            from_board, moves = unsheltered.receive_unlimited(len(from_board),
+                                                              from_board,
+                                                              moves)
         return from_board, moves
 
     def update_records(self):
-        # add_record() accepts and returns a pickle object
-        emerg = Emergency.query.filter_by(game_id=self.id).first()
-        emerg_board = pickle.loads(emerg.board)
-        emerg.record = add_record(emerg.record, len(emerg_board))
-        rapid = Rapid.query.filter_by(game_id=self.id).first()
-        rapid_board = pickle.loads(rapid.board)
-        rapid.record = add_record(rapid.record, len(rapid_board))
-        trans = Transitional.query.filter_by(game_id=self.id).first()
-        trans_board = pickle.loads(trans.board)
-        trans.record = add_record(trans.record, len(trans_board))
-        perm = Permanent.query.filter_by(game_id=self.id).first()
-        perm_board = pickle.loads(perm.board)
-        perm.record = add_record(perm.record, len(perm_board))
-        unsheltered_board = pickle.loads(self.unsheltered)
-        self.unsheltered_record = add_record(self.unsheltered_record,
-                                             len(unsheltered_board))
-        market_board = pickle.loads(self.market)
-        self.market_record = add_record(self.market_record, len(market_board))
-        db.session.commit()
+        this_emerg = Emergency.query.filter_by(game_id=self.id).first()
+        this_emerg.update_record()
+        this_rapid = Rapid.query.filter_by(game_id=self.id).first()
+        this_rapid.update_record()
+        this_trans = Transitional.query.filter_by(game_id=self.id).first()
+        this_trans.update_record()
+        this_perm = Permanent.query.filter_by(game_id=self.id).first()
+        this_perm.update_record()
+        this_unsheltered = Unsheltered.query.filter_by(game_id=self.id).first()
+        this_unsheltered.update_record()
+        this_market = Market.query.filter_by(game_id=self.id).first()
+        this_market.update_record()
         return
 
     def open_new(self, program, moves):
@@ -215,8 +208,6 @@ class Game(db.Model):
 
     def calculate_final_score(self):
         # Gather all the values
-        this_unsheltered = pickle.loads(self.unsheltered)
-        this_market = pickle.loads(self.market)
         this_emerg = Emergency.query.filter_by(game_id=self.game_id).first()
         this_emerg_record = pickle.loads(this_emerg.record)
         this_rapid = Rapid.query.filter_by(game_id=self.game_id).first()
@@ -225,18 +216,22 @@ class Game(db.Model):
         this_trans_record = pickle.loads(this_trans.record)
         this_perm = Permanent.query.filter_by(game_id=self.game_id).first()
         this_perm_board = pickle.loads(this_perm.board)
+        this_unsheltered = Unsheltered.query.filter_by(game_id=self.game_id).first()
+        this_unsheltered_board = pickle.loads(this_unsheltered.board)
+        this_market = Market.query.filter_by(game_id=self.game_id).first()
+        this_market_board = pickle.loads(this_market.board)
 
         # Create, fill and return the scoreboard
         new_Score = Score(game_id=self.id)
-        new_Score.unsheltered = len(this_unsheltered)
-        new_Score.market = len(this_market)
         new_Score.emerg_total = sum(this_emerg_record)
         new_Score.rapid = len(this_rapid_board)
         new_Score.trans_total = sum(this_trans_record)
         new_Score.perm = len(this_perm_board)
+        new_Score.unsheltered = len(this_unsheltered_board)
+        new_Score.market = len(this_market_board)
         db.session.add(new_Score)
         db.session.commit()
-        return
+        return new_Score
 
 
 # Helper methods
@@ -247,18 +242,3 @@ def get_random_bead(number, available_beads):
         collection.append(selection)
         available_beads.remove(selection)
     return available_beads, collection
-
-
-def add_record(record_pickle, value):
-    record = pickle.loads(record_pickle)
-    record.append(value)
-    record_pickle = pickle.dumps(record)
-    return record_pickle
-
-
-def message_for(beads_moved, board):
-    if beads_moved == "0":
-        message = "No room in " + board
-    else:
-        message = str(beads_moved) + " beads to " + board
-    return message

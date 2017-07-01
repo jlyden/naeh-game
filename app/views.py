@@ -19,10 +19,8 @@ def home():
 
 @app.route('/status/<game_id>')
 def status(game_id):
-    # Pull info from Game table
+    # Grab info from db
     this_game = Game.query.get_or_404(int(game_id))
-    intake_board = pickle.loads(this_game.intake)
-    # Pull info from other board tables
     this_emerg = Emergency.query.filter_by(game_id=game_id).first()
     emerg_board = pickle.loads(this_emerg.board)
     e_counts = pickle.loads(this_emerg.record)
@@ -50,22 +48,14 @@ def status(game_id):
     # Boards have to be passed individually because of unpickling
     return render_template('status.html',
                            BOARD_LIST=BOARD_LIST,
-                           game=this_game,
-                           intake=intake_board,
-                           emerg=emerg_board,
-                           rapid=rapid_board,
+                           game=this_game, last_moves=last_moves,
+                           emerg=emerg_board, e_counts=e_counts,
+                           rapid=rapid_board, r_counts=r_counts,
                            outreach=outreach_board,
-                           trans=trans_board,
-                           perm=perm_board,
-                           unsheltered=unsheltered_board,
-                           market=market_board,
-                           e_counts=e_counts,
-                           r_counts=r_counts,
-                           t_counts=t_counts,
-                           p_counts=p_counts,
-                           u_counts=u_counts,
-                           m_counts=m_counts,
-                           last_moves=last_moves)
+                           trans=trans_board, t_counts=t_counts,
+                           perm=perm_board, p_counts=p_counts,
+                           unsheltered=unsheltered_board, u_counts=u_counts,
+                           market=market_board, m_counts=m_counts)
 
 
 @app.route('/view_log/<game_id>')
@@ -118,30 +108,36 @@ def play_round(game_id):
 
 @app.route('/play_intake/<game_id>')
 def play_intake(game_id):
+    # Set up
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Intake')
     print("Playing Intake Board")
-    moves = []
-    moves = this_game.load_intake(moves)
-
     # col = one 'column' in game instructions
     col = math.ceil(50 / this_game.intake_cols)
-    intake_board = pickle.loads(this_game.intake)
+    moves = []
+
+    # Load boards
+    intake_board, moves = this_game.load_intake(moves)
     this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
     this_market = Market.query.filter_by(game_id=game_id).first()
+    this_emerg = Emergency.query.filter_by(game_id=game_id).first()
 
+    # Move beads
     # If Diversion column is open
     if this_game.intake_cols == 6:
         message = "Diversion column being played"
         moves.append(message)
         intake_board, moves = this_market.receive_unlimited(col, intake_board,
                                                             moves)
-    emerg = Emergency.query.filter_by(game_id=game_id).first()
     # surplus doesn't matter, b/c len(intake) will be passed later
-    surplus, intake, moves = emerg.receive_beads(col, intake, moves)
-    intake, moves = this_game.send_to_unsheltered(col, intake, moves)
-    intake, moves = this_game.send_anywhere(len(intake), intake, moves)
-    this_game.intake = pickle.dumps(intake)
+    surplus, intake_board, moves = this_emerg.receive_beads(col, intake_board,
+                                                            moves)
+    intake_board, moves = this_unsheltered.receive_unlimited(col, intake_board,
+                                                             moves)
+    intake_board, moves = this_game.send_anywhere(len(intake_board),
+                                                  intake_board, moves)
+
+    # Wrap up
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
@@ -151,27 +147,31 @@ def play_intake(game_id):
     return redirect(url_for('status', game_id=game_id))
 
 
-# TODO: Something is wrong in this log
 @app.route('/play_emerg/<game_id>')
 def play_emergency(game_id):
+    # Set up
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Emergency')
     print("Playing Emergency Board")
-    moves = []
     # Emergency board = 5x5, so 1 col = 5; 1.5 col = 8
     col = math.ceil(1.5 * 5)
+    moves = []
+
+    # Load boards
     emerg = Emergency.query.filter_by(game_id=game_id).first()
     emerg_board = pickle.loads(emerg.board)
-    print('intially, emerg_board is ' + str(len(emerg_board)))
-    emerg_board, moves = this_game.send_to_market(col, emerg_board, moves)
-    print('after market, emerg_board is ' + str(len(emerg_board)))
-    emerg_board, moves = this_game.send_to_unsheltered(col, emerg_board, moves)
-    print('after unshelt, emerg_board is ' + str(len(emerg_board)))
+    this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
+    this_market = Market.query.filter_by(game_id=game_id).first()
+
+    # Move beads
+    emerg_board, moves = this_market.receive_unlimited(col, emerg_board, moves)
+    emerg_board, moves = this_unsheltered.receive_unlimited(col, emerg_board,
+                                                            moves)
     if len(emerg_board) > 0:
-        # Send rest of Emergency Board wherever there is room
         emerg_board, moves = this_game.send_anywhere(len(emerg_board),
                                                      emerg_board, moves)
-        print('after anywhere, emerg_board is ' + str(len(emerg_board)))
+
+    # Wrap up
     emerg.board = pickle.dumps(emerg_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
@@ -184,19 +184,26 @@ def play_emergency(game_id):
 
 @app.route('/play_rapid/<game_id>')
 def play_rapid(game_id):
+    # Set up
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Rapid')
     print("Playing Rapid Board")
-    moves = []
     # Rapid board = 5x2, so 1 col = 2
     col = 2
+    moves = []
+
+    # Load boards
     rapid = Rapid.query.filter_by(game_id=game_id).first()
     rapid_board = pickle.loads(rapid.board)
-    rapid_board, moves = this_game.send_to_market(3 * col, rapid_board, moves)
-    emerg = Emergency.query.filter_by(game_id=game_id).first()
-    extra, rapid_board, moves = emerg.receive_beads(col, rapid_board, moves)
-    rapid.board = pickle.dumps(rapid_board)
+    this_market = Market.query.filter_by(game_id=game_id).first()
+    this_emerg = Emergency.query.filter_by(game_id=game_id).first()
 
+    rapid_board, moves = this_market.receive_unlimited(3 * col, rapid_board,
+                                                       moves)
+    extra, rapid_board, moves = this_emerg.receive_beads(col, rapid_board,
+                                                         moves)
+    # Wrap up
+    rapid.board = pickle.dumps(rapid_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
@@ -208,23 +215,25 @@ def play_rapid(game_id):
 
 @app.route('/play_outreach/<game_id>')
 def play_outreach(game_id):
+    # Set up
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Outreach')
     print("Playing Outreach Board")
     moves = []
-    # Fill Outreach Board from Unsheltered
-    unsheltered_board = pickle.loads(this_game.unsheltered)
-    outreach_board = pickle.loads(this_game.outreach)
-    room = find_room(this_game.outreach_max, outreach_board)
-    unsheltered_board, outreach_board = move_beads(room, unsheltered_board,
-                                                   outreach_board)
-    this_game.unsheltered = pickle.dumps(unsheltered_board)
-    message = str(room) + " beads from unsheltered to outreach"
-    moves.append(message)
-    # Move beads from Outreach Board to other boards
+
+    # Load boards, moves beads INTO outreach
+    this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
+    unsheltered_board = pickle.loads(this_unsheltered.board)
+    this_outreach = Outreach.query.filter_by(game_id=game_id).first()
+    unsheltered_board, outreach_board, moves = this_outreach.fill_from(unsheltered_board, moves)
+    this_unsheltered.board = pickle.dumps(unsheltered_board)
+
+    # Move beads FROM Outreach
     outreach_board, moves = this_game.send_anywhere(len(outreach_board),
                                                     outreach_board, moves)
-    this_game.outreach = pickle.dumps(outreach_board)
+
+    # Wrap up
+    this_outreach.board = pickle.dumps(outreach_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
@@ -236,22 +245,31 @@ def play_outreach(game_id):
 
 @app.route('/play_trans/<game_id>')
 def play_transitional(game_id):
+    # Set up
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Transitional')
     print("Playing Transitional Board")
-    moves = []
     # Transitional board = 5x4, so 1 col = 4
     col = 4
+    moves = []
+
+    # Load boards
     trans = Transitional.query.filter_by(game_id=game_id).first()
     trans_board = pickle.loads(trans.board)
-    trans_board, moves = this_game.send_to_market(col, trans_board, moves)
-    emerg = Emergency.query.filter_by(game_id=game_id).first()
-    extra, trans_board, moves = emerg.receive_beads(col, trans_board, moves)
-    if extra:
-        trans_board, moves = this_game.send_to_unsheltered(extra, trans_board,
-                                                           moves)
-    trans.board = pickle.dumps(trans_board)
+    this_market = Market.query.filter_by(game_id=game_id).first()
+    this_emerg = Emergency.query.filter_by(game_id=game_id).first()
+    this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
 
+    # Move beads
+    trans_board, moves = this_market.receive_unlimited(col, trans_board, moves)
+    extra, trans_board, moves = this_emerg.receive_beads(col, trans_board,
+                                                         moves)
+    if extra:
+        trans_board, moves = this_unsheltered.receive_unlimited(extra,
+                                                                trans_board,
+                                                                moves)
+    # Wrap up
+    trans.board = pickle.dumps(trans_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
@@ -264,21 +282,31 @@ def play_transitional(game_id):
 # TEMP comment: round rules implemented
 @app.route('/play_perm/<game_id>')
 def play_permanent(game_id):
+    # Set up
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Permanent')
     print("Playing Permanent Board")
     moves = []
+
+    # Load board
     perm = Permanent.query.filter_by(game_id=game_id).first()
     perm_board = pickle.loads(perm.board)
-    # if even round
+
+    # Moves beads; different rules depending on even or odd round
     if this_game.round_count % 2 == 0:
-        perm_board, moves = this_game.send_to_unsheltered(1, perm_board, moves)
+        this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
+        perm_board, moves = this_unsheltered.receive_unlimited(1, perm_board,
+                                                               moves)
     else:
-        perm_board, moves = this_game.send_to_market(1, perm_board, moves)
+        this_market = Market.query.filter_by(game_id=game_id).first()
+        perm_board, moves = this_market.receive_unlimited(1, perm_board, moves)
+
+    # Wrap up
     perm.board = pickle.dumps(perm_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
+
     # Update record and reset counters
     this_game.update_records()
     this_game.round_count += 1
@@ -328,3 +356,5 @@ def system_event(game_id):
 
 # TODO: randomize order in lists (for red beads)
 # TODO: Add charts and major game choices to score board
+
+# TODO: Improve view_log method

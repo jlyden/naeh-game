@@ -13,7 +13,6 @@ class Other_Boards(object):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board, moves):
-        from .game import message_for
         this_board = pickle.loads(self.board)
         room = find_room(self.maximum, this_board)
         print('room in ' + self.__tablename__ + ' is ' + str(room))
@@ -30,13 +29,19 @@ class Other_Boards(object):
         return extra, from_board, moves
 
     def receive_unlimited(self, beads, from_board, moves):
-        from .game import message_for
         this_board = pickle.loads(self.board)
         from_board, this_board = move_beads(beads, from_board, this_board)
         self.board = pickle.dumps(this_board)
         db.session.commit()
         moves.append(message_for(beads, self.__tablename__))
         return from_board, moves
+
+    def update_record(self):
+        # add_record() accepts and returns a pickle object
+        this_board = pickle.loads(self.board)
+        self.record = add_record(self.record, len(this_board))
+        db.session.commit()
+        return
 
 
 class Emergency(db.Model, Other_Boards):
@@ -52,6 +57,16 @@ class Rapid(db.Model, Other_Boards):
 class Outreach(db.Model, Other_Boards):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+
+    def fill_from(self, unsheltered_board, moves):
+        # Fill Outreach Board from Unsheltered
+        outreach_board = pickle.loads(self.board)
+        room = find_room(self.maximum, outreach_board)
+        unsheltered_board, outreach_board = move_beads(room, unsheltered_board,
+                                                       outreach_board)
+        message = str(room) + " beads from unsheltered to outreach"
+        moves.append(message)
+        return unsheltered_board, outreach_board, moves
 
 
 class Transitional(db.Model, Other_Boards):
@@ -97,3 +112,18 @@ def use_room(room, beads, from_board, to_board):
         from_board, to_board_pickle = move_beads(room, from_board, to_board)
         extra = beads - room
     return extra, from_board, to_board
+
+
+def add_record(record_pickle, value):
+    record = pickle.loads(record_pickle)
+    record.append(value)
+    record_pickle = pickle.dumps(record)
+    return record_pickle
+
+
+def message_for(beads_moved, board):
+    if beads_moved == "0":
+        message = "No room in " + board
+    else:
+        message = str(beads_moved) + " beads to " + board
+    return message
