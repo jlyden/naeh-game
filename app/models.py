@@ -8,11 +8,11 @@ from .utils import add_record, message_for, BOARD_LIST
 
 # Beads 1-65 are red
 # ALL_BEADS = list(range(1, 325))
-EMERGENCY_START = pickle.dumps(list(range(1, 7)) + list(range(66, 80)))
+EMERG_START = pickle.dumps(list(range(1, 7)) + list(range(66, 80)))
 OUTREACH_START = pickle.dumps(list(range(8, 10)) + list(range(89, 95)))
 RAPID_START = pickle.dumps(list(range(7, 8)) + list(range(80, 89)))
-TRANSITIONAL_START = pickle.dumps(list(range(10, 14)) + list(range(95, 107)))
-PERMANENT_START = pickle.dumps(list(range(14, 26)) + list(range(107, 115)))
+TRANS_START = pickle.dumps(list(range(10, 14)) + list(range(95, 107)))
+PERM_START = pickle.dumps(list(range(14, 26)) + list(range(107, 115)))
 AVAILABLE_BEADS = pickle.dumps(list(range(26, 66)) + list(range(115, 325)))
 EMPTY_LIST = pickle.dumps(list())
 EXTRA_BOARD = 25
@@ -48,35 +48,37 @@ class Game(db.Model):
 
     @classmethod
     def create(cls):
+        # Instantiate game, to reference game.id
         new_game = cls()
         db.session.add(new_game)
         db.session.commit()
+        # Instantiate other boards
         new_Emergency = Emergency(game_id=new_game.id,
-                                  board=EMERGENCY_START,
+                                  board=EMERG_START,
                                   record=pickle.dumps([20]),
                                   maximum=25)
-        db.session.add(new_Emergency)
         new_Rapid = Rapid(game_id=new_game.id,
                           board=RAPID_START,
                           record=pickle.dumps([10]),
                           maximum=10)
-        db.session.add(new_Rapid)
         new_Transitional = Transitional(game_id=new_game.id,
-                                        board=TRANSITIONAL_START,
+                                        board=TRANS_START,
                                         record=pickle.dumps([16]),
                                         maximum=20)
-        db.session.add(new_Transitional)
         new_Permanent = Permanent(game_id=new_game.id,
-                                  board=PERMANENT_START,
+                                  board=PERM_START,
                                   record=pickle.dumps([20]),
                                   maximum=20)
-        db.session.add(new_Permanent)
+        # Instantiate Score and first Log
         new_Score = Score(game_id=new_game.id)
-        db.session.add(new_Score)
         moves = []
-        message = "Game " + str(new_game.id) + " initiated"
-        moves.append(message)
+        moves.append("Game " + str(new_game.id) + " initiated")
         move_log = Log(new_game.id, 1, 0, moves)
+        db.session.add(new_Emergency)
+        db.session.add(new_Rapid)
+        db.session.add(new_Transitional)
+        db.session.add(new_Permanent)
+        db.session.add(new_Score)
         db.session.add(move_log)
         db.session.commit()
         return new_game
@@ -99,7 +101,8 @@ class Game(db.Model):
         return moves
 
     def send_to_unsheltered(self, beads, from_board, moves):
-        from_board, self.unsheltered = move_beads(beads, from_board, self.unsheltered)
+        from_board, self.unsheltered = move_beads(beads, from_board,
+                                                  self.unsheltered)
         db.session.commit()
         moves.append(message_for(beads, "unsheltered"))
         return from_board, moves
@@ -112,46 +115,51 @@ class Game(db.Model):
 
     def send_anywhere(self, extra, from_board, moves):
         order = random.sample(range(1, 5), 4)
-        print("order = " + str(order))
         while len(from_board) > 0 and len(order) > 0:
             value = order.pop(0)
             if value == 1:
-                emergency = Emergency.query.filter_by(game_id=self.id).first()
-                extra, from_board, moves = emergency.receive_beads(extra, from_board, moves)
-                print("Anywhere: moved beads to Emergency")
+                emerg = Emergency.query.filter_by(game_id=self.id).first()
+                extra, from_board, moves = emerg.receive_beads(extra,
+                                                               from_board,
+                                                               moves)
             elif value == 2:
                 rapid = Rapid.query.filter_by(game_id=self.id).first()
-                extra, from_board, moves = rapid.receive_beads(extra, from_board, moves)
-                print("Anywhere: moved beads to Rapid")
+                extra, from_board, moves = rapid.receive_beads(extra,
+                                                               from_board,
+                                                               moves)
             elif value == 3:
-                transitional = Transitional.query.filter_by(game_id=self.id).first()
-                extra, from_board, moves = transitional.receive_beads(extra, from_board, moves)
-                print("Anywhere: moved beads to Transitional")
+                trans = Transitional.query.filter_by(game_id=self.id).first()
+                extra, from_board, moves = trans.receive_beads(extra,
+                                                               from_board,
+                                                               moves)
             elif value == 4:
-                permanent = Permanent.query.filter_by(game_id=self.id).first()
-                extra, from_board, moves = permanent.receive_beads(extra, from_board, moves)
-                print("Anywhere: moved beads to Permanent")
+                perm = Permanent.query.filter_by(game_id=self.id).first()
+                extra, from_board, moves = perm.receive_beads(extra,
+                                                              from_board,
+                                                              moves)
         if len(from_board) > 0:
-            from_board, moves = self.send_to_unsheltered(len(from_board), from_board, moves)
-            print("Anywhere: moved beads to Unsheltered")
+            from_board, moves = self.send_to_unsheltered(len(from_board),
+                                                         from_board,
+                                                         moves)
         return from_board, moves
 
     def update_records(self):
         # add_record() accepts and returns a pickle object
-        emergency = Emergency.query.filter_by(game_id=self.id).first()
-        emerg_board = pickle.loads(emergency.board)
-        emergency.record = add_record(emergency.record, len(emerg_board))
+        emerg = Emergency.query.filter_by(game_id=self.id).first()
+        emerg_board = pickle.loads(emerg.board)
+        emerg.record = add_record(emerg.record, len(emerg_board))
         rapid = Rapid.query.filter_by(game_id=self.id).first()
         rapid_board = pickle.loads(rapid.board)
         rapid.record = add_record(rapid.record, len(rapid_board))
         trans = Transitional.query.filter_by(game_id=self.id).first()
         trans_board = pickle.loads(trans.board)
         trans.record = add_record(trans.record, len(trans_board))
-        permanent = Permanent.query.filter_by(game_id=self.id).first()
-        permanent_board = pickle.loads(permanent.board)
-        permanent.record = add_record(permanent.record, len(permanent_board))
+        perm = Permanent.query.filter_by(game_id=self.id).first()
+        perm_board = pickle.loads(perm.board)
+        perm.record = add_record(perm.record, len(perm_board))
         unsheltered_board = pickle.loads(self.unsheltered)
-        self.unsheltered_record = add_record(self.unsheltered_record, len(unsheltered_board))
+        self.unsheltered_record = add_record(self.unsheltered_record,
+                                             len(unsheltered_board))
         market_board = pickle.loads(self.market)
         self.market_record = add_record(self.market_record, len(market_board))
         db.session.commit()
@@ -161,9 +169,9 @@ class Game(db.Model):
         print('program is ' + program)
         # Add 'extra' board (i.e. 25 slots to selected board/program)
         if program == 'emergency':
-            emergency = Emergency.query.filter_by(game_id=self.id).first()
-            emergency.maximum = EXTRA_BOARD + emergency.maximum
-            print("emergency_max is now " + str(emergency.maximum))
+            emerg = Emergency.query.filter_by(game_id=self.id).first()
+            emerg.maximum = EXTRA_BOARD + emerg.maximum
+            print("emerg_max is now " + str(emerg.maximum))
         elif program == 'rapid':
             rapid = Rapid.query.filter_by(game_id=self.id).first()
             rapid.maximum = EXTRA_BOARD + rapid.maximum
@@ -176,9 +184,9 @@ class Game(db.Model):
             trans.maximum = EXTRA_BOARD + trans.maximum
             print("trans_max is now " + str(trans.maximum))
         elif program == 'permanent':
-            permanent = Permanent.query.filter_by(game_id=self.id).first()
-            permanent.maximum = EXTRA_BOARD + permanent.maximum
-            print("permanent_max is now " + str(permanent.maximum))
+            perm = Permanent.query.filter_by(game_id=self.id).first()
+            perm.maximum = EXTRA_BOARD + perm.maximum
+            print("perm_max is now " + str(perm.maximum))
         # Add 'diversion' column to intake board
         elif program == 'diversion':
             self.intake_cols = 6
@@ -246,9 +254,9 @@ class Score(db.Model):
     unsheltered = db.Column(db.Integer, default=0)
     market = db.Column(db.Integer, default=0)
     rapid = db.Column(db.Integer, default=0)
-    permanent = db.Column(db.Integer, default=0)
-    emergency_total = db.Column(db.Integer, default=0)
-    transitional_total = db.Column(db.Integer, default=0)
+    perm = db.Column(db.Integer, default=0)
+    emerg_total = db.Column(db.Integer, default=0)
+    trans_total = db.Column(db.Integer, default=0)
 
     def __repr__(self):
         return "<Game %r Scoreboard>" % (self.game_id)
@@ -263,14 +271,14 @@ class Score(db.Model):
         this_rapid_board = pickle.loads(this_rapid.board)
         this_trans = Rapid.query.filter_by(game_id=self.game_id).first()
         this_trans_record = pickle.loads(this_trans.record)
-        this_permanent = Permanent.query.filter_by(game_id=self.game_id).first()
-        this_permanent_board = pickle.loads(this_permanent.board)
+        this_perm = Permanent.query.filter_by(game_id=self.game_id).first()
+        this_perm_board = pickle.loads(this_perm.board)
         self.unsheltered = len(this_unsheltered)
         self.market = len(this_market)
-        self.emergency_total = sum(this_emerg_record)
+        self.emerg_total = sum(this_emerg_record)
         self.rapid = len(this_rapid_board)
-        self.transitional_total = sum(this_trans_record)
-        self.permanent = len(this_permanent_board)
+        self.trans_total = sum(this_trans_record)
+        self.perm = len(this_perm_board)
         db.session.commit()
 
 

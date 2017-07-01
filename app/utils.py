@@ -24,6 +24,7 @@ def move_beads(number, from_board, to_board_pickle):
         selection = from_board.pop()
         to_board.append(selection)
     to_board_pickle = pickle.dumps(to_board)
+    print(str(number) + 'beads moved')
     return from_board, to_board_pickle
 
 
@@ -35,10 +36,12 @@ def find_room(board_max, board_pickle):
 
 def use_room(room, beads, from_board, to_board_pickle):
     if room > beads:
-        from_board, to_board_pickle = move_beads(beads, from_board, to_board_pickle)
+        from_board, to_board_pickle = move_beads(beads, from_board,
+                                                 to_board_pickle)
         extra = 0
     elif beads >= room:
-        from_board, to_board_pickle = move_beads(room, from_board, to_board_pickle)
+        from_board, to_board_pickle = move_beads(room, from_board,
+                                                 to_board_pickle)
         extra = beads - room
     return extra, from_board, to_board_pickle
 
@@ -46,14 +49,13 @@ def use_room(room, beads, from_board, to_board_pickle):
 def add_record(record_pickle, value):
     record = pickle.loads(record_pickle)
     record.append(value)
-    print("record is " + str(record))
     record_pickle = pickle.dumps(record)
     return record_pickle
 
 
 def message_for(beads_moved, board):
     if beads_moved == "0":
-        message = "no room in " + board
+        message = "No room in " + board
     else:
         message = str(beads_moved) + " beads to " + board
     return message

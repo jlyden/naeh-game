@@ -29,21 +29,22 @@ def status(game_id):
     u_counts = pickle.loads(this_game.unsheltered_record)
 
     # Pull info from other board tables
-    this_emergency = Emergency.query.filter_by(game_id=game_id).first()
-    emergency_board = pickle.loads(this_emergency.board)
-    e_counts = pickle.loads(this_emergency.record)
+    this_emerg = Emergency.query.filter_by(game_id=game_id).first()
+    emerg_board = pickle.loads(this_emerg.board)
+    e_counts = pickle.loads(this_emerg.record)
     this_rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
     rapid_board = pickle.loads(this_rapid.board)
     r_counts = pickle.loads(this_rapid.record)
-    this_transitional = Transitional.query.filter_by(game_id=game_id).first()
-    transitional_board = pickle.loads(this_transitional.board)
-    t_counts = pickle.loads(this_transitional.record)
-    this_permanent = Permanent.query.filter_by(game_id=game_id).first()
-    permanent_board = pickle.loads(this_permanent.board)
-    p_counts = pickle.loads(this_permanent.record)
+    this_trans = Transitional.query.filter_by(game_id=game_id).first()
+    trans_board = pickle.loads(this_trans.board)
+    t_counts = pickle.loads(this_trans.record)
+    this_perm = Permanent.query.filter_by(game_id=game_id).first()
+    perm_board = pickle.loads(this_perm.board)
+    p_counts = pickle.loads(this_perm.record)
 
     # Pull last move info from Log table
-    this_log = Log.query.filter(Log.game_id == game_id).order_by(desc(Log.id)).first();
+    this_log = Log.query.filter(Log.game_id == game_id).order_by(desc(Log.id)
+                                                                 ).first()
     last_moves = pickle.loads(this_log.moves)
     # Boards have to be passed individually because of unpickling
     return render_template('status.html',
@@ -53,10 +54,10 @@ def status(game_id):
                            outreach=outreach_board,
                            market=market_board,
                            unsheltered=unsheltered_board,
-                           emergency=emergency_board,
+                           emerg=emerg_board,
                            rapid=rapid_board,
-                           transitional=transitional_board,
-                           permanent=permanent_board,
+                           trans=trans_board,
+                           perm=perm_board,
                            m_counts=m_counts,
                            u_counts=u_counts,
                            e_counts=e_counts,
@@ -101,11 +102,11 @@ def view_log(game_id):
 @app.route('/play_round/<game_id>')
 def play_round(game_id):
     play_intake(game_id)
-    play_emergency(game_id)
+    play_emerg(game_id)
     play_rapid(game_id)
     play_outreach(game_id)
-    play_transitional(game_id)
-    play_permanent(game_id)
+    play_trans(game_id)
+    play_perm(game_id)
     return redirect(url_for('status', game_id=game_id))
 
 
@@ -125,13 +126,14 @@ def play_intake(game_id):
         message = "Diversion column being played"
         moves.append(message)
         intake, moves = this_game.send_to_market(col, intake, moves)
-    emergency = Emergency.query.filter_by(game_id=game_id).first()
+    emerg = Emergency.query.filter_by(game_id=game_id).first()
     # surplus doesn't matter, b/c len(intake) will be passed later
-    surplus, intake, moves = emergency.receive_beads(col, intake, moves)
+    surplus, intake, moves = emerg.receive_beads(col, intake, moves)
     intake, moves = this_game.send_to_unsheltered(col, intake, moves)
     intake, moves = this_game.send_anywhere(len(intake), intake, moves)
     this_game.intake = pickle.dumps(intake)
-    move_log = Log(game_id, this_game.round_count, this_game.board_to_play, moves)
+    move_log = Log(game_id, this_game.round_count,
+                   this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
     print("next board to play is " + str(this_game.board_to_play))
@@ -140,21 +142,22 @@ def play_intake(game_id):
 
 
 # TODO: Something is wrong in this log
-@app.route('/play_emergency/<game_id>')
-def play_emergency(game_id):
+@app.route('/play_emerg/<game_id>')
+def play_emerg(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Emergency')
     print("Playing Emergency Board")
     moves = []
     # Emergency board = 5x5, so 1 col = 5; 1.5 col = 8
     col = math.ceil(1.5 * 5)
-    emergency = Emergency.query.filter_by(game_id=game_id).first()
-    emerg_board = pickle.loads(emergency.board)
+    emerg = Emergency.query.filter_by(game_id=game_id).first()
+    emerg_board = pickle.loads(emerg.board)
     emerg_board, moves = this_game.send_to_market(col, emerg_board, moves)
     emerg_board, moves = this_game.send_to_unsheltered(col, emerg_board, moves)
     # Send rest of Emergency Board wherever there is room
-    emerg_board, moves = this_game.send_anywhere(len(emerg_board), emerg_board, moves)
-    emergency.board = pickle.dumps(emerg_board)
+    emerg_board, moves = this_game.send_anywhere(len(emerg_board),
+                                                 emerg_board, moves)
+    emerg.board = pickle.dumps(emerg_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
@@ -175,11 +178,12 @@ def play_rapid(game_id):
     rapid = Rapid.query.filter_by(game_id=game_id).first()
     rapid_board = pickle.loads(rapid.board)
     rapid_board, moves = this_game.send_to_market(3 * col, rapid_board, moves)
-    emergency = Emergency.query.filter_by(game_id=game_id).first()
-    extra, rapid_board, moves = emergency.receive_beads(col, rapid_board, moves)
+    emerg = Emergency.query.filter_by(game_id=game_id).first()
+    extra, rapid_board, moves = emerg.receive_beads(col, rapid_board, moves)
     rapid.board = pickle.dumps(rapid_board)
 
-    move_log = Log(game_id, this_game.round_count, this_game.board_to_play, moves)
+    move_log = Log(game_id, this_game.round_count,
+                   this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
     print("next board to play is " + str(this_game.board_to_play))
@@ -195,12 +199,14 @@ def play_outreach(game_id):
     moves = []
     this_unsheltered = pickle.loads(this_game.unsheltered)
     room = find_room(this_game.outreach_max, this_game.outreach)
-    this_unsheltered, this_game.outreach = move_beads(room, this_unsheltered, this_game.outreach)
+    this_unsheltered, this_game.outreach = move_beads(room, this_unsheltered,
+                                                      this_game.outreach)
     this_game.unsheltered = pickle.dumps(this_unsheltered)
     message = str(room) + " beads to outreach"
     moves.append(message)
     outreach_board = pickle.loads(this_game.outreach)
-    outreach_board, moves = this_game.send_anywhere(len(outreach_board), outreach_board, moves)
+    outreach_board, moves = this_game.send_anywhere(len(outreach_board),
+                                                    outreach_board, moves)
     this_game.outreach = pickle.dumps(outreach_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
@@ -211,8 +217,8 @@ def play_outreach(game_id):
     return redirect(url_for('status', game_id=game_id))
 
 
-@app.route('/play_transitional/<game_id>')
-def play_transitional(game_id):
+@app.route('/play_trans/<game_id>')
+def play_trans(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Transitional')
     print("Playing Transitional Board")
@@ -222,10 +228,11 @@ def play_transitional(game_id):
     trans = Transitional.query.filter_by(game_id=game_id).first()
     trans_board = pickle.loads(trans.board)
     trans_board, moves = this_game.send_to_market(col, trans_board, moves)
-    emergency = Emergency.query.filter_by(game_id=game_id).first()
-    extra, trans_board, moves = emergency.receive_beads(col, trans_board, moves)
+    emerg = Emergency.query.filter_by(game_id=game_id).first()
+    extra, trans_board, moves = emerg.receive_beads(col, trans_board, moves)
     if extra:
-        trans_board, moves = this_game.send_to_unsheltered(extra, trans_board, moves)
+        trans_board, moves = this_game.send_to_unsheltered(extra, trans_board,
+                                                           moves)
     trans.board = pickle.dumps(trans_board)
 
     move_log = Log(game_id, this_game.round_count,
@@ -238,20 +245,20 @@ def play_transitional(game_id):
 
 
 # TEMP comment: round rules implemented
-@app.route('/play_permanent/<game_id>')
-def play_permanent(game_id):
+@app.route('/play_perm/<game_id>')
+def play_perm(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Permanent')
     print("Playing Permanent Board")
     moves = []
-    permanent = Permanent.query.filter_by(game_id=game_id).first()
-    permanent_board = pickle.loads(permanent.board)
+    perm = Permanent.query.filter_by(game_id=game_id).first()
+    perm_board = pickle.loads(perm.board)
     # if even round
     if this_game.round_count % 2 == 0:
-        permanent_board, moves = this_game.send_to_unsheltered(1, permanent_board, moves)
+        perm_board, moves = this_game.send_to_unsheltered(1, perm_board, moves)
     else:
-        permanent_board, moves = this_game.send_to_market(1, permanent_board, moves)
-    permanent.board = pickle.dumps(permanent_board)
+        perm_board, moves = this_game.send_to_market(1, perm_board, moves)
+    perm.board = pickle.dumps(perm_board)
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
@@ -290,7 +297,8 @@ def system_event(game_id):
         if this_game.round_count == 6:
             this_score = Score.query.filter_by(game_id=game_id).first()
             this_score.calculate_final_score()
-            return render_template('event.html', game=this_game, score=this_score)
+            return render_template('event.html', game=this_game,
+                                   score=this_score)
         else:
             return render_template('event.html', game=this_game)
 
