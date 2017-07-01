@@ -208,17 +208,17 @@ class Game(db.Model):
 
     def calculate_final_score(self):
         # Gather all the values
-        this_emerg = Emergency.query.filter_by(game_id=self.game_id).first()
+        this_emerg = Emergency.query.filter_by(game_id=self.id).first()
         this_emerg_record = pickle.loads(this_emerg.record)
-        this_rapid = Rapid.query.filter_by(game_id=self.game_id).first()
+        this_rapid = Rapid.query.filter_by(game_id=self.id).first()
         this_rapid_board = pickle.loads(this_rapid.board)
-        this_trans = Transitional.query.filter_by(game_id=self.game_id).first()
+        this_trans = Transitional.query.filter_by(game_id=self.id).first()
         this_trans_record = pickle.loads(this_trans.record)
-        this_perm = Permanent.query.filter_by(game_id=self.game_id).first()
+        this_perm = Permanent.query.filter_by(game_id=self.id).first()
         this_perm_board = pickle.loads(this_perm.board)
-        this_unsheltered = Unsheltered.query.filter_by(game_id=self.game_id).first()
+        this_unsheltered = Unsheltered.query.filter_by(game_id=self.id).first()
         this_unsheltered_board = pickle.loads(this_unsheltered.board)
-        this_market = Market.query.filter_by(game_id=self.game_id).first()
+        this_market = Market.query.filter_by(game_id=self.id).first()
         this_market_board = pickle.loads(this_market.board)
 
         # Create, fill and return the scoreboard
