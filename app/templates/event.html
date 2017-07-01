@@ -54,7 +54,7 @@ window.onload = function() {
       </div><!--./panel-body -->
       {% else %}
         {% if game.round_count == 2 %}
-          <!-- Add Program or Open Diversion -->          
+          <!-- Add Program or Open Diversion -->
           <div class="panel-heading">
             <h2 class="panel-title">Select a program to add,<br> or open the Diversion Column.</h2>
           </div>
@@ -115,7 +115,7 @@ window.onload = function() {
         {% elif game.round_count == 6 %}
           <!-- Show Score -->
           <div class="panel-heading">
-            <h2 class="panel-title">Final Score = {{ ((score.unsheltered * 3) + score.emergency_total + score.transitional_total) - (score.market + score.rapid + score.permanent) }}</h2>
+            <h2 class="panel-title">Final Score = {{ ((score.unsheltered * 3) + score.emerg_total + score.trans_total) - (score.market + score.rapid + score.permanent) }}</h2>
           </div>
           <div class="panel-body">
             <table class="table">
@@ -133,19 +133,19 @@ window.onload = function() {
               </tr>
               <tr>
                 <td>Emergency</td>
-                <td>{{ score.emergency_total }}</td>
+                <td>{{ score.emerg_total }}</td>
                 <td>Rapid</td>
                 <td>{{ score.rapid}}</td>
               </tr>
               <tr>
                 <td>Transitional</td>
-                <td>{{ score.transitional_total }}</td>
+                <td>{{ score.trans_total }}</td>
                 <td>Permanent</td>
                 <td>{{ score.permanent}}</td>
               </tr>
               <tr>
                 <th>Homeless Score</th>
-                <th>{{ (score.unsheltered * 3) + score.emergency_total + score.transitional_total }}</th>
+                <th>{{ (score.unsheltered * 3) + score.emerg_total + score.trans_total }}</th>
                 <th>Housing Score</th>
                 <th>{{ score.market + score.rapid + score.permanent }}</th>
               </tr>

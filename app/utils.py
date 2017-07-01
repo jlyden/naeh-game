@@ -6,16 +6,13 @@ BOARD_LIST = ["Intake", "Emergency", "Rapid",
               "Outreach", "Transitional", "Permanent"]
 
 
-def get_random_bead(number, available_pickle):
-    available_beads = pickle.loads(available_pickle)
+def get_random_bead(number, available_beads):
     collection = []
     for i in range(number):
         selection = random.choice(available_beads)
         collection.append(selection)
         available_beads.remove(selection)
-    available_pickle = pickle.dumps(available_beads)
-    collection_pickle = pickle.dumps(collection)
-    return available_pickle, collection_pickle
+    return available_beads, collection
 
 
 def move_beads(number, from_board, to_board):

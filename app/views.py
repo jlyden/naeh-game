@@ -1,6 +1,6 @@
 import math
 import pickle
-from flask import request, render_template, redirect, url_for
+from flask import request, render_template, redirect, url_for, flash
 from sqlalchemy import desc
 from app import app, db
 from .models import Game, Emergency, Rapid, Transitional, Permanent, Score, Log
@@ -101,12 +101,17 @@ def view_log(game_id):
 
 @app.route('/play_round/<game_id>')
 def play_round(game_id):
-    play_intake(game_id)
-    play_emergency(game_id)
-    play_rapid(game_id)
-    play_outreach(game_id)
-    play_transitional(game_id)
-    play_permanent(game_id)
+    this_game = Game.query.get_or_404(int(game_id))
+    if this_game.round_count < 6:
+        play_intake(game_id)
+        play_emergency(game_id)
+        play_rapid(game_id)
+        play_outreach(game_id)
+        play_transitional(game_id)
+        play_permanent(game_id)
+        system_event(game_id)
+    else:
+        flash(u'Game over - no more plays.', 'warning')
     return redirect(url_for('status', game_id=game_id))
 
 
@@ -309,12 +314,12 @@ def system_event(game_id):
         else:
             return render_template('event.html', game=this_game)
 
-# TODO: Something is funky with validation of which board to play next
-# TODO: gameplay where you make pre-round choices, then play entire round with 1 click
-# TODO: add check for round six - no more playing - maybe disappear play buttons
 # TODO: add game logic for board conversion
 # TODO: diff rules in rounds!
+
+# TODO: Something is funky with validation of which board to play next
+# TODO: gameplay where you make pre-round choices, then play entire round with 1 click
 # TODO: change "round 6" to "game over" somehow
-# TODO: add check for while extra > 0 - maybe accomplished by send_anywhere?
+
 # TODO: randomize order in lists (for red beads)
 # TODO: Add charts and major game choices to score board

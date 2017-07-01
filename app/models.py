@@ -95,11 +95,15 @@ class Game(db.Model):
             return
 
     def load_intake(self, moves):
-        if len(self.available) == 0:
+        available_beads = pickle.loads(self.available)
+        if len(available_beads) == 0:
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         else:
-            self.available, self.intake = get_random_bead(50, self.available)
+            available_beads, intake_board = get_random_bead(50,
+                                                            available_beads)
+            self.available = pickle.dumps(available_beads)
+            self.intake = pickle.dumps(intake_board)
             db.session.commit()
             moves.append(message_for(50, "intake"))
             return moves
@@ -115,7 +119,7 @@ class Game(db.Model):
 
     def send_to_market(self, beads, from_board, moves):
         market_board = pickle.loads(self.market)
-        from_board, self.market = move_beads(beads, from_board, self.market)
+        from_board, self.market = move_beads(beads, from_board, market_board)
         self.market = pickle.dumps(market_board)
         db.session.commit()
         moves.append(message_for(beads, "market"))
@@ -224,15 +228,16 @@ class Other_Boards(object):
         return "%r" % str(board)
 
     def receive_beads(self, beads, from_board, moves):
-        room = find_room(self.maximum, self.board)
+        this_board = pickle.loads(self.board)
+        room = find_room(self.maximum, this_board)
         print('room in ' + self.__tablename__ + ' is ' + str(room))
         if room is 0:
             extra = beads
         else:
-            extra, from_board, to_board = use_room(room, beads,
-                                                   from_board, self.board)
-            print(self.__tablename__ + ' after move is ' + str(self.board))
-        db.session.add(self)
+            extra, from_board, this_board = use_room(room, beads,
+                                                     from_board, this_board)
+            print(self.__tablename__ + ' after move is ' + str(this_board))
+            self.board = pickle.dumps(this_board)
         db.session.commit()
         moved = str(beads - extra)
         moves.append(message_for(moved, self.__tablename__))
