@@ -1,18 +1,8 @@
-import random
 import pickle
 
 
 BOARD_LIST = ["Intake", "Emergency", "Rapid",
               "Outreach", "Transitional", "Permanent"]
-
-
-def get_random_bead(number, available_beads):
-    collection = []
-    for i in range(number):
-        selection = random.choice(available_beads)
-        collection.append(selection)
-        available_beads.remove(selection)
-    return available_beads, collection
 
 
 def move_beads(number, from_board, to_board):
@@ -39,16 +29,3 @@ def use_room(room, beads, from_board, to_board):
     return extra, from_board, to_board
 
 
-def add_record(record_pickle, value):
-    record = pickle.loads(record_pickle)
-    record.append(value)
-    record_pickle = pickle.dumps(record)
-    return record_pickle
-
-
-def message_for(beads_moved, board):
-    if beads_moved == "0":
-        message = "No room in " + board
-    else:
-        message = str(beads_moved) + " beads to " + board
-    return message

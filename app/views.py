@@ -3,8 +3,8 @@ import pickle
 from flask import request, render_template, redirect, url_for, flash
 from sqlalchemy import desc
 from app import app, db
-from .models import Game, Emergency, Rapid, Transitional, Permanent, Score, Log
-from .utils import find_room, move_beads, BOARD_LIST
+from .models import Game, Emergency, Rapid, Outreach, Transitional, Permanent
+from .models import Unsheltered, Market, Score, Log, BOARD_LIST
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -22,12 +22,6 @@ def status(game_id):
     # Pull info from Game table
     this_game = Game.query.get_or_404(int(game_id))
     intake_board = pickle.loads(this_game.intake)
-    outreach_board = pickle.loads(this_game.outreach)
-    market_board = pickle.loads(this_game.market)
-    m_counts = pickle.loads(this_game.market_record)
-    unsheltered_board = pickle.loads(this_game.unsheltered)
-    u_counts = pickle.loads(this_game.unsheltered_record)
-
     # Pull info from other board tables
     this_emerg = Emergency.query.filter_by(game_id=game_id).first()
     emerg_board = pickle.loads(this_emerg.board)
@@ -35,13 +29,20 @@ def status(game_id):
     this_rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
     rapid_board = pickle.loads(this_rapid.board)
     r_counts = pickle.loads(this_rapid.record)
+    this_outreach = Outreach.query.filter_by(game_id=game_id).first()
+    outreach_board = pickle.loads(this_outreach.board)
     this_trans = Transitional.query.filter_by(game_id=game_id).first()
     trans_board = pickle.loads(this_trans.board)
     t_counts = pickle.loads(this_trans.record)
     this_perm = Permanent.query.filter_by(game_id=game_id).first()
     perm_board = pickle.loads(this_perm.board)
     p_counts = pickle.loads(this_perm.record)
-
+    this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
+    unsheltered_board = pickle.loads(this_unsheltered.board)
+    u_counts = pickle.loads(this_unsheltered.record)
+    this_market = Market.query.filter_by(game_id=game_id).first()
+    market_board = pickle.loads(this_market.board)
+    m_counts = pickle.loads(this_market.record)
     # Pull last move info from Log table
     this_log = Log.query.filter(Log.game_id == game_id).order_by(desc(Log.id)
                                                                  ).first()
@@ -51,19 +52,19 @@ def status(game_id):
                            BOARD_LIST=BOARD_LIST,
                            game=this_game,
                            intake=intake_board,
-                           outreach=outreach_board,
-                           market=market_board,
-                           unsheltered=unsheltered_board,
                            emerg=emerg_board,
                            rapid=rapid_board,
+                           outreach=outreach_board,
                            trans=trans_board,
                            perm=perm_board,
-                           m_counts=m_counts,
-                           u_counts=u_counts,
+                           unsheltered=unsheltered_board,
+                           market=market_board,
                            e_counts=e_counts,
                            r_counts=r_counts,
                            t_counts=t_counts,
                            p_counts=p_counts,
+                           u_counts=u_counts,
+                           m_counts=m_counts,
                            last_moves=last_moves)
 
 
@@ -125,12 +126,16 @@ def play_intake(game_id):
 
     # col = one 'column' in game instructions
     col = math.ceil(50 / this_game.intake_cols)
-    intake = pickle.loads(this_game.intake)
+    intake_board = pickle.loads(this_game.intake)
+    this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
+    this_market = Market.query.filter_by(game_id=game_id).first()
+
     # If Diversion column is open
     if this_game.intake_cols == 6:
         message = "Diversion column being played"
         moves.append(message)
-        intake, moves = this_game.send_to_market(col, intake, moves)
+        intake_board, moves = this_market.receive_unlimited(col, intake_board,
+                                                            moves)
     emerg = Emergency.query.filter_by(game_id=game_id).first()
     # surplus doesn't matter, b/c len(intake) will be passed later
     surplus, intake, moves = emerg.receive_beads(col, intake, moves)
@@ -307,8 +312,8 @@ def system_event(game_id):
     elif request.method == 'GET':
         # Time to calculate Final Score
         if this_game.round_count == 6:
+            this_game.calculate_final_score()
             this_score = Score.query.filter_by(game_id=game_id).first()
-            this_score.calculate_final_score()
             return render_template('event.html', game=this_game,
                                    score=this_score)
         else:

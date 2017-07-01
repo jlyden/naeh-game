@@ -8,4 +8,4 @@ app.config.from_object('config')
 # Create instance of SQLAlchemy
 db = SQLAlchemy(app)
 
-from app import views, models
+from app import models, views
