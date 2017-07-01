@@ -202,14 +202,16 @@ def play_outreach(game_id):
     this_game.verify_board_to_play('Outreach')
     print("Playing Outreach Board")
     moves = []
-    this_unsheltered = pickle.loads(this_game.unsheltered)
-    room = find_room(this_game.outreach_max, this_game.outreach)
-    this_unsheltered, this_game.outreach = move_beads(room, this_unsheltered,
-                                                      this_game.outreach)
-    this_game.unsheltered = pickle.dumps(this_unsheltered)
-    message = str(room) + " beads to outreach"
-    moves.append(message)
+    # Fill Outreach Board from Unsheltered
+    unsheltered_board = pickle.loads(this_game.unsheltered)
     outreach_board = pickle.loads(this_game.outreach)
+    room = find_room(this_game.outreach_max, outreach_board)
+    unsheltered_board, outreach_board = move_beads(room, unsheltered_board,
+                                                   outreach_board)
+    this_game.unsheltered = pickle.dumps(unsheltered_board)
+    message = str(room) + " beads from unsheltered to outreach"
+    moves.append(message)
+    # Move beads from Outreach Board to other boards
     outreach_board, moves = this_game.send_anywhere(len(outreach_board),
                                                     outreach_board, moves)
     this_game.outreach = pickle.dumps(outreach_board)

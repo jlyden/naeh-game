@@ -18,33 +18,28 @@ def get_random_bead(number, available_pickle):
     return available_pickle, collection_pickle
 
 
-def move_beads(number, from_board, to_board_pickle):
+def move_beads(number, from_board, to_board):
     if len(from_board) > 0:
-        to_board = pickle.loads(to_board_pickle)
         for i in range(number):
             selection = from_board.pop()
             to_board.append(selection)
-        to_board_pickle = pickle.dumps(to_board)
         print(str(number) + ' beads moved')
-    return from_board, to_board_pickle
+    return from_board, to_board
 
 
-def find_room(board_max, board_pickle):
-    board = pickle.loads(board_pickle)
+def find_room(board_max, board):
     room = board_max - len(board)
     return room
 
 
-def use_room(room, beads, from_board, to_board_pickle):
+def use_room(room, beads, from_board, to_board):
     if room > beads:
-        from_board, to_board_pickle = move_beads(beads, from_board,
-                                                 to_board_pickle)
+        from_board, to_board_pickle = move_beads(beads, from_board, to_board)
         extra = 0
     elif beads >= room:
-        from_board, to_board_pickle = move_beads(room, from_board,
-                                                 to_board_pickle)
+        from_board, to_board_pickle = move_beads(room, from_board, to_board)
         extra = beads - room
-    return extra, from_board, to_board_pickle
+    return extra, from_board, to_board
 
 
 def add_record(record_pickle, value):

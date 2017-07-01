@@ -105,14 +105,18 @@ class Game(db.Model):
             return moves
 
     def send_to_unsheltered(self, beads, from_board, moves):
-        from_board, self.unsheltered = move_beads(beads, from_board,
-                                                  self.unsheltered)
+        unsheltered_board = pickle.loads(self.unsheltered)
+        from_board, unsheltered_board = move_beads(beads, from_board,
+                                                   unsheltered_board)
+        self.unsheltered = pickle.dumps(unsheltered_board)
         db.session.commit()
         moves.append(message_for(beads, "unsheltered"))
         return from_board, moves
 
     def send_to_market(self, beads, from_board, moves):
+        market_board = pickle.loads(self.market)
         from_board, self.market = move_beads(beads, from_board, self.market)
+        self.market = pickle.dumps(market_board)
         db.session.commit()
         moves.append(message_for(beads, "market"))
         return from_board, moves
@@ -227,7 +231,8 @@ class Other_Boards(object):
         else:
             extra, from_board, to_board = use_room(room, beads,
                                                    from_board, self.board)
-            print('extra after move is ' + str(extras))
+            print(self.__tablename__ + ' after move is ' + str(self.board))
+        db.session.add(self)
         db.session.commit()
         moved = str(beads - extra)
         moves.append(message_for(moved, self.__tablename__))
