@@ -16,31 +16,31 @@
           <li class="list-group-item">
             <h4>Emergency Housing
               <span class="label label-info ">{{ emerg|length }}</span>
-              <a href="{{ url_for('play_emergency', game_id=game.id) }}" class="pull-right">Play</a>
+              <a href="{{ url_for('play_board', board_name="Emergency", game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
           <li class="list-group-item">
             <h4>Rapid Rehousing
               <span class="label label-info ">{{ rapid|length }}</span>
-              <a href="{{ url_for('play_rapid', game_id=game.id) }}" class="pull-right">Play</a>
+              <a href="{{ url_for('play_board', board_name="Rapid", game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
           <li class="list-group-item">
             <h4>Outreach Program
               <span class="label label-info ">{{ outreach|length }}</span>
-              <a href="{{ url_for('play_outreach', game_id=game.id) }}" class="pull-right">Play</a>
+              <a href="{{ url_for('play_board', board_name="Outreach", game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
           <li class="list-group-item">
             <h4>Transitional Housing
               <span class="label label-info ">{{ trans|length }}</span>
-              <a href="{{ url_for('play_transitional', game_id=game.id) }}" class="pull-right">Play</a>
+              <a href="{{ url_for('play_board', board_name="Transitional", game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
           <li class="list-group-item">
             <h4>Permanent Supportive Housing
               <span class="label label-info ">{{ perm|length }}</span>
-              <a href="{{ url_for('play_permanent', game_id=game.id) }}" class="pull-right">Play</a>
+              <a href="{{ url_for('play_board', board_name="Permanent", game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
         </ul>
