@@ -3,70 +3,44 @@
   <div class="row">
     <div class="panel panel-primary col-sm-7">
       <div class="panel-heading">
-        <h2 class="panel-title">Play Round</h2>
-          <a href="{{ url_for('play_round', game_id=game.id) }}">
-            <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
-          </a>
-      </div>
-      <div class="panel-body">
-      </div>
-      <div class="panel-heading">
         <h2 class="panel-title">Board to Play: {{ BOARD_LIST[game.board_to_play] }}</h2>
       </div>
       <div class="panel-body">
         <ul class="list-group">
           <li class="list-group-item">
-              <h4>
-                  Intake Program
-                <span class="label label-info ">0</span>
-                <a href="{{ url_for('play_intake', game_id=game.id) }}">
-                    <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
-                </a>
-              </h4>
+            <h4>Intake Program
+              <span class="label label-info ">0</span>
+              <a href="{{ url_for('play_intake', game_id=game.id) }}" class="pull-right">Play</a>
+            </h4>
           </li>
           <li class="list-group-item">
-              <h4>
-                  Emergency Housing
-                  <span class="label label-info ">{{ emerg|length }}</span>
-                  <a href="{{ url_for('play_emergency', game_id=game.id) }}">
-                    <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
-                  </a>
-              </h4>
+            <h4>Emergency Housing
+              <span class="label label-info ">{{ emerg|length }}</span>
+              <a href="{{ url_for('play_emergency', game_id=game.id) }}" class="pull-right">Play</a>
+            </h4>
           </li>
           <li class="list-group-item">
-            <h4>
-              Rapid Rehousing
+            <h4>Rapid Rehousing
               <span class="label label-info ">{{ rapid|length }}</span>
-              <a href="{{ url_for('play_rapid', game_id=game.id) }}">
-                <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
-              </a>
+              <a href="{{ url_for('play_rapid', game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
           <li class="list-group-item">
-            <h4>
-              Outreach Program
+            <h4>Outreach Program
               <span class="label label-info ">{{ outreach|length }}</span>
-              <a href="{{ url_for('play_outreach', game_id=game.id) }}">
-                <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
-              </a>
+              <a href="{{ url_for('play_outreach', game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
           <li class="list-group-item">
-            <h4>
-              Transitional Housing
+            <h4>Transitional Housing
               <span class="label label-info ">{{ trans|length }}</span>
-              <a href="{{ url_for('play_transitional', game_id=game.id) }}">
-                <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
-              </a>
+              <a href="{{ url_for('play_transitional', game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
           <li class="list-group-item">
-            <h4>
-              Permanent Supportive Housing
+            <h4>Permanent Supportive Housing
               <span class="label label-info ">{{ perm|length }}</span>
-              <a href="{{ url_for('play_permanent', game_id=game.id) }}">
-                <button type="button" class="btn btn-xs btn-success btn pull-right">Play</button>
-              </a>
+              <a href="{{ url_for('play_permanent', game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
         </ul>
