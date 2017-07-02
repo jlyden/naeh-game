@@ -115,12 +115,11 @@ class Game(db.Model):
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         else:
-            available_beads, intake_board = get_random_bead(50,
-                                                            available_beads)
+            available_beads, intake = get_random_bead(50, available_beads)
             self.available = pickle.dumps(available_beads)
             db.session.commit()
             moves.append("50 beads to intake")
-            return intake_board, moves
+            return intake, moves
 
     def send_anywhere(self, extra, from_board, moves):
         order = random.sample(range(0, 4), 4)

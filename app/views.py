@@ -102,45 +102,49 @@ def play_round(game_id):
     return redirect(url_for('status', game_id=game_id))
 
 
-@app.route('/play_intake/<game_id>')
-def play_intake(game_id):
+@app.route('/play_board/<board_name>/<game_id>')
+def play_board(board_name, game_id):
     # Set up
     this_game = Game.query.get_or_404(int(game_id))
-    this_game.verify_board_to_play('Intake')
-    print("Playing Intake Board")
-    # col = one 'column' in game instructions
-    col = math.ceil(50 / this_game.intake_cols)
+    this_game.verify_board_to_play(board_name)
+    print("Playing " + board_name)
     moves = []
 
-    # Load boards
-    intake_board, moves = this_game.load_intake(moves)
-    this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
-    this_market = Market.query.filter_by(game_id=game_id).first()
-    this_emerg = Emergency.query.filter_by(game_id=game_id).first()
-
-    # Move beads
-    # If Diversion column is open
-    if this_game.intake_cols == 6:
-        message = "Diversion column being played"
-        moves.append(message)
-        intake_board, moves = this_market.receive_unlimited(col, intake_board,
-                                                            moves)
-    # surplus doesn't matter, b/c len(intake) will be passed later
-    surplus, intake_board, moves = this_emerg.receive_beads(col, intake_board,
-                                                            moves)
-    intake_board, moves = this_unsheltered.receive_unlimited(col, intake_board,
-                                                             moves)
-    intake_board, moves = this_game.send_anywhere(len(intake_board),
-                                                  intake_board, moves)
+    # Play the board specified
+    moves = DISPATCHER_DEFAULT[board_name](this_game, moves)
 
     # Wrap up
     move_log = Log(game_id, this_game.round_count,
                    this_game.board_to_play, moves)
     db.session.add(move_log)
     this_game.board_to_play += 1
-    print("next board to play is " + str(this_game.board_to_play))
+    print("Next board to play is " + BOARD_LIST[this_game.board_to_play])
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
+
+
+# @app.route('/play_intake/<game_id>')
+def play_intake(game, moves):
+    # Load boards
+    intake, moves = game.load_intake(moves)
+    unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
+    market = Market.query.filter_by(game_id=game.id).first()
+    emerg = Emergency.query.filter_by(game_id=game.id).first()
+    # col = one 'column' in game instructions
+    col = math.ceil(50 / game.intake_cols)
+
+    # Move beads
+    # If Diversion column is open
+    if game.intake_cols == 6:
+        message = "Diversion column being played"
+        moves.append(message)
+        intake, moves = market.receive_unlimited(col, intake, moves)
+    # Surplus doesn't matter, b/c len(intake) will be passed later
+    surplus, intake, moves = emerg.receive_beads(col, intake, moves)
+    intake, moves = unsheltered.receive_unlimited(col, intake, moves)
+    intake, moves = game.send_anywhere(len(intake), intake, moves)
+    db.session.commit()
+    return moves
 
 
 @app.route('/play_emerg/<game_id>')
