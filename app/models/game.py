@@ -168,31 +168,17 @@ class Game(db.Model):
         return
 
     def open_new(self, program, moves):
-        print('program is ' + program)
-        # Add 'extra' board (i.e. 25 slots to selected board/program)
-        if program == 'emergency':
-            emerg = Emergency.query.filter_by(game_id=self.id).first()
-            emerg.maximum = EXTRA_BOARD + emerg.maximum
-            print("emerg_max is now " + str(emerg.maximum))
-        elif program == 'rapid':
-            rapid = Rapid.query.filter_by(game_id=self.id).first()
-            rapid.maximum = EXTRA_BOARD + rapid.maximum
-            print("rapid_max is now " + str(rapid.maximum))
-        elif program == 'outreach':
-            self.outreach_max = EXTRA_BOARD + self.outreach_max
-            print("outreach_max is now " + str(self.outreach_max))
-        elif program == 'transitional':
-            trans = Transitional.query.filter_by(game_id=self.id).first()
-            trans.maximum = EXTRA_BOARD + trans.maximum
-            print("trans_max is now " + str(trans.maximum))
-        elif program == 'permanent':
-            perm = Permanent.query.filter_by(game_id=self.id).first()
-            perm.maximum = EXTRA_BOARD + perm.maximum
-            print("perm_max is now " + str(perm.maximum))
         # Add 'diversion' column to intake board
-        elif program == 'diversion':
+        if program == 'Diversion':
             self.intake_cols = 6
             print("intake_cols is now " + str(self.intake_cols))
+        # Add 'extra' board (i.e. 25 slots to selected board/program)
+        else:
+            table = eval(program)
+            this_prog = table.query.filter_by(game_id=self.id).first()
+            this_prog.maximum = EXTRA_BOARD + this_prog.maximum
+            print(this_prog.__tablename__ + " max is now " +
+                  str(this_prog.maximum))
         db.session.commit()
         message = "New " + program + " program added"
         moves.append(message)

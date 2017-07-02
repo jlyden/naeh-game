@@ -15,13 +15,11 @@ class Other_Boards(object):
     def receive_beads(self, beads, from_board, moves):
         this_board = pickle.loads(self.board)
         room = find_room(self.maximum, this_board)
-        print('room in ' + self.__tablename__ + ' is ' + str(room))
         if room is 0:
             extra = beads
         else:
             extra, from_board, this_board = use_room(room, beads,
                                                      from_board, this_board)
-            print(self.__tablename__ + ' after move is ' + str(this_board))
             self.board = pickle.dumps(this_board)
         db.session.commit()
         moved = str(beads - extra)
@@ -95,7 +93,6 @@ def move_beads(number, from_board, to_board):
         for i in range(number):
             selection = from_board.pop()
             to_board.append(selection)
-        print(str(number) + ' beads moved')
     return from_board, to_board
 
 
