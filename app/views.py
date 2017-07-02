@@ -153,8 +153,6 @@ def play_emergency(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Emergency')
     print("Playing Emergency Board")
-    # Emergency board = 5x5, so 1 col = 5; 1.5 col = 8
-    col = math.ceil(1.5 * 5)
     moves = []
 
     # Load boards
@@ -162,6 +160,8 @@ def play_emergency(game_id):
     emerg_board = pickle.loads(emerg.board)
     this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
     this_market = Market.query.filter_by(game_id=game_id).first()
+    # Each board has 5 columns - instructions say to move 1.5 cols in emergency
+    col = math.ceil(1.5 * (emerg.maximum / 5))
 
     # Move beads
     emerg_board, moves = this_market.receive_unlimited(col, emerg_board, moves)
@@ -188,8 +188,6 @@ def play_rapid(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     this_game.verify_board_to_play('Rapid')
     print("Playing Rapid Board")
-    # Rapid board = 5x2, so 1 col = 2
-    col = 2
     moves = []
 
     # Load boards
@@ -197,6 +195,8 @@ def play_rapid(game_id):
     rapid_board = pickle.loads(rapid.board)
     this_market = Market.query.filter_by(game_id=game_id).first()
     this_emerg = Emergency.query.filter_by(game_id=game_id).first()
+    # Each board has 5 columns
+    col = math.ceil(rapid.maximum / 5)
 
     rapid_board, moves = this_market.receive_unlimited(3 * col, rapid_board,
                                                        moves)
@@ -259,6 +259,8 @@ def play_transitional(game_id):
     this_market = Market.query.filter_by(game_id=game_id).first()
     this_emerg = Emergency.query.filter_by(game_id=game_id).first()
     this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
+    # Each board has 5 columns
+    col = math.ceil(trans.maximum / 5)
 
     # Move beads
     trans_board, moves = this_market.receive_unlimited(col, trans_board, moves)

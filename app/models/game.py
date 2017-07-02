@@ -1,10 +1,10 @@
-import random
 import pickle
+import random
 from datetime import datetime
 from flask import redirect, url_for, flash
 from app import db
 from .boards import Emergency, Rapid, Outreach, Transitional, Permanent
-from .boards import Unsheltered, Market
+from .boards import Unsheltered, Market, move_beads
 from .score import Score, Log
 
 
@@ -20,6 +20,7 @@ EMPTY_LIST = pickle.dumps(list())
 EXTRA_BOARD = 25
 BOARD_LIST = ["Intake", "Emergency", "Rapid",
               "Outreach", "Transitional", "Permanent"]
+ANYWHERE_LIST = ["Emergency", "Rapid", "Transitional", "Permanent"]
 
 
 class Game(db.Model):
@@ -122,29 +123,14 @@ class Game(db.Model):
             return intake_board, moves
 
     def send_anywhere(self, extra, from_board, moves):
-        order = random.sample(range(1, 5), 4)
+        order = random.sample(range(0, 4), 4)
         while len(from_board) > 0 and len(order) > 0:
-            value = order.pop(0)
-            if value == 1:
-                emerg = Emergency.query.filter_by(game_id=self.id).first()
-                extra, from_board, moves = emerg.receive_beads(extra,
-                                                               from_board,
-                                                               moves)
-            elif value == 2:
-                rapid = Rapid.query.filter_by(game_id=self.id).first()
-                extra, from_board, moves = rapid.receive_beads(extra,
-                                                               from_board,
-                                                               moves)
-            elif value == 3:
-                trans = Transitional.query.filter_by(game_id=self.id).first()
-                extra, from_board, moves = trans.receive_beads(extra,
-                                                               from_board,
-                                                               moves)
-            elif value == 4:
-                perm = Permanent.query.filter_by(game_id=self.id).first()
-                extra, from_board, moves = perm.receive_beads(extra,
-                                                              from_board,
-                                                              moves)
+            this_prog = ANYWHERE_LIST[order.pop(0)]
+            this_table = eval(this_prog)
+            this_board = this_table.query.filter_by(game_id=self.id).first()
+            extra, from_board, moves = this_board.receive_beads(extra,
+                                                                from_board,
+                                                                moves)
         if len(from_board) > 0:
             unsheltered = Unsheltered.query.filter_by(game_id=self.id).first()
             from_board, moves = unsheltered.receive_unlimited(len(from_board),
@@ -185,11 +171,33 @@ class Game(db.Model):
         return moves
 
     def convert_program(self, from_program, to_program, moves):
-        # Get beads from from_program.board
-        # Store value of from_program.max
-        # Set from_program.max to 0
+        # Get both database objects and unpickle boards
+        from_prog_table = eval(from_program)
+        this_from_prog = from_prog_table.query.filter_by(game_id=self.id).first()
+        from_prog_board = pickle.loads(this_from_prog.board)
+        to_prog_table = eval(to_program)
+        this_to_prog = to_prog_table.query.filter_by(game_id=self.id).first()
+        to_prog_board = pickle.loads(this_to_prog.board)
+        # Move beads from from_prog.board to to_prog.board
+        print("from_board was " + str(from_prog_board))
+        from_prog_board, to_prog_board = move_beads(len(from_prog_board),
+                                                    from_prog_board,
+                                                    to_prog_board)
+        this_from_prog.board = pickle.dumps(from_prog_board)
+        this_to_prog.board = pickle.dumps(to_prog_board)
+        print("after move, from_board is " + str(from_prog_board))
+        print("after move, to_board is " + str(to_prog_board))
         # Add from_program.max to to_program.max
-        # Put beads in to_program.board
+        print("from_board_max started at " + str(this_from_prog.maximum))
+        this_to_prog.maximum = this_from_prog.maximum + this_to_prog.maximum
+        # Set from_program.max to 0
+        this_from_prog.maximum = 0
+        db.session.commit()
+        message = this_from_prog.__tablename__ + " converted to " + this_to_prog.__tablename__
+        moves.append(message)
+        print(message)
+        print("from_board_max is now " + str(this_from_prog.maximum))
+        print("to_board_max is now " + str(this_to_prog.maximum))
         return moves
 
     def calculate_final_score(self):
