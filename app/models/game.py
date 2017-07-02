@@ -99,7 +99,7 @@ class Game(db.Model):
         return new_game
 
     def verify_board_to_play(self, board):
-        if self.round_count == 6:
+        if self.round_count > 5:
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         elif BOARD_LIST[self.board_to_play] != board:

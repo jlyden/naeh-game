@@ -105,22 +105,23 @@ def play_round(game_id):
 @app.route('/play_board/<board_name>/<game_id>')
 def play_board(board_name, game_id):
     # Set up
-    this_game = Game.query.get_or_404(int(game_id))
-    this_game.verify_board_to_play(board_name)
+    game = Game.query.get_or_404(int(game_id))
+    game.verify_board_to_play(board_name)
     print("Playing " + board_name)
     moves = []
 
     # Play the board specified
-    moves = DISPATCHER_DEFAULT[board_name](this_game, moves)
+    moves = DISPATCHER_DEFAULT[board_name](game, moves)
 
     # Wrap up
-    move_log = Log(game_id, this_game.round_count,
-                   this_game.board_to_play, moves)
+    move_log = Log(game_id, game.round_count,
+                   game.board_to_play, moves)
     db.session.add(move_log)
-    this_game.board_to_play += 1
-    if this_game.board_to_play == 6:
-        end_round(this_game)
-    print("Next board to play is " + BOARD_LIST[this_game.board_to_play])
+    game.board_to_play += 1
+    if game.board_to_play == 6:
+        end_round(game)
+        return redirect(url_for('system_event', game_id=game_id))
+    print("Next board to play is " + BOARD_LIST[game.board_to_play])
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -281,7 +282,7 @@ def system_event(game_id):
         db.session.add(move_log)
         db.session.commit()
         return redirect(url_for('status', game_id=game_id))
-    elif request.method == 'GET':
+    else:
         # Time to calculate Final Score
         if this_game.round_count == 6:
             this_game.calculate_final_score()
