@@ -349,7 +349,7 @@ def system_event(game_id):
         else:
             return render_template('event.html', game=this_game)
 
-# TODO: add game logic for board conversion
+# TODO: change status to reflect program changes
 # TODO: diff rules in rounds!
 
 # TODO: Something is funky with validation of which board to play next
