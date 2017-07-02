@@ -94,12 +94,8 @@ def view_log(game_id):
 def play_round(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if this_game.round_count < 6:
-        play_intake(game_id)
-        play_emergency(game_id)
-        play_rapid(game_id)
-        play_outreach(game_id)
-        play_transitional(game_id)
-        play_permanent(game_id)
+        for program in DISPATCHER_DEFAULT:
+            DISPATCHER_DEFAULT[program](game_id)
         system_event(game_id)
     else:
         flash(u'Game over - no more plays.', 'warning')
@@ -348,6 +344,13 @@ def system_event(game_id):
                                    score=this_score)
         else:
             return render_template('event.html', game=this_game)
+
+
+DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
+                      'Rapid': play_rapid, 'Outreach': play_outreach,
+                      'Transitional': play_transitional,
+                      'Permanent': play_permanent}
+
 
 # TODO: change status to reflect program changes
 # TODO: diff rules in rounds!
