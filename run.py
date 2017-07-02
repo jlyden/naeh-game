@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# App requires python3.6
 
 from app import app
 

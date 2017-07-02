@@ -96,7 +96,7 @@ def play_round(game_id):
     if this_game.round_count < 6:
         for program in DISPATCHER_DEFAULT:
             DISPATCHER_DEFAULT[program](game_id)
-        system_event(game_id)
+        return redirect(url_for('system_event', game_id=game_id))
     else:
         flash(u'Game over - no more plays.', 'warning')
     return redirect(url_for('status', game_id=game_id))
