@@ -116,7 +116,7 @@ def play_board(board_name, game_id):
 
     # Wrap up
     move_log = Log(game_id, game.round_count,
-                   game.board_to_play, moves)
+                   board_name, moves)
     db.session.add(move_log)
     game.board_to_play += 1
     boards = pickle.loads(game.board_list)
@@ -301,14 +301,15 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
                       'Permanent': play_permanent}
 
 
-# TODO: change status to reflect program changes
 # TODO: diff rules in rounds!
+# TODO: Add charts and major game choices to score board
+# TODO: Something is STILL funky with validation of which board to play next
+# TODO: Move record to own board
+# id | game_id | round_count | board_name | beads_in | beads_out | end_count | note
 
-# TODO: Something is funky with validation of which board to play next
-# TODO: gameplay where you make pre-round choices, then play entire round with 1 click
-# TODO: change "round 6" to "game over" somehow
+
+# TODO: integrate system_event as (disappearing) part of status page
+#  - https://stackoverflow.com/questions/1976651/multiple-level-template-inheritance-in-jinja2
 
 # TODO: randomize order in lists (for red beads)
-# TODO: Add charts and major game choices to score board
-
 # TODO: Improve view_log method

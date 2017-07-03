@@ -43,7 +43,8 @@ class Game(db.Model):
     unsheltered = db.relationship('Unsheltered', uselist=False)
     market = db.relationship('Market', uselist=False)
     score = db.relationship('Score', uselist=False)
-    # One to Many relationship
+    # One to Many relationships
+    record = db.relationship('Record')
     log = db.relationship('Log')
 
     def __repr__(self):
