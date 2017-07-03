@@ -9,61 +9,61 @@
           Back to Game
         </button>
       </a>
-      {% if rnd1_moves %}
+      {% if moves_by_round[0] %}
         <div class="panel-heading">
           <h2 class="panel-title">Round One</h2>
         </div>
         <div class="panel-body">
           <ul class="list-group">
-            {% for move in rnd1_moves %}
+            {% for move in moves_by_round[0] %}
               <li class="list-group-item">{{ move }}</li>
             {% endfor %}
           </ul>
         </div><!--./panel-body -->
       {% endif %}
-      {% if rnd2_moves %}
+      {% if moves_by_round[1] %}
         <div class="panel-heading">
           <h2 class="panel-title">Round Two</h2>
         </div>
         <div class="panel-body">
           <ul class="list-group">
-            {% for move in rnd2_moves %}
+            {% for move in moves_by_round[1] %}
               <li class="list-group-item">{{ move }}</li>
             {% endfor %}
           </ul>
         </div><!--./panel-body -->
       {% endif %}
-      {% if rnd3_moves %}
+      {% if moves_by_round[2] %}
         <div class="panel-heading">
           <h2 class="panel-title">Round Three</h2>
         </div>
         <div class="panel-body">
           <ul class="list-group">
-            {% for move in rnd3_moves %}
+            {% for move in moves_by_round[2] %}
               <li class="list-group-item">{{ move }}</li>
             {% endfor %}
           </ul>
         </div><!--./panel-body -->
       {% endif %}
-      {% if rnd4_moves %}
+      {% if moves_by_round[3] %}
         <div class="panel-heading">
           <h2 class="panel-title">Round Four</h2>
         </div>
         <div class="panel-body">
           <ul class="list-group">
-            {% for move in rnd4_moves %}
+            {% for move in moves_by_round[3] %}
               <li class="list-group-item">{{ move }}</li>
             {% endfor %}
           </ul>
         </div><!--./panel-body -->
       {% endif %}
-      {% if rnd5_moves %}
+      {% if moves_by_round[4] %}
         <div class="panel-heading">
           <h2 class="panel-title">Round Five</h2>
         </div>
         <div class="panel-body">
           <ul class="list-group">
-            {% for move in rnd5_moves %}
+            {% for move in moves_by_round[4] %}
               <li class="list-group-item">{{ move }}</li>
             {% endfor %}
           </ul>

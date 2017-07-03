@@ -6,11 +6,11 @@ class Record(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     round_count = db.Column(db.Integer, nullable=False)
-    board_name = db.Column(db.String, nullable=False)
+    board_name = db.Column(db.String(25), nullable=False)
     beads_in = db.Column(db.Integer, default=0)
     beads_out = db.Column(db.Integer, default=0)
     end_count = db.Column(db.Integer, nullable=False, default=0)
-    note = db.Column(db.String)
+    note = db.Column(db.String(500))
 
     def __repr__(self):
         return "<Record: Game %r, Round %r, Board %r >" % (self.game_id,
@@ -27,7 +27,7 @@ class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     round_count = db.Column(db.Integer, nullable=False)
-    board_played = db.Column(db.String)
+    board_played = db.Column(db.String(25))
     moves = db.Column(db.PickleType)
 
     def __repr__(self):

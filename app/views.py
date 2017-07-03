@@ -62,32 +62,20 @@ def status(game_id):
 def view_log(game_id):
     # Pull info from Game and Log table
     this_game = Game.query.get_or_404(int(game_id))
-    this_game_logs = Log.query.filter(Log.game_id == game_id).order_by(Log.id)
-    rnd1_moves = []
-    rnd2_moves = []
-    rnd3_moves = []
-    rnd4_moves = []
-    rnd5_moves = []
-    for log in this_game_logs:
-        last_moves = pickle.loads(log.moves)
-        if log.round_count == 1:
-            rnd1_moves.extend(last_moves)
-        if log.round_count == 2:
-            rnd2_moves.extend(last_moves)
-        if log.round_count == 3:
-            rnd3_moves.extend(last_moves)
-        if log.round_count == 4:
-            rnd4_moves.extend(last_moves)
-        if log.round_count == 5:
-            rnd5_moves.extend(last_moves)
+    moves_by_round = []
+    for i in range(1, 6):
+        round_logs = Log.query.filter(Log.game_id == game_id,
+                                      Log.round_count == i).order_by(Log.id)
+        logs = []
+        for log in round_logs:
+            last_moves = pickle.loads(log.moves)
+            logs.append(last_moves)
+        moves_by_round.append(logs)
+        print("After " + str(i) + ", moves_by_round is " + str(moves_by_round))
     return render_template('log.html',
                            BOARD_LIST=BOARD_LIST,
                            game=this_game,
-                           rnd1_moves=rnd1_moves,
-                           rnd2_moves=rnd2_moves,
-                           rnd3_moves=rnd3_moves,
-                           rnd4_moves=rnd4_moves,
-                           rnd5_moves=rnd5_moves)
+                           moves_by_round=moves_by_round)
 
 
 @app.route('/play_round/<game_id>')
@@ -312,4 +300,3 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
 #  - https://stackoverflow.com/questions/1976651/multiple-level-template-inheritance-in-jinja2
 
 # TODO: randomize order in lists (for red beads)
-# TODO: Improve view_log method
