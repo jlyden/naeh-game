@@ -15,15 +15,15 @@ class Other_Boards(object):
     def receive_beads(self, beads, from_board, moves):
         this_board = pickle.loads(self.board)
         room = find_room(self.maximum, this_board)
-        if room is 0:
-            extra = beads
-        else:
+        moved = 0
+        extra = 0
+        if room != 0:
             extra, from_board, this_board = use_room(room, beads,
                                                      from_board, this_board)
             self.board = pickle.dumps(this_board)
+            moved = str(beads - extra)
         db.session.commit()
-        moved = str(beads - extra)
-        moves.append(message_for(moved, self.__tablename__))
+        moves.append(message_for(moved, self.__tablename__.title()))
         return extra, from_board, moves
 
     def receive_unlimited(self, beads, from_board, moves):
@@ -31,7 +31,7 @@ class Other_Boards(object):
         from_board, this_board = move_beads(beads, from_board, this_board)
         self.board = pickle.dumps(this_board)
         db.session.commit()
-        moves.append(message_for(beads, self.__tablename__))
+        moves.append(message_for(beads, self.__tablename__.title()))
         return from_board, moves
 
     def update_record(self):

@@ -22,6 +22,14 @@ class Record(db.Model):
         self.round_count = round_count
         self.board_name = board_name
 
+    def record_change_beads(self, direction, bead_count):
+        if direction == 'in':
+            self.beads_in = self.beads_in + bead_count
+        elif direction == 'out':
+            self.beads_out = self.beads_out + bead_count
+        db.session.commit()
+        return
+
 
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)

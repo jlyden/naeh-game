@@ -4,7 +4,7 @@ from flask import request, render_template, redirect, url_for, flash
 from sqlalchemy import desc
 from app import app, db
 from .models import Game, Emergency, Rapid, Outreach, Transitional, Permanent
-from .models import Unsheltered, Market, Score, Log, BOARD_LIST
+from .models import Unsheltered, Market, Record, Log, Score, BOARD_LIST
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -22,6 +22,16 @@ def status(game_id):
     # Grab info from db
     this_game = Game.query.get_or_404(int(game_id))
     boards = pickle.loads(this_game.board_list)
+    # Records
+    records = []
+    for board in boards:
+        record = Record.query.filter(Record.game_id == game_id,
+                                     Record.board_name == board) \
+                             .order_by(desc(Record.id)).first()
+        print("Record for " + record.board_name + " with " +
+              record.beads_in + "beads in")
+        records.append(record)
+    # Unpickled Boards
     this_emerg = Emergency.query.filter_by(game_id=game_id).first()
     emerg_board = pickle.loads(this_emerg.board)
     e_counts = pickle.loads(this_emerg.record)
@@ -47,7 +57,7 @@ def status(game_id):
                                                                  ).first()
     last_moves = pickle.loads(this_log.moves)
     # Boards have to be passed individually because of unpickling
-    return render_template('status.html', boards=boards,
+    return render_template('status.html', boards=boards, records=records,
                            game=this_game, last_moves=last_moves,
                            emerg=emerg_board, e_counts=e_counts,
                            rapid=rapid_board, r_counts=r_counts,
@@ -117,11 +127,17 @@ def play_board(board_name, game_id):
 
 
 def play_intake(game, moves):
+    intiate_records(game)
     # Load boards
     intake, moves = game.load_intake(moves)
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     market = Market.query.filter_by(game_id=game.id).first()
     emerg = Emergency.query.filter_by(game_id=game.id).first()
+    # Order_by desc, then taking first gives most recent (i.e. current) record
+    emerg_record = Record.query.filter(Record.game_id == game.id,
+                                       Record.board_name == "Emergency") \
+                               .order_by(desc(Record.id)).first()
+
     # col = one 'column' in game instructions
     col = math.ceil(50 / game.intake_cols)
 
@@ -131,8 +147,9 @@ def play_intake(game, moves):
         message = "Diversion column being played"
         moves.append(message)
         intake, moves = market.receive_unlimited(col, intake, moves)
-    # Surplus doesn't matter, b/c len(intake) will be passed later
+    # col-surplus is what was moved
     surplus, intake, moves = emerg.receive_beads(col, intake, moves)
+    emerg_record.record_change_beads('in', col - surplus)
     intake, moves = unsheltered.receive_unlimited(col, intake, moves)
     intake, moves = game.send_anywhere(len(intake), intake, moves)
     # No need to save played board - intake always ends at 0
@@ -240,6 +257,18 @@ def play_permanent(game, moves):
     perm.board = pickle.dumps(perm_board)
     db.session.commit()
     return moves
+
+
+def intiate_records(game):
+    boards = pickle.loads(game.board_list)
+    for board in boards:
+        if board != "Intake":
+            record = Record(game_id=game.id,
+                            round_count=game.round_count,
+                            board_name=board)
+            db.session.add(record)
+            db.session.commit()
+    return
 
 
 def end_round(game):

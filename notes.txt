@@ -6,6 +6,10 @@ TODO:
 
  id | game_id | round_count | board_name | beads_in | beads_out | end_count | note
 
+Records are for Emergency, Rapid, Outreach, Transitional, Permanent
+
+In middle of adding bead record change to Emergency in Intake - how view/test?
+
 
 DONE:
  - remove from round play the program that has ended
