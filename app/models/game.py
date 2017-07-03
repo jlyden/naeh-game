@@ -18,9 +18,10 @@ PERM_START = pickle.dumps(list(range(14, 26)) + list(range(107, 115)))
 AVAILABLE_BEADS = pickle.dumps(list(range(26, 66)) + list(range(115, 325)))
 EMPTY_LIST = pickle.dumps(list())
 EXTRA_BOARD = 25
-BOARD_LIST = ["Intake", "Emergency", "Rapid",
-              "Outreach", "Transitional", "Permanent"]
-ANYWHERE_LIST = ["Emergency", "Rapid", "Transitional", "Permanent"]
+BOARD_LIST = pickle.dumps(["Intake", "Emergency", "Rapid",
+                           "Outreach", "Transitional", "Permanent"])
+ANYWHERE_LIST = pickle.dumps(["Emergency", "Rapid", "Transitional",
+                              "Permanent"])
 
 
 class Game(db.Model):
@@ -28,10 +29,11 @@ class Game(db.Model):
     start_datetime = db.Column(db.DateTime, default=datetime.now)
     round_count = db.Column(db.Integer, default=1)
     board_to_play = db.Column(db.Integer, default=0)
-
-    available = db.Column(db.PickleType, default=AVAILABLE_BEADS)
     intake_cols = db.Column(db.Integer, default=5)
-
+    available = db.Column(db.PickleType, default=AVAILABLE_BEADS)
+    # Copies are needed to account for programs being removed
+    board_list = db.Column(db.PickleType, default=BOARD_LIST)
+    anywhere_list = db.Column(db.PickleType, default=ANYWHERE_LIST)
     # One to One relationships
     emergency = db.relationship('Emergency', uselist=False)
     rapid = db.relationship('Rapid', uselist=False)
@@ -99,12 +101,13 @@ class Game(db.Model):
         return new_game
 
     def verify_board_to_play(self, board):
+        boards = pickle.loads(self.board_list)
         if self.round_count > 5:
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
-        elif BOARD_LIST[self.board_to_play] != board:
-            flash(u'Time to play ' + BOARD_LIST[self.board_to_play] +
-                  ' board.', 'warning')
+        elif boards[self.board_to_play] != board:
+            flash(u'Time to play ' + boards[self.board_to_play] + ' board.',
+                  'warning')
             return redirect(url_for('status', game_id=self.id))
         else:
             return
@@ -124,7 +127,8 @@ class Game(db.Model):
     def send_anywhere(self, extra, from_board, moves):
         order = random.sample(range(0, 4), 4)
         while len(from_board) > 0 and len(order) > 0:
-            this_prog = ANYWHERE_LIST[order.pop(0)]
+            anywheres = pickle.loads(self.anywhere_list)
+            this_prog = anywheres[order.pop(0)]
             this_table = eval(this_prog)
             this_board = this_table.query.filter_by(game_id=self.id).first()
             extra, from_board, moves = this_board.receive_beads(extra,
@@ -172,31 +176,40 @@ class Game(db.Model):
     def convert_program(self, from_program, to_program, moves):
         # Get both database objects and unpickle boards
         from_prog_table = eval(from_program)
-        this_from_prog = from_prog_table.query.filter_by(game_id=self.id).first()
-        from_prog_board = pickle.loads(this_from_prog.board)
+        from_prog = from_prog_table.query.filter_by(game_id=self.id).first()
+        from_prog_board = pickle.loads(from_prog.board)
         to_prog_table = eval(to_program)
-        this_to_prog = to_prog_table.query.filter_by(game_id=self.id).first()
-        to_prog_board = pickle.loads(this_to_prog.board)
+        to_prog = to_prog_table.query.filter_by(game_id=self.id).first()
+        to_prog_board = pickle.loads(to_prog.board)
         # Move beads from from_prog.board to to_prog.board
         print("from_board was " + str(from_prog_board))
         from_prog_board, to_prog_board = move_beads(len(from_prog_board),
                                                     from_prog_board,
                                                     to_prog_board)
-        this_from_prog.board = pickle.dumps(from_prog_board)
-        this_to_prog.board = pickle.dumps(to_prog_board)
+        from_prog.board = pickle.dumps(from_prog_board)
+        to_prog.board = pickle.dumps(to_prog_board)
         print("after move, from_board is " + str(from_prog_board))
         print("after move, to_board is " + str(to_prog_board))
         # Add from_program.max to to_program.max
-        print("from_board_max started at " + str(this_from_prog.maximum))
-        this_to_prog.maximum = this_from_prog.maximum + this_to_prog.maximum
-        # Set from_program.max to 0
-        this_from_prog.maximum = 0
+        print("from_board_max started at " + str(from_prog.maximum))
+        to_prog.maximum = from_prog.maximum + to_prog.maximum
+        from_prog.maximum = 0
+        # Remove from_prog from play
+        boards = pickle.loads(self.board_list)
+        print("Before removal, board_list is " + str(boards))
+        boards.remove(from_prog.__tablename__.title())
+        print("After removal, board_list is " + str(boards))
+        self.board_list = pickle.dumps(boards)
+        anywheres = pickle.loads(self.anywhere_list)
+        if from_prog in anywheres:
+            anywheres.remove(from_prog.__tablename__.title())
+            self.anywhere_list = pickle.dumps(anywheres)
         db.session.commit()
-        message = this_from_prog.__tablename__ + " converted to " + this_to_prog.__tablename__
+        message = from_prog.__tablename__.title() + " converted to " + to_prog.__tablename__.title()
         moves.append(message)
         print(message)
-        print("from_board_max is now " + str(this_from_prog.maximum))
-        print("to_board_max is now " + str(this_to_prog.maximum))
+        print("from_board_max is now " + str(from_prog.maximum))
+        print("to_board_max is now " + str(to_prog.maximum))
         return moves
 
     def calculate_final_score(self):

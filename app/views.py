@@ -21,6 +21,7 @@ def home():
 def status(game_id):
     # Grab info from db
     this_game = Game.query.get_or_404(int(game_id))
+    boards = pickle.loads(this_game.board_list)
     this_emerg = Emergency.query.filter_by(game_id=game_id).first()
     emerg_board = pickle.loads(this_emerg.board)
     e_counts = pickle.loads(this_emerg.record)
@@ -46,8 +47,7 @@ def status(game_id):
                                                                  ).first()
     last_moves = pickle.loads(this_log.moves)
     # Boards have to be passed individually because of unpickling
-    return render_template('status.html',
-                           BOARD_LIST=BOARD_LIST,
+    return render_template('status.html', boards=boards,
                            game=this_game, last_moves=last_moves,
                            emerg=emerg_board, e_counts=e_counts,
                            rapid=rapid_board, r_counts=r_counts,
@@ -94,8 +94,9 @@ def view_log(game_id):
 def play_round(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if this_game.round_count < 6:
-        for program in DISPATCHER_DEFAULT:
-            DISPATCHER_DEFAULT[program](game_id)
+        boards = pickle.loads(this_game.board_list)
+        for board in boards:
+            play_board(board, game_id)
         return redirect(url_for('system_event', game_id=game_id))
     else:
         flash(u'Game over - no more plays.', 'warning')
@@ -118,10 +119,10 @@ def play_board(board_name, game_id):
                    game.board_to_play, moves)
     db.session.add(move_log)
     game.board_to_play += 1
+    # If board list is exhausted ...
     if game.board_to_play == 6:
         end_round(game)
         return redirect(url_for('system_event', game_id=game_id))
-    print("Next board to play is " + BOARD_LIST[game.board_to_play])
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
