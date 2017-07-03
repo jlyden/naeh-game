@@ -2,7 +2,7 @@ import pickle
 from app import db
 
 
-# Mixim class for related boards
+# Mixin class for related boards
 class Other_Boards(object):
     board = db.Column(db.PickleType)
     record = db.Column(db.PickleType)

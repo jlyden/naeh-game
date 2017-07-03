@@ -127,9 +127,10 @@ class Game(db.Model):
 
     def send_anywhere(self, extra, from_board, moves):
         anywheres = pickle.loads(self.anywhere_list)
-        order = random.sample(range(0, 4), len(anywheres))
-        while len(from_board) > 0 and len(order) > 0:
-            this_prog = anywheres[order.pop(0)]
+        anywheres_random = random.sample(anywheres, len(anywheres))
+        print("anywheres_random is " + str(anywheres_random))
+        while len(from_board) > 0 and len(anywheres_random) > 0:
+            this_prog = anywheres_random.pop()
             this_table = eval(this_prog)
             this_board = this_table.query.filter_by(game_id=self.id).first()
             extra, from_board, moves = this_board.receive_beads(extra,
