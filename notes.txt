@@ -1,26 +1,16 @@
 Need ways to
- - show more clearly in UI that a new program has been added
- - show in UI when a program has ended (b/c changed to different program)
+TODO:
+ - show more clearly in UI that a new program has been added ???
+ - show in UI that program is retired (b/c changed to different program)
+   - leave in list, remove play button, add alert
+
+ id | game_id | round_count | board_name | beads_in | beads_out | end_count | note
+
+
+DONE:
  - remove from round play the program that has ended
   -- this includes that board's turn
   -- plus "send anywhere" criteria
 
-There are two currently static lists:
- - BOARD_LIST, to display/verify round play
- - ANYWHERE_LIST, to determine send_anywhere destination
-
-Backend:
- https://stackoverflow.com/questions/9205081/python-is-there-a-way-to-store-a-function-in-a-list-or-dictionary-so-that-when
-
- - use dict to determine next board to play
- - remove boards/methods from dict if transformed
-
-dispatcher = {'Intake': play_intake, 'Emergency': play_emergency, 'rapid': play_rapid, 'outreach': play_outreach, 'transitional': play_transitional, 'permanent': play_permanent}
-
-dispatcher['Intake']()
-dispatcher.pop('transitional')
-
-UI:
-https://stackoverflow.com/questions/1976651/multiple-level-template-inheritance-in-jinja2
 
 
