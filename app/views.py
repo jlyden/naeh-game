@@ -108,7 +108,7 @@ def play_board(board_name, game_id):
     # Set up
     game = Game.query.get_or_404(int(game_id))
     game.verify_board_to_play(board_name)
-    print("Playing " + board_name)
+    print("Playing " + str(game.board_to_play) + ", " + board_name)
     moves = []
 
     # Play the board specified
@@ -119,8 +119,9 @@ def play_board(board_name, game_id):
                    game.board_to_play, moves)
     db.session.add(move_log)
     game.board_to_play += 1
+    boards = pickle.loads(game.board_list)
     # If board list is exhausted ...
-    if game.board_to_play == 6:
+    if game.board_to_play > len(boards) - 1:
         end_round(game)
         return redirect(url_for('system_event', game_id=game_id))
     db.session.commit()
