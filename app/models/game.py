@@ -5,7 +5,7 @@ from flask import redirect, url_for, flash
 from app import db
 from .boards import Emergency, Rapid, Outreach, Transitional, Permanent
 from .boards import Unsheltered, Market, move_beads
-from .score import Score, Log
+from .score import Score, Record, Log
 
 
 # Beads 1-65 are red
@@ -20,8 +20,6 @@ EMPTY_LIST = pickle.dumps(list())
 EXTRA_BOARD = 25
 BOARD_LIST = pickle.dumps(["Intake", "Emergency", "Rapid",
                            "Outreach", "Transitional", "Permanent"])
-ANYWHERE_LIST = pickle.dumps(["Emergency", "Rapid", "Transitional",
-                              "Permanent"])
 
 
 class Game(db.Model):
@@ -30,10 +28,8 @@ class Game(db.Model):
     round_count = db.Column(db.Integer, default=1)
     board_to_play = db.Column(db.Integer, default=0)
     intake_cols = db.Column(db.Integer, default=5)
-    available = db.Column(db.PickleType, default=AVAILABLE_BEADS)
-    # Copies are needed to account for programs being removed
-    board_list = db.Column(db.PickleType, default=BOARD_LIST)
-    anywhere_list = db.Column(db.PickleType, default=ANYWHERE_LIST)
+    available_pickle = db.Column(db.PickleType, default=AVAILABLE_BEADS)
+    board_list_pickle = db.Column(db.PickleType, default=BOARD_LIST)
     # One to One relationships
     emergency = db.relationship('Emergency', uselist=False)
     rapid = db.relationship('Rapid', uselist=False)
@@ -59,83 +55,100 @@ class Game(db.Model):
         # Instantiate other boards
         new_Emergency = Emergency(game_id=new_game.id,
                                   board=EMERG_START,
-                                  record=pickle.dumps([20]),
                                   maximum=25)
         new_Rapid = Rapid(game_id=new_game.id,
                           board=RAPID_START,
-                          record=pickle.dumps([10]),
                           maximum=10)
         new_Outreach = Outreach(game_id=new_game.id,
                                 board=OUTREACH_START,
-                                record=None,
                                 maximum=10)
         new_Transitional = Transitional(game_id=new_game.id,
                                         board=TRANS_START,
-                                        record=pickle.dumps([16]),
                                         maximum=20)
         new_Permanent = Permanent(game_id=new_game.id,
                                   board=PERM_START,
-                                  record=pickle.dumps([20]),
                                   maximum=20)
         new_Unsheltered = Unsheltered(game_id=new_game.id,
                                       board=EMPTY_LIST,
-                                      record=pickle.dumps([0]),
                                       maximum=None)
         new_Market = Market(game_id=new_game.id,
                             board=EMPTY_LIST,
-                            record=pickle.dumps([0]),
                             maximum=None)
+        # Instantiate Records - end_count = beads counts before first play
+        E_record = Record(game_id=new_game.id,
+                          round_count=0,
+                          board_name="Emergency")
+        E_record.end_count = 20
+        R_record = Record(game_id=new_game.id,
+                          round_count=0,
+                          board_name="Rapid")
+        R_record.end_count = 10
+        O_record = Record(game_id=new_game.id,
+                          round_count=0,
+                          board_name="Outreach")
+        O_record.end_count = 8
+        T_record = Record(game_id=new_game.id,
+                          round_count=0,
+                          board_name="Transitional")
+        T_record.end_count = 16
+        P_record = Record(game_id=new_game.id,
+                          round_count=0,
+                          board_name="Permanent")
+        P_record.end_count = 20
+        U_record = Record(game_id=new_game.id,
+                          round_count=0,
+                          board_name="Unsheltered")
+        M_record = Record(game_id=new_game.id,
+                          round_count=0,
+                          board_name="Market")
         # Instantiate first Log
         moves = []
-        moves.append("Game " + str(new_game.id) + " initiated")
+        moves.append("Game " + str(new_game.id) + " started")
         move_log = Log(new_game.id, 1, 0, moves)
 
-        db.session.add(new_Emergency)
-        db.session.add(new_Rapid)
-        db.session.add(new_Outreach)
-        db.session.add(new_Transitional)
-        db.session.add(new_Permanent)
-        db.session.add(new_Unsheltered)
-        db.session.add(new_Market)
-        db.session.add(move_log)
+        db.session.add_all([new_Emergency, new_Rapid, new_Outreach,
+                            new_Transitional, new_Permanent, new_Unsheltered,
+                            new_Market, E_record, R_record, O_record, T_record,
+                            P_record, U_record, M_record, move_log])
         db.session.commit()
         return new_game
 
-    def verify_board_to_play(self, board):
-        boards = pickle.loads(self.board_list)
+    def verify_board_to_play(self, board_name):
+        board_list = pickle.loads(self.board_list_pickle)
         if self.round_count > 5:
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
-        elif boards[self.board_to_play] != board:
-            flash(u'Time to play ' + boards[self.board_to_play] + ' board.',
+        elif board_list[self.board_to_play] != board_name:
+            flash(u'Time for ' + board_list[self.board_to_play] + ' board.',
                   'warning')
             return redirect(url_for('status', game_id=self.id))
         else:
             return
 
     def load_intake(self, moves):
-        available_beads = pickle.loads(self.available)
+        available_beads = pickle.loads(self.available_pickle)
         if len(available_beads) == 0:
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         else:
             available_beads, intake = get_random_bead(50, available_beads)
-            self.available = pickle.dumps(available_beads)
+            self.available_pickle = pickle.dumps(available_beads)
             db.session.commit()
             moves.append("50 beads to intake")
             return intake, moves
 
     def send_anywhere(self, extra, from_board, moves):
-        anywheres = pickle.loads(self.anywhere_list)
-        anywheres_random = random.sample(anywheres, len(anywheres))
-        print("anywheres_random is " + str(anywheres_random))
-        while len(from_board) > 0 and len(anywheres_random) > 0:
-            this_prog = anywheres_random.pop()
-            this_table = eval(this_prog)
-            this_board = this_table.query.filter_by(game_id=self.id).first()
-            extra, from_board, moves = this_board.receive_beads(extra,
-                                                                from_board,
-                                                                moves)
+        # Get list of available programs to send beads
+        anywhere_list = generate_anywhere_list(self.board_list_pickle)
+        print("Anywhere_list is " + str(anywhere_list))
+        # Cycle through programs, moving as many beads as possible to each
+        while len(from_board) > 0 and len(anywhere_list) > 0:
+            prog_table = eval(anywhere_list.pop())
+            prog = prog_table.query.filter_by(game_id=self.id).first()
+            extra, from_board, moves = prog.receive_beads(extra,
+                                                          from_board,
+                                                          moves)
+        # Whatever remains is sent to unsheltered
         if len(from_board) > 0:
             unsheltered = Unsheltered.query.filter_by(game_id=self.id).first()
             from_board, moves = unsheltered.receive_unlimited(len(from_board),
@@ -143,33 +156,18 @@ class Game(db.Model):
                                                               moves)
         return from_board, moves
 
-    def update_records(self):
-        this_emerg = Emergency.query.filter_by(game_id=self.id).first()
-        this_emerg.update_record()
-        this_rapid = Rapid.query.filter_by(game_id=self.id).first()
-        this_rapid.update_record()
-        this_trans = Transitional.query.filter_by(game_id=self.id).first()
-        this_trans.update_record()
-        this_perm = Permanent.query.filter_by(game_id=self.id).first()
-        this_perm.update_record()
-        this_unsheltered = Unsheltered.query.filter_by(game_id=self.id).first()
-        this_unsheltered.update_record()
-        this_market = Market.query.filter_by(game_id=self.id).first()
-        this_market.update_record()
-        return
-
     def open_new(self, program, moves):
         # Add 'diversion' column to intake board
         if program == 'Diversion':
             self.intake_cols = 6
-            print("intake_cols is now " + str(self.intake_cols))
+            print("Intake_cols is now " + str(self.intake_cols))
         # Add 'extra' board (i.e. 25 slots to selected board/program)
         else:
-            table = eval(program)
-            this_prog = table.query.filter_by(game_id=self.id).first()
-            this_prog.maximum = EXTRA_BOARD + this_prog.maximum
-            print(this_prog.__tablename__ + " max is now " +
-                  str(this_prog.maximum))
+            prog_table = eval(program)
+            prog = prog_table.query.filter_by(game_id=self.id).first()
+            prog.maximum = EXTRA_BOARD + prog.maximum
+            print(prog.__tablename__.title() + " max is now " +
+                  str(prog.maximum))
         db.session.commit()
         message = "New " + program + " program added"
         moves.append(message)
@@ -193,17 +191,12 @@ class Game(db.Model):
         to_prog.maximum = from_prog.maximum + to_prog.maximum
         from_prog.maximum = 0
         # Remove from_prog from play
-        boards = pickle.loads(self.board_list)
-        boards.remove(from_prog.__tablename__.title())
-        self.board_list = pickle.dumps(boards)
-        anywheres = pickle.loads(self.anywhere_list)
-        if from_prog.__tablename__.title() in anywheres:
-            print("Before removal, anywheres is " + str(anywheres))
-            anywheres.remove(from_prog.__tablename__.title())
-            print("After removal, anywheres is " + str(anywheres))
-            self.anywhere_list = pickle.dumps(anywheres)
+        board_list = pickle.loads(self.board_list_pickle)
+        board_list.remove(from_prog.__tablename__.title())
+        self.board_list_pickle = pickle.dumps(board_list)
         db.session.commit()
-        message = from_prog.__tablename__.title() + " converted to " + to_prog.__tablename__.title()
+        message = from_prog.__tablename__.title() + " converted to " \
+            + to_prog.__tablename__.title()
         moves.append(message)
         return moves
 
@@ -246,3 +239,12 @@ def get_random_bead(number, available_beads):
     except IndexError:
         print("Ran out of available_beads")
     return available_beads, collection
+
+
+def generate_anywhere_list(board_list_pickle):
+    # Board list always contains "Intake"
+    board_list = pickle.loads(board_list_pickle)
+    board_list.remove("Intake")
+    if "Outreach" in board_list:
+        board_list.remove("Outreach")
+    return random.sample(board_list, len(board_list))

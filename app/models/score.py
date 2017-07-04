@@ -1,4 +1,5 @@
 import pickle
+from sqlalchemy import desc
 from app import db
 
 
@@ -29,6 +30,17 @@ class Record(db.Model):
             self.beads_out = self.beads_out + bead_count
         db.session.commit()
         return
+
+    def get_new_end_count(self):
+        # get end_count from last round
+        last_record = Record.query.filter(Record.game_id == self.game_id,
+                                          Record.board_name == self.board_name,
+                                          Record.round_count == self.round_count - 1
+                                         ).order_by(desc(Record.id)).first()
+        last_end_count = last_record.end_count
+        # add beads_in, subtract beads out
+        return last_end_count + self.beads_in - self.beads_out
+
 
 
 class Log(db.Model):

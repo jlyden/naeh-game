@@ -21,54 +21,17 @@ def home():
 def status(game_id):
     # Grab info from db
     this_game = Game.query.get_or_404(int(game_id))
-    boards = pickle.loads(this_game.board_list)
-    # Records - as long as the first intake board has been played
-    records = []
-    if this_game.board_to_play != 0 and this_game.round_count != 1:
-        for board in boards:
-            if board != 'Intake':
-                record = Record.query.filter(Record.game_id == game_id,
-                                             Record.board_name == board
-                                             ).order_by(desc(Record.id)
-                                             ).first()
-                print("Record for " + record.board_name + " with " +
-                      str(record.beads_in) + " beads in")
-                records.append(record)
-    # Unpickled Boards
-    this_emerg = Emergency.query.filter_by(game_id=game_id).first()
-    emerg_board = pickle.loads(this_emerg.board)
-    e_counts = pickle.loads(this_emerg.record)
-    this_rapid = db.session.query(Rapid).filter_by(game_id=game_id).first()
-    rapid_board = pickle.loads(this_rapid.board)
-    r_counts = pickle.loads(this_rapid.record)
-    this_outreach = Outreach.query.filter_by(game_id=game_id).first()
-    outreach_board = pickle.loads(this_outreach.board)
-    this_trans = Transitional.query.filter_by(game_id=game_id).first()
-    trans_board = pickle.loads(this_trans.board)
-    t_counts = pickle.loads(this_trans.record)
-    this_perm = Permanent.query.filter_by(game_id=game_id).first()
-    perm_board = pickle.loads(this_perm.board)
-    p_counts = pickle.loads(this_perm.record)
-    this_unsheltered = Unsheltered.query.filter_by(game_id=game_id).first()
-    unsheltered_board = pickle.loads(this_unsheltered.board)
-    u_counts = pickle.loads(this_unsheltered.record)
-    this_market = Market.query.filter_by(game_id=game_id).first()
-    market_board = pickle.loads(this_market.board)
-    m_counts = pickle.loads(this_market.record)
-    # Pull last move info from Log table
-    this_log = Log.query.filter(Log.game_id == game_id).order_by(desc(Log.id)
-                                                                 ).first()
-    last_moves = pickle.loads(this_log.moves)
-    # Boards have to be passed individually because of unpickling
-    return render_template('status.html', boards=boards, records=records,
-                           game=this_game, last_moves=last_moves,
-                           emerg=emerg_board, e_counts=e_counts,
-                           rapid=rapid_board, r_counts=r_counts,
-                           outreach=outreach_board,
-                           trans=trans_board, t_counts=t_counts,
-                           perm=perm_board, p_counts=p_counts,
-                           unsheltered=unsheltered_board, u_counts=u_counts,
-                           market=market_board, m_counts=m_counts)
+    board_list = pickle.loads(this_game.board_list_pickle)
+    prepped_board_list = prep_board_list_for_loads(board_list)
+    # Boards
+    boards = load_boards(game_id, prepped_board_list)
+    # Records
+    records = load_records(game_id, prepped_board_list)
+    # Counts
+    counts = load_counts(game_id, prepped_board_list)
+    return render_template('status.html', game=this_game,
+                           board_list=board_list, boards=boards,
+                           records=records, counts=counts)
 
 
 @app.route('/view_log/<game_id>')
@@ -95,8 +58,8 @@ def view_log(game_id):
 def play_round(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if this_game.round_count < 6:
-        boards = pickle.loads(this_game.board_list)
-        for board in boards:
+        board_list = pickle.loads(this_game.board_list_pickle)
+        for board in board_list:
             play_board(board, game_id)
         return redirect(url_for('system_event', game_id=game_id))
     else:
@@ -120,19 +83,52 @@ def play_board(board_name, game_id):
         record = Record.query.filter(Record.game_id == game_id,
                                      Record.board_name == board_name,
                                      ).order_by(desc(Record.id)).first()
+        print("Record changing b/c of beads: " + str(record))
         record.record_change_beads('out', beads_moved)
         print(board_name + " moved " + str(beads_moved) + " beads OUT")
     move_log = Log(game_id, game.round_count,
                    board_name, moves)
     db.session.add(move_log)
     game.board_to_play += 1
-    boards = pickle.loads(game.board_list)
+    board_list = pickle.loads(game.board_list_pickle)
     # If board list is exhausted ...
-    if game.board_to_play > len(boards) - 1:
-        end_round(game)
+    if game.board_to_play > len(board_list) - 1:
+        end_round(game, board_list)
         return redirect(url_for('system_event', game_id=game_id))
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
+
+
+@app.route('/system_event/<game_id>', methods=['GET', 'POST'])
+def system_event(game_id):
+    this_game = Game.query.get_or_404(int(game_id))
+    if request.method == 'POST':
+        print("Executing System Event")
+        moves = []
+        if this_game.round_count == 2:
+            program = request.form.get('program')
+            moves = this_game.open_new(program, moves)
+        elif this_game.round_count == 3 or this_game.round_count == 4:
+            from_program = request.form.get('from_program')
+            to_program = request.form.get('to_program')
+            print('from_program is ' + str(from_program))
+            print('to_program is ' + str(to_program))
+            moves = this_game.convert_program(from_program, to_program, moves)
+
+        # Set "board_played == 6" for sake of log
+        move_log = Log(game_id, this_game.round_count, 6, moves)
+        db.session.add(move_log)
+        db.session.commit()
+        return redirect(url_for('status', game_id=game_id))
+    else:
+        # Time to calculate Final Score
+        if this_game.round_count == 6:
+            this_game.calculate_final_score()
+            this_score = Score.query.filter_by(game_id=game_id).first()
+            return render_template('event.html', game=this_game,
+                                   score=this_score)
+        else:
+            return render_template('event.html', game=this_game)
 
 
 def play_intake(game, moves):
@@ -272,9 +268,46 @@ def play_permanent(game, moves):
     return moves, 1
 
 
+def load_boards(game_id, prepped_board_list):
+    boards = {}
+    for board in prepped_board_list:
+        prog_table = eval(board)
+        prog = prog_table.query.filter_by(game_id=game_id).first()
+        prog_board = pickle.loads(prog.board)
+        boards[board] = prog_board
+    return boards
+
+
+def load_records(game_id, prepped_board_list):
+    records = []
+    for board in prepped_board_list:
+        # This order_by gives us last record per board
+        record = Record.query.filter(Record.game_id == game_id,
+                                     Record.board_name == board
+                                     ).order_by(desc(Record.id)).first()
+        records.append(record)
+    return records
+
+
+def load_counts(game_id, prepped_board_list):
+    counts = {}
+    for board in prepped_board_list:
+        board_counts = []
+        # Get all records associated wtih the board, in order
+        records = Record.query.filter(Record.game_id == game_id,
+                                      Record.board_name == board
+                                      ).order_by(Record.id)
+        # Pull the end_counts from each record
+        for record in records:
+            board_counts.append(record.end_count)
+        counts[board] = board_counts
+    print("Counts is " + str(counts))
+    return counts
+
+
 def intiate_records(game):
-    boards = pickle.loads(game.board_list)
-    for board in boards:
+    board_list = pickle.loads(game.board_list_pickle)
+    for board in board_list:
         if board != "Intake":
             record = Record(game_id=game.id,
                             round_count=game.round_count,
@@ -284,45 +317,48 @@ def intiate_records(game):
     return
 
 
-def end_round(game):
+def end_round(game, board_list):
     # Update record and reset counters
-    game.update_records()
+    update_all_records(game.id, game.round_count, board_list)
     game.round_count += 1
     game.board_to_play = 0
     db.session.commit()
     return
 
 
-@app.route('/system_event/<game_id>', methods=['GET', 'POST'])
-def system_event(game_id):
-    this_game = Game.query.get_or_404(int(game_id))
-    if request.method == 'POST':
-        print("Executing System Event")
-        moves = []
-        if this_game.round_count == 2:
-            program = request.form.get('program')
-            moves = this_game.open_new(program, moves)
-        elif this_game.round_count == 3 or this_game.round_count == 4:
-            from_program = request.form.get('from_program')
-            to_program = request.form.get('to_program')
-            print('from_program is ' + str(from_program))
-            print('to_program is ' + str(to_program))
-            moves = this_game.convert_program(from_program, to_program, moves)
+def prep_board_list_for_loads(board_list):
+    print(board_list)
+    board_list.remove('Intake')
+    board_list.append('Unsheltered')
+    board_list.append('Market')
+    return board_list
 
-        # Set "board_played == 6" for sake of log
-        move_log = Log(game_id, this_game.round_count, 6, moves)
-        db.session.add(move_log)
-        db.session.commit()
-        return redirect(url_for('status', game_id=game_id))
-    else:
-        # Time to calculate Final Score
-        if this_game.round_count == 6:
-            this_game.calculate_final_score()
-            this_score = Score.query.filter_by(game_id=game_id).first()
-            return render_template('event.html', game=this_game,
-                                   score=this_score)
+
+def update_all_records(game_id, round_count, board_list):
+    prepped_board_list = prep_board_list_for_loads(board_list)
+    for board in prepped_board_list:
+        if board == "Unsheltered" or "Market":
+            # initiate record for current round
+            record = Record(game_id=game_id,
+                            round_count=round_count,
+                            board_name=board)
+            prog_table = eval(board)
+            prog = prog_table.query.filter_by(game_id=game_id).first()
+            prog_board = pickle.loads(prog.board)
+            record.end_count = len(prog_board)
+            db.session.add(record)
+            print("Added end_count record for " + board + ": " +
+                  str(record.end_count))
         else:
-            return render_template('event.html', game=this_game)
+            # Use get_new_end_count
+            record = Record.query.filter(Record.game_id == game_id,
+                                         Record.board_name == board,
+                                         Record.round_count == round_count
+                                         ).order_by(desc(Record.id)).first()
+            record.end_count = record.get_new_end_count()
+            print("Updated end_count record for " + board + ": " +
+                  str(record.end_count))
+        db.session.commit()
 
 
 DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,

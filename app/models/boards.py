@@ -1,18 +1,21 @@
 import pickle
 from app import db
 from sqlalchemy import desc
-#from .score import Record
 
 
 # Mixin class for related boards
 class Other_Boards(object):
     board = db.Column(db.PickleType)
-    record = db.Column(db.PickleType)
     maximum = db.Column(db.Integer)
 
     def __repr__(self):
         board = pickle.loads(self.board)
-        return "%r" % str(board)
+        return "Game %r" % str(board)
+
+    def __init__(self, game_id, board, maximum):
+        self.game_id = game_id
+        self.board = board
+        self.maximum = maximum
 
     def receive_beads(self, beads, from_board, moves):
         this_board = pickle.loads(self.board)
@@ -105,10 +108,12 @@ class Market(db.Model, Other_Boards):
 
 # Helper methods
 def move_beads(number, from_board, to_board):
-    if len(from_board) > 0:
+    try:
         for i in range(number):
-            selection = from_board.pop()
+            selection = from_board.pop(i)
             to_board.append(selection)
+    except IndexError:
+        print("Ran out of available_beads")
     return from_board, to_board
 
 
