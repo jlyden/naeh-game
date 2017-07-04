@@ -1,5 +1,7 @@
 import pickle
 from app import db
+from sqlalchemy import desc
+from .score import Record
 
 
 # Mixin class for related boards
@@ -15,15 +17,23 @@ class Other_Boards(object):
     def receive_beads(self, beads, from_board, moves):
         this_board = pickle.loads(self.board)
         room = find_room(self.maximum, this_board)
-        moved = 0
+        beads_moved = 0
         extra = 0
         if room != 0:
             extra, from_board, this_board = use_room(room, beads,
                                                      from_board, this_board)
             self.board = pickle.dumps(this_board)
-            moved = str(beads - extra)
+            beads_moved = beads - extra
+            # Order_by desc, then taking first gives most recent (i.e. current) record
+            record = Record.query.filter(Record.game_id == self.game_id,
+                                         Record.board_name ==
+                                         self.__tablename__.title()
+                                         ).order_by(desc(Record.id)).first()
+            print(str(record) + " for " + self.__tablename__.title() + " board")
+            record.record_change_beads('in', beads_moved)
+            print(self.__tablename__.title() + " moved " + str(beads_moved) + " beads IN")
         db.session.commit()
-        moves.append(message_for(moved, self.__tablename__.title()))
+        moves.append(message_for(str(beads_moved), self.__tablename__.title()))
         return extra, from_board, moves
 
     def receive_unlimited(self, beads, from_board, moves):
@@ -63,6 +73,12 @@ class Outreach(db.Model, Other_Boards):
         unsheltered_board, outreach_board = move_beads(room, unsheltered_board,
                                                        outreach_board)
         message = str(room) + " beads from unsheltered to outreach"
+        # Order_by desc, then taking first gives most recent (i.e. current) record
+        record = Record.query.filter(Record.game_id == self.game_id,
+                                     Record.board_name ==
+                                     self.__tablename__.title()
+                                     ).order_by(desc(Record.id)).first()
+        record.record_change_beads('in', room)
         moves.append(message)
         return unsheltered_board, outreach_board, moves
 

@@ -84,13 +84,13 @@
         <div class="panel-body">
             {% if records %}
             <ul class="list-group">
-                {% for record in record %}
+              {% for record in record %}
                 <li class="list-group-item">
                   {{ record.board_name }} Board:
-                    {{ record.beads_in }} beads in,
-                    {{ record.beads_out }} beads out
-                  </li>
-                {% endfor %}
+                  {{ record.beads_in }} beads in,
+                  {{ record.beads_out }} beads out
+                </li>
+              {% endfor %}
                 <li class="list-group-item">
                   <a href="{{ url_for('view_log', game_id=game.id) }}">
                     Full Log

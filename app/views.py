@@ -22,15 +22,18 @@ def status(game_id):
     # Grab info from db
     this_game = Game.query.get_or_404(int(game_id))
     boards = pickle.loads(this_game.board_list)
-    # Records
+    # Records - as long as the first intake board has been played
     records = []
-    for board in boards:
-        record = Record.query.filter(Record.game_id == game_id,
-                                     Record.board_name == board) \
-                             .order_by(desc(Record.id)).first()
-        print("Record for " + record.board_name + " with " +
-              record.beads_in + "beads in")
-        records.append(record)
+    if this_game.board_to_play != 0 and this_game.round_count != 1:
+        for board in boards:
+            if board != 'Intake':
+                record = Record.query.filter(Record.game_id == game_id,
+                                             Record.board_name == board
+                                             ).order_by(desc(Record.id)
+                                             ).first()
+                print("Record for " + record.board_name + " with " +
+                      str(record.beads_in) + " beads in")
+                records.append(record)
     # Unpickled Boards
     this_emerg = Emergency.query.filter_by(game_id=game_id).first()
     emerg_board = pickle.loads(this_emerg.board)
@@ -110,9 +113,15 @@ def play_board(board_name, game_id):
     moves = []
 
     # Play the board specified
-    moves = DISPATCHER_DEFAULT[board_name](game, moves)
+    moves, beads_moved = DISPATCHER_DEFAULT[board_name](game, moves)
 
     # Wrap up
+    if board_name != 'Intake':
+        record = Record.query.filter(Record.game_id == game_id,
+                                     Record.board_name == board_name,
+                                     ).order_by(desc(Record.id)).first()
+        record.record_change_beads('out', beads_moved)
+        print(board_name + " moved " + str(beads_moved) + " beads OUT")
     move_log = Log(game_id, game.round_count,
                    board_name, moves)
     db.session.add(move_log)
@@ -133,11 +142,6 @@ def play_intake(game, moves):
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     market = Market.query.filter_by(game_id=game.id).first()
     emerg = Emergency.query.filter_by(game_id=game.id).first()
-    # Order_by desc, then taking first gives most recent (i.e. current) record
-    emerg_record = Record.query.filter(Record.game_id == game.id,
-                                       Record.board_name == "Emergency") \
-                               .order_by(desc(Record.id)).first()
-
     # col = one 'column' in game instructions
     col = math.ceil(50 / game.intake_cols)
 
@@ -147,13 +151,11 @@ def play_intake(game, moves):
         message = "Diversion column being played"
         moves.append(message)
         intake, moves = market.receive_unlimited(col, intake, moves)
-    # col-surplus is what was moved
     surplus, intake, moves = emerg.receive_beads(col, intake, moves)
-    emerg_record.record_change_beads('in', col - surplus)
     intake, moves = unsheltered.receive_unlimited(col, intake, moves)
     intake, moves = game.send_anywhere(len(intake), intake, moves)
-    # No need to save played board - intake always ends at 0
-    return moves
+    # Intake always ends at 0, and can't receive, so not saved
+    return moves, 50
 
 
 def play_emergency(game, moves):
@@ -164,6 +166,8 @@ def play_emergency(game, moves):
     market = Market.query.filter_by(game_id=game.id).first()
     # Each board has 5 columns - emergency rules say to move 1.5 cols
     col = math.ceil(1.5 * (emerg.maximum / 5))
+    # Emergency board is cleared each round
+    beads_moved = len(emerg_board)
 
     # Move beads
     emerg_board, moves = market.receive_unlimited(col, emerg_board, moves)
@@ -175,7 +179,7 @@ def play_emergency(game, moves):
     # Save played board
     emerg.board = pickle.dumps(emerg_board)
     db.session.commit()
-    return moves
+    return moves, beads_moved
 
 
 def play_rapid(game, moves):
@@ -186,15 +190,19 @@ def play_rapid(game, moves):
     emerg = Emergency.query.filter_by(game_id=game.id).first()
     # Each board has 5 columns
     col = math.ceil(rapid.maximum / 5)
+    # Save length so beads_moved can be calculated
+    len_start = len(rapid_board)
 
     # Move beads
     rapid_board, moves = market.receive_unlimited(3 * col, rapid_board, moves)
     extra, rapid_board, moves = emerg.receive_beads(col, rapid_board, moves)
+    len_end = len(rapid_board)
+    beads_moved = len_start - len_end
 
     # Save played board
     rapid.board = pickle.dumps(rapid_board)
     db.session.commit()
-    return moves
+    return moves, beads_moved
 
 
 def play_outreach(game, moves):
@@ -213,7 +221,8 @@ def play_outreach(game, moves):
     # Save played board
     outreach.board = pickle.dumps(outreach_board)
     db.session.commit()
-    return moves
+    # Outreach is filled to 10 and emptied each round
+    return moves, 10
 
 
 def play_transitional(game, moves):
@@ -225,6 +234,7 @@ def play_transitional(game, moves):
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     # Each board has 5 columns
     col = math.ceil(trans.maximum / 5)
+    len_start = len(trans_board)
 
     # Move beads
     trans_board, moves = market.receive_unlimited(col, trans_board, moves)
@@ -232,11 +242,13 @@ def play_transitional(game, moves):
     if extra:
         trans_board, moves = unsheltered.receive_unlimited(extra, trans_board,
                                                            moves)
+    len_end = len(trans_board)
+    beads_moved = len_start - len_end
 
     # Save played board
     trans.board = pickle.dumps(trans_board)
     db.session.commit()
-    return moves
+    return moves, beads_moved
 
 
 # TEMP comment: round rules implemented
@@ -256,7 +268,8 @@ def play_permanent(game, moves):
     # Wrap up
     perm.board = pickle.dumps(perm_board)
     db.session.commit()
-    return moves
+    # Transitional board only moves 1 bead per round
+    return moves, 1
 
 
 def intiate_records(game):
