@@ -238,8 +238,11 @@ class Game(db.Model):
 # Helper methods
 def get_random_bead(number, available_beads):
     collection = []
-    for i in range(number):
-        selection = random.choice(available_beads)
-        collection.append(selection)
-        available_beads.remove(selection)
+    try:
+        for i in range(number):
+            selection = random.choice(available_beads)
+            collection.append(selection)
+            available_beads.remove(selection)
+    except IndexError:
+        print("Ran out of available_beads")
     return available_beads, collection

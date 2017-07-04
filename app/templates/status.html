@@ -82,7 +82,7 @@
             <h2 class="panel-title">Records from Last Round</h2>
         </div>
         <div class="panel-body">
-            {% if records %}
+            {% if records != [] %}
             <ul class="list-group">
               {% for record in record %}
                 <li class="list-group-item">
