@@ -1,3 +1,4 @@
+import random
 import pickle
 from app import db
 from sqlalchemy import desc
@@ -18,24 +19,23 @@ class Other_Boards(object):
         self.board = board
         self.maximum = maximum
 
-    def receive_beads(self, beads, from_board, moves):
+    def receive_beads(self, bead_count, from_board, moves):
+        beads_moved = 0
         this_board = pickle.loads(self.board)
         room = find_room(self.maximum, this_board)
-        beads_moved = 0
-        extra = 0
         if room != 0:
-            extra, from_board, this_board = use_room(room, beads,
+            extra, from_board, this_board = use_room(room, bead_count,
                                                      from_board, this_board)
             self.board = pickle.dumps(this_board)
-            beads_moved = beads - extra
-            # Order_by desc, then taking first gives most recent record
+            beads_moved = bead_count - extra
             record = Record.query.filter(Record.game_id == self.game_id,
                                          Record.board_name ==
                                          self.__tablename__.title()
                                          ).order_by(desc(Record.id)).first()
-            print(str(record) + " for " + self.__tablename__.title() + " board")
+            print("receive_beads found " + str(record))
             record.record_change_beads('in', beads_moved)
-            print(self.__tablename__.title() + " moved " + str(beads_moved) + " beads IN")
+        else:
+            extra = bead_count
         db.session.commit()
         moves.append(message_for(str(beads_moved), self.__tablename__.title()))
         return extra, from_board, moves
@@ -70,13 +70,13 @@ class Outreach(db.Model, Other_Boards):
         room = find_room(self.maximum, outreach_board)
         unsheltered_board, outreach_board = move_beads(room, unsheltered_board,
                                                        outreach_board)
-        message = str(room) + " beads from unsheltered to outreach"
-        # # Order_by desc, then taking first gives most recent (i.e. current) record
-        # record = Record.query.filter(Record.game_id == self.game_id,
-        #                              Record.board_name ==
-        #                              self.__tablename__.title()
-        #                              ).order_by(desc(Record.id)).first()
-        # record.record_change_beads('in', room)
+        record = Record.query.filter(Record.game_id == self.game_id,
+                                     Record.board_name ==
+                                     self.__tablename__.title()
+                                     ).order_by(desc(Record.id)).first()
+        print("fill_from found " + str(record))
+        record.record_change_beads('in', room)
+        message = str(room) + " beads from Unsheltered to Outreach"
         moves.append(message)
         return unsheltered_board, outreach_board, moves
 
@@ -103,12 +103,10 @@ class Market(db.Model, Other_Boards):
 
 # Helper methods
 def move_beads(number, from_board, to_board):
-    try:
-        for i in range(number):
-            selection = from_board.pop(i)
-            to_board.append(selection)
-    except IndexError:
-        print("Ran out of available_beads")
+    for i in range(number):
+        selection = random.choice(from_board)
+        to_board.append(selection)
+        from_board.remove(selection)
     return from_board, to_board
 
 

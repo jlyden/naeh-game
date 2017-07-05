@@ -23,12 +23,8 @@ def status(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     board_list = pickle.loads(this_game.board_list_pickle)
     expanded_list = expand_board_list(board_list)
-    # Boards
     boards = load_boards(game_id, expanded_list)
-    print("Boards is " + str(boards))
-    # Records
     records = load_records(game_id, expanded_list)
-    # Counts
     counts = load_counts(game_id, expanded_list)
     return render_template('status.html', game=this_game,
                            board_list=board_list, boards=boards,
@@ -83,18 +79,18 @@ def play_board(board_name, game_id):
         record = Record.query.filter(Record.game_id == game_id,
                                      Record.board_name == board_name,
                                      ).order_by(desc(Record.id)).first()
-        print("Record changing b/c of beads: " + str(record))
+        print("play_board found " + str(record))
         record.record_change_beads('out', beads_moved)
-        print(board_name + " moved " + str(beads_moved) + " beads OUT")
-    move_log = Log(game_id, game.round_count,
-                   board_name, moves)
+    move_log = Log(game_id, game.round_count, board_name, moves)
     db.session.add(move_log)
     game.board_to_play += 1
-    board_list = pickle.loads(game.board_list_pickle)
+
     # If board list is exhausted ...
+    board_list = pickle.loads(game.board_list_pickle)
     if game.board_to_play > len(board_list) - 1:
         end_round(game, board_list)
         return redirect(url_for('system_event', game_id=game_id))
+
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
@@ -151,7 +147,8 @@ def play_intake(game, moves):
     intake, moves = unsheltered.receive_unlimited(col, intake, moves)
     intake, moves = game.send_anywhere(len(intake), intake, moves)
     # Intake always ends at 0, and can't receive, so not saved
-    return moves, 50
+    beads_moved = 50
+    return moves, beads_moved
 
 
 def play_emergency(game, moves):
@@ -302,7 +299,7 @@ def load_counts(game_id, expanded_list):
         for record in records:
             board_counts.append(record.end_count)
         counts[board] = board_counts
-    print("Counts is " + str(counts))
+    print("Counts: " + str(counts))
     return counts
 
 
@@ -357,10 +354,12 @@ def update_all_records(game_id, round_count, board_list):
                                          Record.board_name == board,
                                          Record.round_count == round_count
                                          ).order_by(desc(Record.id)).first()
+            print("update_all_records found " + str(record))
             record.end_count = record.get_new_end_count()
             print("Updated end_count record for " + board + ": " +
                   str(record.end_count))
         db.session.commit()
+    return
 
 
 DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
@@ -372,10 +371,8 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
 # TODO: diff rules in rounds!
 # TODO: Add charts and major game choices to score board
 # TODO: Something is STILL funky with validation of which board to play next
-# TODO: Move record to own board
-# id | game_id | round_count | board_name | beads_in | beads_out | end_count | note
 
-
+# TODO: Once we're back to functionality - try removing __init__ methods
 # TODO: integrate system_event as (disappearing) part of status page
 #  - https://stackoverflow.com/questions/1976651/multiple-level-template-inheritance-in-jinja2
 

@@ -29,6 +29,7 @@ class Record(db.Model):
         elif direction == 'out':
             self.beads_out = self.beads_out + bead_count
         db.session.commit()
+        print(self.board_name + " moved " + str(bead_count) + " beads " + direction)
         return
 
     def get_new_end_count(self):

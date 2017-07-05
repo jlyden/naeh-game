@@ -131,7 +131,8 @@ class Game(db.Model):
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         else:
-            available_beads, intake = get_random_bead(50, available_beads)
+            intake = []
+            available_beads, intake = move_beads(50, available_beads, intake)
             self.available_pickle = pickle.dumps(available_beads)
             db.session.commit()
             moves.append("50 beads to intake")
@@ -229,18 +230,6 @@ class Game(db.Model):
 
 
 # Helper methods
-def get_random_bead(number, available_beads):
-    collection = []
-    try:
-        for i in range(number):
-            selection = random.choice(available_beads)
-            collection.append(selection)
-            available_beads.remove(selection)
-    except IndexError:
-        print("Ran out of available_beads")
-    return available_beads, collection
-
-
 def generate_anywhere_list(board_list_pickle):
     # Board list always contains "Intake"
     board_list = pickle.loads(board_list_pickle)
