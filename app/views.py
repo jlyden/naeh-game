@@ -22,13 +22,14 @@ def status(game_id):
     # Grab info from db
     this_game = Game.query.get_or_404(int(game_id))
     board_list = pickle.loads(this_game.board_list_pickle)
-    prepped_board_list = prep_board_list_for_loads(board_list)
+    expanded_list = expand_board_list(board_list)
     # Boards
-    boards = load_boards(game_id, prepped_board_list)
+    boards = load_boards(game_id, expanded_list)
+    print("Boards is " + str(boards))
     # Records
-    records = load_records(game_id, prepped_board_list)
+    records = load_records(game_id, expanded_list)
     # Counts
-    counts = load_counts(game_id, prepped_board_list)
+    counts = load_counts(game_id, expanded_list)
     return render_template('status.html', game=this_game,
                            board_list=board_list, boards=boards,
                            records=records, counts=counts)
@@ -47,7 +48,6 @@ def view_log(game_id):
             last_moves = pickle.loads(log.moves)
             logs.append(last_moves)
         moves_by_round.append(logs)
-        print("After " + str(i) + ", moves_by_round is " + str(moves_by_round))
     return render_template('log.html',
                            BOARD_LIST=BOARD_LIST,
                            game=this_game,
@@ -208,7 +208,8 @@ def play_outreach(game, moves):
     outreach = Outreach.query.filter_by(game_id=game.id).first()
 
     # Move beads TO outreach
-    unsheltered_board, outreach_board, moves = outreach.fill_from(unsheltered_board, moves)
+    unsheltered_board, outreach_board, moves = \
+        outreach.fill_from(unsheltered_board, moves)
     unsheltered.board = pickle.dumps(unsheltered_board)
     # Move beads FROM Outreach
     outreach_board, moves = game.send_anywhere(len(outreach_board),
@@ -268,9 +269,9 @@ def play_permanent(game, moves):
     return moves, 1
 
 
-def load_boards(game_id, prepped_board_list):
+def load_boards(game_id, expanded_list):
     boards = {}
-    for board in prepped_board_list:
+    for board in expanded_list:
         prog_table = eval(board)
         prog = prog_table.query.filter_by(game_id=game_id).first()
         prog_board = pickle.loads(prog.board)
@@ -278,9 +279,9 @@ def load_boards(game_id, prepped_board_list):
     return boards
 
 
-def load_records(game_id, prepped_board_list):
+def load_records(game_id, expanded_list):
     records = []
-    for board in prepped_board_list:
+    for board in expanded_list:
         # This order_by gives us last record per board
         record = Record.query.filter(Record.game_id == game_id,
                                      Record.board_name == board
@@ -289,9 +290,9 @@ def load_records(game_id, prepped_board_list):
     return records
 
 
-def load_counts(game_id, prepped_board_list):
+def load_counts(game_id, expanded_list):
     counts = {}
-    for board in prepped_board_list:
+    for board in expanded_list:
         board_counts = []
         # Get all records associated wtih the board, in order
         records = Record.query.filter(Record.game_id == game_id,
@@ -326,17 +327,17 @@ def end_round(game, board_list):
     return
 
 
-def prep_board_list_for_loads(board_list):
-    print(board_list)
-    board_list.remove('Intake')
-    board_list.append('Unsheltered')
-    board_list.append('Market')
-    return board_list
+def expand_board_list(board_list):
+    expanded_board_list = board_list[:]
+    expanded_board_list.remove('Intake')
+    expanded_board_list.append('Unsheltered')
+    expanded_board_list.append('Market')
+    return expanded_board_list
 
 
 def update_all_records(game_id, round_count, board_list):
-    prepped_board_list = prep_board_list_for_loads(board_list)
-    for board in prepped_board_list:
+    expanded_list = expand_board_list(board_list)
+    for board in expanded_list:
         if board == "Unsheltered" or "Market":
             # initiate record for current round
             record = Record(game_id=game_id,
@@ -345,6 +346,7 @@ def update_all_records(game_id, round_count, board_list):
             prog_table = eval(board)
             prog = prog_table.query.filter_by(game_id=game_id).first()
             prog_board = pickle.loads(prog.board)
+            record.beads_in = len(prog_board)
             record.end_count = len(prog_board)
             db.session.add(record)
             print("Added end_count record for " + board + ": " +

@@ -1,6 +1,7 @@
 import pickle
 from app import db
 from sqlalchemy import desc
+from .score import Record
 
 
 # Mixin class for related boards
@@ -27,32 +28,26 @@ class Other_Boards(object):
                                                      from_board, this_board)
             self.board = pickle.dumps(this_board)
             beads_moved = beads - extra
-        #     # Order_by desc, then taking first gives most recent (i.e. current) record
-        #     record = Record.query.filter(Record.game_id == self.game_id,
-        #                                  Record.board_name ==
-        #                                  self.__tablename__.title()
-        #                                  ).order_by(desc(Record.id)).first()
-        #     print(str(record) + " for " + self.__tablename__.title() + " board")
-        #     record.record_change_beads('in', beads_moved)
-        #     print(self.__tablename__.title() + " moved " + str(beads_moved) + " beads IN")
-        # db.session.commit()
+            # Order_by desc, then taking first gives most recent record
+            record = Record.query.filter(Record.game_id == self.game_id,
+                                         Record.board_name ==
+                                         self.__tablename__.title()
+                                         ).order_by(desc(Record.id)).first()
+            print(str(record) + " for " + self.__tablename__.title() + " board")
+            record.record_change_beads('in', beads_moved)
+            print(self.__tablename__.title() + " moved " + str(beads_moved) + " beads IN")
+        db.session.commit()
         moves.append(message_for(str(beads_moved), self.__tablename__.title()))
         return extra, from_board, moves
 
     def receive_unlimited(self, beads, from_board, moves):
+        # No need for records here - end_count captured at end of round
         this_board = pickle.loads(self.board)
         from_board, this_board = move_beads(beads, from_board, this_board)
         self.board = pickle.dumps(this_board)
         db.session.commit()
         moves.append(message_for(beads, self.__tablename__.title()))
         return from_board, moves
-
-    def update_record(self):
-        # add_record() accepts and returns a pickle object
-        this_board = pickle.loads(self.board)
-        self.record = add_record(self.record, len(this_board))
-        db.session.commit()
-        return
 
 
 class Emergency(db.Model, Other_Boards):
@@ -122,21 +117,14 @@ def find_room(board_max, board):
     return room
 
 
-def use_room(room, beads, from_board, to_board):
-    if room > beads:
-        from_board, to_board_pickle = move_beads(beads, from_board, to_board)
+def use_room(room, number_beads, from_board, to_board):
+    if room > number_beads:
+        from_board, to_board = move_beads(number_beads, from_board, to_board)
         extra = 0
-    elif beads >= room:
-        from_board, to_board_pickle = move_beads(room, from_board, to_board)
-        extra = beads - room
+    elif number_beads >= room:
+        from_board, to_board = move_beads(room, from_board, to_board)
+        extra = number_beads - room
     return extra, from_board, to_board
-
-
-def add_record(record_pickle, value):
-    record = pickle.loads(record_pickle)
-    record.append(value)
-    record_pickle = pickle.dumps(record)
-    return record_pickle
 
 
 def message_for(beads_moved, board):
