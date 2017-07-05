@@ -43,7 +43,6 @@ class Record(db.Model):
         return last_end_count + self.beads_in - self.beads_out
 
 
-
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
@@ -61,7 +60,6 @@ class Log(db.Model):
         self.round_count = round_count
         self.board_played = board_played
         self.moves = pickle.dumps(moves)
-
 
 
 class Score(db.Model):

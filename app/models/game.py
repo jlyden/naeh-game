@@ -202,28 +202,26 @@ class Game(db.Model):
         return moves
 
     def calculate_final_score(self):
-        # Gather all the values
-        this_emerg = Emergency.query.filter_by(game_id=self.id).first()
-        this_emerg_record = pickle.loads(this_emerg.record)
-        this_rapid = Rapid.query.filter_by(game_id=self.id).first()
-        this_rapid_board = pickle.loads(this_rapid.board)
-        this_trans = Transitional.query.filter_by(game_id=self.id).first()
-        this_trans_record = pickle.loads(this_trans.record)
-        this_perm = Permanent.query.filter_by(game_id=self.id).first()
-        this_perm_board = pickle.loads(this_perm.board)
-        this_unsheltered = Unsheltered.query.filter_by(game_id=self.id).first()
-        this_unsheltered_board = pickle.loads(this_unsheltered.board)
-        this_market = Market.query.filter_by(game_id=self.id).first()
-        this_market_board = pickle.loads(this_market.board)
+        # Count lists
+        counts = load_counts(self.id, ['Emergency', 'Transitional'])
+        # end_counts
+        end_counts = {}
+        for board in ['Rapid', 'Permanent', 'Unsheltered', 'Market']:
+            this_record = Record.query.filter(Record.game_id == self.id,
+                                          Record.board_name == board,
+                                          Record.round_count == 5,
+                                          ).first()
+            print("calculate_final_score found " + str(record))
+            end_counts[board] = this_record.end_count
 
         # Create, fill and return the scoreboard
         new_Score = Score(game_id=self.id)
-        new_Score.emerg_total = sum(this_emerg_record)
-        new_Score.rapid = len(this_rapid_board)
-        new_Score.trans_total = sum(this_trans_record)
-        new_Score.perm = len(this_perm_board)
-        new_Score.unsheltered = len(this_unsheltered_board)
-        new_Score.market = len(this_market_board)
+        new_Score.emerg_total = sum(counts['Emergency'])
+        new_Score.rapid = end_counts['Rapid']
+        new_Score.trans_total = sum(counts['Transitional'])
+        new_Score.perm = end_counts['Permanent']
+        new_Score.unsheltered = end_counts['Unsheltered']
+        new_Score.market = end_counts['Market']
         db.session.add(new_Score)
         db.session.commit()
         return new_Score
@@ -237,3 +235,19 @@ def generate_anywhere_list(board_list_pickle):
     if "Outreach" in board_list:
         board_list.remove("Outreach")
     return random.sample(board_list, len(board_list))
+
+
+def load_counts(game_id, board_list):
+    counts = {}
+    for board in board_list:
+        board_counts = []
+        # Get all records associated wtih the board, in order
+        records = Record.query.filter(Record.game_id == game_id,
+                                      Record.board_name == board
+                                      ).order_by(Record.id)
+        # Pull the end_counts from each record
+        for record in records:
+            board_counts.append(record.end_count)
+        counts[board] = board_counts
+    print("Counts: " + str(counts))
+    return counts

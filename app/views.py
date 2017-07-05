@@ -4,7 +4,8 @@ from flask import request, render_template, redirect, url_for, flash
 from sqlalchemy import desc
 from app import app, db
 from .models import Game, Emergency, Rapid, Outreach, Transitional, Permanent
-from .models import Unsheltered, Market, Record, Log, Score, BOARD_LIST
+from .models import Unsheltered, Market, Record, Log, Score
+from .models import BOARD_LIST, load_counts
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -287,22 +288,6 @@ def load_records(game_id, expanded_list):
     return records
 
 
-def load_counts(game_id, expanded_list):
-    counts = {}
-    for board in expanded_list:
-        board_counts = []
-        # Get all records associated wtih the board, in order
-        records = Record.query.filter(Record.game_id == game_id,
-                                      Record.board_name == board
-                                      ).order_by(Record.id)
-        # Pull the end_counts from each record
-        for record in records:
-            board_counts.append(record.end_count)
-        counts[board] = board_counts
-    print("Counts: " + str(counts))
-    return counts
-
-
 def intiate_records(game):
     board_list = pickle.loads(game.board_list_pickle)
     for board in board_list:
@@ -367,6 +352,8 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
                       'Permanent': play_permanent}
 
 
+# TODO: add records in system events with notes! (and calculations)
+# TODO: ALWAYS add records for boards involved in scoring (even with 0000)
 # TODO: diff rules in rounds!
 # TODO: Add charts and major game choices to score board
 # TODO: Something is STILL funky with validation of which board to play next
