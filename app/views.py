@@ -335,7 +335,11 @@ def expand_board_list(board_list):
 def update_all_records(game_id, round_count, board_list):
     expanded_list = expand_board_list(board_list)
     for board in expanded_list:
-        if board == "Unsheltered" or "Market":
+        record = Record.query.filter(Record.game_id == game_id,
+                                     Record.board_name == board,
+                                     Record.round_count == round_count
+                                     ).order_by(desc(Record.id)).first()
+        if record is None:
             # initiate record for current round
             record = Record(game_id=game_id,
                             round_count=round_count,
@@ -346,16 +350,11 @@ def update_all_records(game_id, round_count, board_list):
             record.beads_in = len(prog_board)
             record.end_count = len(prog_board)
             db.session.add(record)
-            print("Added end_count record for " + board + ": " +
+            print("Added NEW end_count record for " + board + ": " +
                   str(record.end_count))
         else:
-            # Use get_new_end_count
-            record = Record.query.filter(Record.game_id == game_id,
-                                         Record.board_name == board,
-                                         Record.round_count == round_count
-                                         ).order_by(desc(Record.id)).first()
             print("update_all_records found " + str(record))
-            record.end_count = record.get_new_end_count()
+            record.end_count = record.calc_end_count()
             print("Updated end_count record for " + board + ": " +
                   str(record.end_count))
         db.session.commit()

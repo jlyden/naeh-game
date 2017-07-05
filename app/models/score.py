@@ -32,7 +32,7 @@ class Record(db.Model):
         print(self.board_name + " moved " + str(bead_count) + " beads " + direction)
         return
 
-    def get_new_end_count(self):
+    def calc_end_count(self):
         # get end_count from last round
         last_record = Record.query.filter(Record.game_id == self.game_id,
                                           Record.board_name == self.board_name,
