@@ -356,12 +356,8 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
 
 
 # TODO: diff rules in rounds!
-# TODO: Add charts and major game choices to score board
-# TODO: Something is STILL funky with validation of which board to play next
-
-# TODO: Once we're back to functionality - try removing __init__ in methods
 # TODO: integrate system_event as (disappearing) part of status page
-#  - https://stackoverflow.com/questions/1976651/multiple-level-template-inheritance-in-jinja2
-#  - https://stackoverflow.com/questions/21729864/jinja2-how-to-use-named-blocks-inside-included-templates-inside-extendable-tem
-
+# TODO: Add major game choices to score board
+# TODO: Something is STILL funky with validation of which board to play next
+# TODO: Once we're back to functionality - try removing __init__ in methods
 # TODO: randomize order in lists (for red beads)
