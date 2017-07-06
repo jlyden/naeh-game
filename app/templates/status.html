@@ -12,6 +12,9 @@
           <li class="list-group-item">
             <h4>Intake Program
               <span class="label label-info ">0</span>
+              {% if game.intake_cols == 6 %}
+                <mark><small>Diversion Column enabled</small></mark>
+              {% endif %}
               <a href="{{ url_for('play_board', board_name="Intake", game_id=game.id) }}" class="pull-right">Play</a>
             </h4>
           </li>
@@ -24,6 +27,15 @@
                 <a href="{{ url_for('play_board', board_name="Emergency", game_id=game.id) }}" class="pull-right">Play</a>
               </h4>
             </li>
+          {% else %}
+            <li class="list-group-item">
+              <h4><s>Emergency Housing</s>
+                <span class="label label-info ">
+                  {{ boards['Emergency']|length }}
+                </span>
+                <mark><small>Closed</small></mark>
+              </h4>
+            </li>
           {% endif %}
           {% if 'Rapid' in board_list %}
             <li class="list-group-item">
@@ -32,6 +44,15 @@
                   {{ boards['Rapid']|length }}
                 </span>
                 <a href="{{ url_for('play_board', board_name="Rapid", game_id=game.id) }}" class="pull-right">Play</a>
+              </h4>
+            </li>
+          {% else %}
+            <li class="list-group-item">
+              <h4><s>Rapid Housing</s>
+                <span class="label label-info ">
+                  {{ boards['Rapid']|length }}
+                </span>
+                <mark><small>Closed</small></mark>
               </h4>
             </li>
           {% endif %}
@@ -44,6 +65,15 @@
                 <a href="{{ url_for('play_board', board_name="Outreach", game_id=game.id) }}" class="pull-right">Play</a>
               </h4>
             </li>
+          {% else %}
+            <li class="list-group-item">
+              <h4><s>Outreach Housing</s>
+                <span class="label label-info ">
+                  {{ boards['Outreach']|length }}
+                </span>
+                <mark><small>Closed</small></mark>
+              </h4>
+            </li>
           {% endif %}
           {% if 'Transitional' in board_list %}
             <li class="list-group-item">
@@ -54,6 +84,15 @@
                 <a href="{{ url_for('play_board', board_name="Transitional", game_id=game.id) }}" class="pull-right">Play</a>
               </h4>
             </li>
+          {% else %}
+            <li class="list-group-item">
+              <h4><s>Transitional Housing</s>
+                <span class="label label-info ">
+                  {{ boards['Transitional']|length }}
+                </span>
+                <mark><small>Closed</small></mark>
+              </h4>
+            </li>
           {% endif %}
           {% if 'Permanent' in board_list %}
             <li class="list-group-item">
@@ -62,6 +101,15 @@
                   {{ boards['Permanent']|length }}
                 </span>
                 <a href="{{ url_for('play_board', board_name="Permanent", game_id=game.id) }}" class="pull-right">Play</a>
+              </h4>
+            </li>
+          {% else %}
+            <li class="list-group-item">
+              <h4><s>Permanent Housing</s>
+                <span class="label label-info ">
+                  {{ boards['Permanent']|length }}
+                </span>
+                <mark><small>Closed</small></mark>
               </h4>
             </li>
           {% endif %}

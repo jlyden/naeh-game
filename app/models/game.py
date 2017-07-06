@@ -179,11 +179,21 @@ class Game(db.Model):
         from_prog_table = eval(from_program)
         from_prog = from_prog_table.query.filter_by(game_id=self.id).first()
         from_prog_board = pickle.loads(from_prog.board)
+        beads_moved = len(from_prog_board)
         to_prog_table = eval(to_program)
         to_prog = to_prog_table.query.filter_by(game_id=self.id).first()
         to_prog_board = pickle.loads(to_prog.board)
+        # Initiate relevant records (in between rounds)
+        from_record = Record(game_id=self.id, round_count=self.round_count,
+                             board_name=from_program)
+        print("convert_program creating from: " + str(from_record))
+        from_record.record_change_beads('out', beads_moved)
+        to_record = Record(game_id=self.id, round_count=self.round_count,
+                           board_name=to_program)
+        print("convert_program creating to: " + str(to_record))
+        from_record.record_change_beads('in', beads_moved)
         # Move beads from from_prog.board to to_prog.board
-        from_prog_board, to_prog_board = move_beads(len(from_prog_board),
+        from_prog_board, to_prog_board = move_beads(beads_moved,
                                                     from_prog_board,
                                                     to_prog_board)
         from_prog.board = pickle.dumps(from_prog_board)
@@ -208,10 +218,10 @@ class Game(db.Model):
         end_counts = {}
         for board in ['Rapid', 'Permanent', 'Unsheltered', 'Market']:
             this_record = Record.query.filter(Record.game_id == self.id,
-                                          Record.board_name == board,
-                                          Record.round_count == 5,
-                                          ).first()
-            print("calculate_final_score found " + str(record))
+                                              Record.board_name == board,
+                                              Record.round_count == 5,
+                                              ).first()
+            print("calculate_final_score found " + str(this_record))
             end_counts[board] = this_record.end_count
 
         # Create, fill and return the scoreboard

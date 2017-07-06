@@ -7,6 +7,9 @@ from .models import Game, Emergency, Rapid, Outreach, Transitional, Permanent
 from .models import Unsheltered, Market, Record, Log, Score
 from .models import BOARD_LIST, load_counts
 
+RECORDS_LIST = ["Emergency", "Rapid", "Outreach", "Transitional",
+                "Permanent", "Unsheltered", "Market"]
+
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -23,10 +26,9 @@ def status(game_id):
     # Grab info from db
     this_game = Game.query.get_or_404(int(game_id))
     board_list = pickle.loads(this_game.board_list_pickle)
-    expanded_list = expand_board_list(board_list)
-    boards = load_boards(game_id, expanded_list)
-    records = load_records(game_id, expanded_list)
-    counts = load_counts(game_id, expanded_list)
+    boards = load_boards(game_id, RECORDS_LIST)
+    records = load_records(game_id, RECORDS_LIST)
+    counts = load_counts(game_id, RECORDS_LIST)
     return render_template('status.html', game=this_game,
                            board_list=board_list, boards=boards,
                            records=records, counts=counts)
@@ -267,9 +269,9 @@ def play_permanent(game, moves):
     return moves, 1
 
 
-def load_boards(game_id, expanded_list):
+def load_boards(game_id, board_list):
     boards = {}
-    for board in expanded_list:
+    for board in board_list:
         prog_table = eval(board)
         prog = prog_table.query.filter_by(game_id=game_id).first()
         prog_board = pickle.loads(prog.board)
@@ -277,9 +279,9 @@ def load_boards(game_id, expanded_list):
     return boards
 
 
-def load_records(game_id, expanded_list):
+def load_records(game_id, board_list):
     records = []
-    for board in expanded_list:
+    for board in board_list:
         # This order_by gives us last record per board
         record = Record.query.filter(Record.game_id == game_id,
                                      Record.board_name == board
@@ -290,36 +292,34 @@ def load_records(game_id, expanded_list):
 
 def intiate_records(game):
     board_list = pickle.loads(game.board_list_pickle)
+    # Initiate records which will be played during round (and don't exist)
     for board in board_list:
         if board != "Intake":
-            record = Record(game_id=game.id,
-                            round_count=game.round_count,
-                            board_name=board)
-            db.session.add(record)
-            db.session.commit()
+            record = Record.query.filter(Record.game_id == game.id,
+                                         Record.board_name == board,
+                                         Record.round_count == game.round_count
+                                         ).order_by(desc(Record.id)).first()
+            if record is None:
+                # initiate record for current round
+                record = Record(game_id=game.id,
+                                round_count=game.round_count,
+                                board_name=board)
+                db.session.add(record)
+    db.session.commit()
     return
 
 
 def end_round(game, board_list):
-    # Update record and reset counters
-    update_all_records(game.id, game.round_count, board_list)
+    # Update record and reset counters - for ALL boards, even not being played
+    update_all_records(game.id, game.round_count, RECORDS_LIST)
     game.round_count += 1
     game.board_to_play = 0
     db.session.commit()
     return
 
 
-def expand_board_list(board_list):
-    expanded_board_list = board_list[:]
-    expanded_board_list.remove('Intake')
-    expanded_board_list.append('Unsheltered')
-    expanded_board_list.append('Market')
-    return expanded_board_list
-
-
 def update_all_records(game_id, round_count, board_list):
-    expanded_list = expand_board_list(board_list)
-    for board in expanded_list:
+    for board in board_list:
         record = Record.query.filter(Record.game_id == game_id,
                                      Record.board_name == board,
                                      Record.round_count == round_count
@@ -352,8 +352,6 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
                       'Permanent': play_permanent}
 
 
-# TODO: add records in system events with notes! (and calculations)
-# TODO: ALWAYS add records for boards involved in scoring (even with 0000)
 # TODO: diff rules in rounds!
 # TODO: Add charts and major game choices to score board
 # TODO: Something is STILL funky with validation of which board to play next
