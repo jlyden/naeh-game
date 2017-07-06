@@ -141,16 +141,22 @@ def play_intake(game, moves):
     emerg = Emergency.query.filter_by(game_id=game.id).first()
     # col = one 'column' in game instructions
     col = math.ceil(50 / game.intake_cols)
+    no_red = False
 
     # Move beads
     # If Diversion column is open
     if game.intake_cols == 6:
         message = "Diversion column being played"
         moves.append(message)
-        intake, moves = market.receive_unlimited(col, intake, moves)
-    surplus, intake, moves = emerg.receive_beads(col, intake, moves)
-    intake, moves = unsheltered.receive_unlimited(col, intake, moves)
-    intake, moves = game.send_anywhere(len(intake), intake, moves)
+        intake, moves = market.receive_unlimited(col, intake, no_red, moves)
+    surplus, intake, moves = emerg.receive_beads(col, intake, no_red, moves)
+    if game.round_count == 1:
+        intake, moves = unsheltered.receive_unlimited(col, intake, no_red,
+                                                      moves)
+    elif game.round_count == 4:
+        surplus, intake, moves = emerg.receive_beads(col, intake, no_red,
+                                                     moves)
+    intake, moves = game.send_anywhere(len(intake), intake, no_red, moves)
     # Intake always ends at 0, and can't receive, so not saved
     beads_moved = 50
     return moves, beads_moved
@@ -167,12 +173,18 @@ def play_emergency(game, moves):
     # Emergency board is cleared each round
     beads_moved = len(emerg_board)
 
-    # Move beads
-    emerg_board, moves = market.receive_unlimited(col, emerg_board, moves)
-    emerg_board, moves = unsheltered.receive_unlimited(col, emerg_board, moves)
+    # Move beads - If round 1 or 3, no red beads to Market Housing
+    if game.round_count == 1 or 3:
+        no_red = True
+    else:
+        no_red = False
+    emerg_board, moves = market.receive_unlimited(col, emerg_board, no_red,
+                                                  moves)
+    emerg_board, moves = unsheltered.receive_unlimited(col, emerg_board, False,
+                                                       moves)
     if len(emerg_board) > 0:
         emerg_board, moves = game.send_anywhere(len(emerg_board), emerg_board,
-                                                moves)
+                                                False, moves)
 
     # Save played board
     emerg.board = pickle.dumps(emerg_board)
@@ -191,9 +203,15 @@ def play_rapid(game, moves):
     # Save length so beads_moved can be calculated
     len_start = len(rapid_board)
 
-    # Move beads
-    rapid_board, moves = market.receive_unlimited(3 * col, rapid_board, moves)
-    extra, rapid_board, moves = emerg.receive_beads(col, rapid_board, moves)
+    # Move beads - If round 2 or 4, no red beads move
+    if game.round_count == 2 or 4:
+        no_red = True
+    else:
+        no_red = False
+    rapid_board, moves = market.receive_unlimited(3 * col, rapid_board,
+                                                  no_red, moves)
+    extra, rapid_board, moves = emerg.receive_beads(col, rapid_board,
+                                                    no_red, moves)
     len_end = len(rapid_board)
     beads_moved = len_start - len_end
 
@@ -208,14 +226,15 @@ def play_outreach(game, moves):
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     unsheltered_board = pickle.loads(unsheltered.board)
     outreach = Outreach.query.filter_by(game_id=game.id).first()
+    no_red = False
 
     # Move beads TO outreach
     unsheltered_board, outreach_board, moves = \
-        outreach.fill_from(unsheltered_board, moves)
+        outreach.fill_from(unsheltered_board, no_red, moves)
     unsheltered.board = pickle.dumps(unsheltered_board)
     # Move beads FROM Outreach
     outreach_board, moves = game.send_anywhere(len(outreach_board),
-                                               outreach_board, moves)
+                                               outreach_board, no_red, moves)
 
     # Save played board
     outreach.board = pickle.dumps(outreach_board)
@@ -233,14 +252,17 @@ def play_transitional(game, moves):
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     # Each board has 5 columns
     col = math.ceil(trans.maximum / 5)
+    no_red = False
     len_start = len(trans_board)
 
     # Move beads
-    trans_board, moves = market.receive_unlimited(col, trans_board, moves)
-    extra, trans_board, moves = emerg.receive_beads(col, trans_board, moves)
+    trans_board, moves = market.receive_unlimited(col, trans_board, no_red,
+                                                  moves)
+    extra, trans_board, moves = emerg.receive_beads(col, trans_board, no_red,
+                                                    moves)
     if extra:
         trans_board, moves = unsheltered.receive_unlimited(extra, trans_board,
-                                                           moves)
+                                                           no_red, moves)
     len_end = len(trans_board)
     beads_moved = len_start - len_end
 
@@ -250,19 +272,21 @@ def play_transitional(game, moves):
     return moves, beads_moved
 
 
-# TEMP comment: round rules implemented
 def play_permanent(game, moves):
     # Load board
     perm = Permanent.query.filter_by(game_id=game.id).first()
     perm_board = pickle.loads(perm.board)
+    no_red = False
 
     # Moves beads; different rules depending on even or odd round
     if game.round_count % 2 == 0:
         unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
-        perm_board, moves = unsheltered.receive_unlimited(1, perm_board, moves)
+        perm_board, moves = unsheltered.receive_unlimited(1, perm_board,
+                                                          no_red, moves)
     else:
         market = Market.query.filter_by(game_id=game.id).first()
-        perm_board, moves = market.receive_unlimited(1, perm_board, moves)
+        perm_board, moves = market.receive_unlimited(1, perm_board, no_red,
+                                                     moves)
 
     # Wrap up
     perm.board = pickle.dumps(perm_board)
@@ -294,20 +318,18 @@ def load_records(game_id, board_list):
 
 
 def intiate_records(game):
-    board_list = pickle.loads(game.board_list_pickle)
-    # Initiate records which will be played during round (and don't exist)
-    for board in board_list:
-        if board != "Intake":
-            record = Record.query.filter(Record.game_id == game.id,
-                                         Record.board_name == board,
-                                         Record.round_count == game.round_count
-                                         ).order_by(desc(Record.id)).first()
-            if record is None:
-                # initiate record for current round
-                record = Record(game_id=game.id,
-                                round_count=game.round_count,
-                                board_name=board)
-                db.session.add(record)
+    # Initiate records which don't already exist
+    for board in RECORDS_LIST:
+        record = Record.query.filter(Record.game_id == game.id,
+                                     Record.board_name == board,
+                                     Record.round_count == game.round_count
+                                     ).order_by(desc(Record.id)).first()
+        if record is None:
+            # initiate record for current round
+            record = Record(game_id=game.id,
+                            round_count=game.round_count,
+                            board_name=board)
+            db.session.add(record)
     db.session.commit()
     return
 
@@ -355,9 +377,7 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
                       'Permanent': play_permanent}
 
 
-# TODO: diff rules in rounds!
 # TODO: integrate system_event as (disappearing) part of status page
 # TODO: Add major game choices to score board
 # TODO: Something is STILL funky with validation of which board to play next
 # TODO: Once we're back to functionality - try removing __init__ in methods
-# TODO: randomize order in lists (for red beads)

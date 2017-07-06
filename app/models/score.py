@@ -23,11 +23,13 @@ class Record(db.Model):
         self.round_count = round_count
         self.board_name = board_name
 
-    def record_change_beads(self, direction, bead_count):
+    def record_change_beads(self, direction, bead_count, no_red):
         if direction == 'in':
             self.beads_in = self.beads_in + bead_count
         elif direction == 'out':
             self.beads_out = self.beads_out + bead_count
+        if no_red:
+            self.note = self.board_name + ": No red beads moved " + direction
         db.session.commit()
         print(self.board_name + " moved " + str(bead_count) + " beads " + direction)
         return
