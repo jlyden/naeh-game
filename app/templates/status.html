@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block content %}
+{% block main_content %}
   <div class="row">
     <div class="panel panel-primary col-sm-7">
       <div class="panel-heading">
@@ -115,24 +115,6 @@
           {% endif %}
         </ul>
       </div><!-- ./panel body -->
-      {% if game.round_count > 1 %}
-      <div class="panel-heading">
-        <h2 class="panel-title">People In Programs</h2>
-      </div>
-      <div class="panel-body">
-        <!-- program chart and legend  -->
-        <canvas id="program_chart" width="400" height="200"></canvas>
-        <div id="program_legend"></div>
-      </div>
-      <div class="panel-heading">
-        <h2 class="panel-title">People After Programs</h2>
-      </div>
-      <div class="panel-body">
-        <!-- outside chart and legend  -->
-        <canvas id="outside_chart" width="400" height="200"></canvas>
-        <div id="outside_legend"></div>
-      </div>
-      {% endif %}
     </div><!-- ./panel left -->
     <div class="col-sm-1">
     </div><!-- ./panel center -->
@@ -191,96 +173,8 @@
       </div><!-- ./div panel Bins -->
     </div><!-- ./panel right -->
   </div><!-- ./row -->
+{% endblock main_content %}
 
-<script>
-  // program_chart data
-  var progData = {
-    labels : [0, 1, 2, 3, 4, 5],
-    datasets : [{
-          data: [{% for count in counts['Emergency'] %}
-                    {{count}},
-                  {% endfor %}],
-          label: "Emergency",
-          fillColor: "rgba(255,255,255,.2)",
-          strokeColor: "rgba(151,187,205,.6)",
-          pointColor: "rgba(151,187,205,.6)",
-        },{
-          data: [{% for count in counts['Rapid'] %}
-                    {{count}},
-                  {% endfor %}],
-          label: "Rapid",
-          fillColor: "rgba(255,255,255,.2)",
-          strokeColor: "rgba(255,51,51,.6)",
-          pointColor: "rgba(255,51,51,.6)",
-        },{
-          data: [{% for count in counts['Transitional'] %}
-                    {{count}},
-                  {% endfor %}],
-          label: "Transitional",
-          fillColor: "rgba(255,255,255,.2)",
-          strokeColor: "rgba(51,204,51,.6)",
-          pointColor: "rgba(51,204,51,.6)",
-        },{
-          data: [{% for count in counts['Permanent'] %}
-                    {{count}},
-                  {% endfor %}],
-          label: "Permanent",
-          fillColor: "rgba(255,255,255,.2)",
-          strokeColor: "rgba(204,0,102,.6)",
-          pointColor: "rgba(204,0,102,.6)",
-        }
-      ]
-    }
-  // Set defaults and options
-  Chart.defaults.global.responsive = false;
-  Chart.defaults.global.scaleLineColor = "black";
-  Chart.defaults.global.scaleFontSize = 16;
-  // legendTemplate takes a template as a string
-  var options = {
-    display: true,
-    scaleShowGridLines : false,
-    barShowStroke : true,
-    bezierCurve: false,
-    multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
-    legendTemplate : '<ul class="list-inline">'
-                      +'<% for (var i=0; i<datasets.length; i++) { %>'
-                      +'<li class="list-group-item">'
-                        +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
-                        +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'
-                      +'</span></li>'
-                      +'<% } %>'
-                    +'</ul>'
-    }
+{% block chart_content %}
+{% endblock chart_content %}
 
-  // program chart - draw chart and legend
-  var pchart = new Chart(document.getElementById("program_chart").getContext("2d"))
-  var prog_chart = pchart.Line(progData, options);
-  document.getElementById("program_legend").innerHTML = prog_chart.generateLegend();
-  // outside_chart data
-  var outsideData = {
-  labels : [0, 1, 2, 3, 4, 5],
-  datasets : [{
-        data: [{% for count in counts['Market'] %}
-                  {{count}},
-                {% endfor %}],
-        label: "Market",
-        fillColor: "rgba(255,255,255,.2)",
-        strokeColor: "rgba(151,187,205,.6)",
-        pointColor: "rgba(151,187,205,.6)",
-      },{
-        data: [{% for count in counts['Unsheltered'] %}
-                  {{count}},
-                {% endfor %}],
-        label: "Unsheltered",
-        fillColor: "rgba(255,255,255,.2)",
-        strokeColor: "rgba(255,51,51,.6)",
-        pointColor: "rgba(255,51,51,.6)",
-      }
-    ]
-  }
-  // outside chart
-  var ochart = new Chart(document.getElementById("outside_chart").getContext("2d"))
-  var out_chart = ochart.Line(outsideData, options);
-  document.getElementById("outside_legend").innerHTML = out_chart.generateLegend();
-</script>
-{% endblock %}
