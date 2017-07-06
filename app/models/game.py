@@ -162,6 +162,11 @@ class Game(db.Model):
         if program == 'Diversion':
             self.intake_cols = 6
             print("Intake_cols is now " + str(self.intake_cols))
+            prog_record = Record(game_id=self.id, round_count=self.round_count,
+                                 board_name="Market")
+            print("open_new diversion found: " + str(prog_record))
+            prog_record.note = "Diversion to Market began before " + \
+                self.round_count
         # Add 'extra' board (i.e. 25 slots to selected board/program)
         else:
             prog_table = eval(program)
@@ -169,6 +174,12 @@ class Game(db.Model):
             prog.maximum = EXTRA_BOARD + prog.maximum
             print(prog.__tablename__.title() + " max is now " +
                   str(prog.maximum))
+            prog_record = Record(game_id=self.id, round_count=self.round_count,
+                                 board_name=program)
+            print("open_new found: " + str(prog_record))
+            prog_record.note = program + ": Expanded before " + \
+                self.round_count
+
         db.session.commit()
         message = "New " + program + " program added"
         moves.append(message)
@@ -188,10 +199,12 @@ class Game(db.Model):
                              board_name=from_program)
         print("convert_program creating from: " + str(from_record))
         from_record.beads_out = beads_moved
+        from_record.note = from_program + ": Closed before " + self.round_count
         to_record = Record(game_id=self.id, round_count=self.round_count,
                            board_name=to_program)
         print("convert_program creating to: " + str(to_record))
         to_record.beads_in = beads_moved
+        to_record.note = to_program + ": Expanded before " + self.round_count
         # Move beads from from_prog.board to to_prog.board
         from_prog_board, to_prog_board = move_beads(beads_moved,
                                                     from_prog_board,
