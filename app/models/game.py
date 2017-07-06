@@ -187,11 +187,11 @@ class Game(db.Model):
         from_record = Record(game_id=self.id, round_count=self.round_count,
                              board_name=from_program)
         print("convert_program creating from: " + str(from_record))
-        from_record.record_change_beads('out', beads_moved)
+        from_record.beads_out = beads_moved
         to_record = Record(game_id=self.id, round_count=self.round_count,
                            board_name=to_program)
         print("convert_program creating to: " + str(to_record))
-        from_record.record_change_beads('in', beads_moved)
+        to_record.beads_in = beads_moved
         # Move beads from from_prog.board to to_prog.board
         from_prog_board, to_prog_board = move_beads(beads_moved,
                                                     from_prog_board,
