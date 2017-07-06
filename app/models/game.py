@@ -259,5 +259,4 @@ def load_counts(game_id, board_list):
         for record in records:
             board_counts.append(record.end_count)
         counts[board] = board_counts
-    print("Counts: " + str(counts))
     return counts

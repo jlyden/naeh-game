@@ -27,11 +27,13 @@ def status(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     board_list = pickle.loads(this_game.board_list_pickle)
     boards = load_boards(game_id, RECORDS_LIST)
-    records = load_records(game_id, RECORDS_LIST)
+    records = load_records(game_id, board_list)
     counts = load_counts(game_id, RECORDS_LIST)
+    this_score = Score.query.filter_by(game_id=game_id).first()
     return render_template('status.html', game=this_game,
                            board_list=board_list, boards=boards,
-                           records=records, counts=counts)
+                           records=records, counts=counts,
+                           score=this_score)
 
 
 @app.route('/view_log/<game_id>')
@@ -282,11 +284,12 @@ def load_boards(game_id, board_list):
 def load_records(game_id, board_list):
     records = []
     for board in board_list:
-        # This order_by gives us last record per board
-        record = Record.query.filter(Record.game_id == game_id,
-                                     Record.board_name == board
-                                     ).order_by(desc(Record.id)).first()
-        records.append(record)
+        if board != 'Intake':
+            # This order_by gives us last record per board
+            record = Record.query.filter(Record.game_id == game_id,
+                                         Record.board_name == board
+                                         ).order_by(desc(Record.id)).first()
+            records.append(record)
     return records
 
 

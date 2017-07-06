@@ -1,7 +1,11 @@
 {% extends "base.html" %}
-{% block main_content %}
+{% block content %}
   <div class="row">
     <div class="panel panel-primary col-sm-7">
+      {% if game.round_count == 6 %}
+        {% include 'score.html' %}
+        {% include 'charts.html' %}
+      {% endif %}
       <div class="panel-heading">
         <h2 class="panel-title">
           Board to Play: {{ board_list[game.board_to_play] }}
@@ -115,6 +119,10 @@
           {% endif %}
         </ul>
       </div><!-- ./panel body -->
+      {% if game.round_count > 1  and game.round_count < 6 %}
+        {% include 'charts.html' %}
+      {% endif %}
+
     </div><!-- ./panel left -->
     <div class="col-sm-1">
     </div><!-- ./panel center -->
@@ -135,12 +143,7 @@
             </ul>
             <a href="{{ url_for('view_log', game_id=game.id) }}">
               Full Log
-            </a> ||
-            {% if game.round_count == 6 %}
-              <a href="{{ url_for('system_event', game_id=game.id) }}">
-                Final Score
-              </a>
-            {% endif %}
+            </a>
         </div>
       </div><!-- ./div panel Moves -->
       <div class="panel panel-warning">
@@ -173,8 +176,6 @@
       </div><!-- ./div panel Bins -->
     </div><!-- ./panel right -->
   </div><!-- ./row -->
-{% endblock main_content %}
-
-{% block chart_content %}
-{% endblock chart_content %}
+  {% include 'charts.html' %}
+{% endblock %}
 

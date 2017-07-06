@@ -37,7 +37,7 @@ window.onload = function() {
 </script>
 
 {% extends "base.html" %}
-{% block event_content %}
+{% block content %}
   <div class="row">
     <div class="col-sm-2">
     </div>
@@ -112,48 +112,6 @@ window.onload = function() {
             <button type="submit" class="btn btn-success">Submit</button>
           </form>
         </div><!--./panel-body -->
-        {% elif game.round_count == 6 %}
-          <!-- Show Score -->
-          <div class="panel-heading">
-            <h2 class="panel-title">Final Score = {{ ((score.unsheltered * 3) + score.emerg_total + score.trans_total) - (score.market + score.rapid + score.perm) }}</h2>
-          </div>
-          <div class="panel-body">
-            <table class="table">
-              <tr>
-                <th>Program</th>
-                <th>Count</th>
-                <th>Program</th>
-                <th>Count</th>
-              </tr>
-              <tr>
-                <td>Unsheltered * 3</td>
-                <td>{{ score.unsheltered * 3 }}</td>
-                <td>Market</td>
-                <td>{{ score.market}}</td>
-              </tr>
-              <tr>
-                <td>Emergency</td>
-                <td>{{ score.emerg_total }}</td>
-                <td>Rapid</td>
-                <td>{{ score.rapid}}</td>
-              </tr>
-              <tr>
-                <td>Transitional</td>
-                <td>{{ score.trans_total }}</td>
-                <td>Permanent</td>
-                <td>{{ score.perm}}</td>
-              </tr>
-              <tr>
-                <th>Homeless Score</th>
-                <th>{{ (score.unsheltered * 3) + score.emerg_total + score.trans_total }}</th>
-                <th>Housing Score</th>
-                <th>{{ score.market + score.rapid + score.perm }}</th>
-              </tr>
-            </table>
-            <a href="{{ url_for('status', game_id=game.id) }}">
-                  Go to status
-            </a>
-          </div><!--./panel-body -->
         {% else %}
           <!-- No system events for this round -->
           <p>Sorry, no system event choices for this round.</p>
@@ -165,4 +123,4 @@ window.onload = function() {
     <div class="col-sm-4">
     </div>
   </div>
-{% endblock event_content %}
+{% endblock content %}
