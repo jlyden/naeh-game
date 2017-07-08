@@ -26,14 +26,14 @@ def status(game_id):
     # Grab info from db
     this_game = Game.query.get_or_404(int(game_id))
     board_list = pickle.loads(this_game.board_list_pickle)
-    boards = load_boards(game_id, RECORDS_LIST)
+    boards, maxes = load_boards_and_maxes(game_id, board_list, RECORDS_LIST)
     records = load_records(game_id, board_list)
     counts = load_counts(game_id, RECORDS_LIST)
     this_score = Score.query.filter_by(game_id=game_id).first()
     return render_template('status.html', game=this_game,
                            board_list=board_list, boards=boards,
-                           records=records, counts=counts,
-                           score=this_score)
+                           maxes=maxes, records=records,
+                           counts=counts, score=this_score)
 
 
 @app.route('/view_log/<game_id>')
@@ -77,7 +77,7 @@ def play_board(board_name, game_id):
     moves = []
 
     # Play the board specified
-    moves, beads_moved = DISPATCHER_DEFAULT[board_name](game, moves)
+    moves, beads_moved, no_red = DISPATCHER_DEFAULT[board_name](game, moves)
 
     # Wrap up
     if board_name != 'Intake':
@@ -85,7 +85,7 @@ def play_board(board_name, game_id):
                                      Record.board_name == board_name,
                                      ).order_by(desc(Record.id)).first()
         print("play_board found " + str(record))
-        record.record_change_beads('out', beads_moved)
+        record.record_change_beads('out', beads_moved, no_red)
     move_log = Log(game_id, game.round_count, board_name, moves)
     db.session.add(move_log)
     game.board_to_play += 1
@@ -135,7 +135,7 @@ def system_event(game_id):
 def play_intake(game, moves):
     intiate_records(game)
     # Load boards
-    intake, moves = game.load_intake(moves)
+    intake, moves = game.load_intake(False, moves)
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     market = Market.query.filter_by(game_id=game.id).first()
     emerg = Emergency.query.filter_by(game_id=game.id).first()
@@ -159,7 +159,7 @@ def play_intake(game, moves):
     intake, moves = game.send_anywhere(len(intake), intake, no_red, moves)
     # Intake always ends at 0, and can't receive, so not saved
     beads_moved = 50
-    return moves, beads_moved
+    return moves, beads_moved, no_red
 
 
 def play_emergency(game, moves):
@@ -174,7 +174,7 @@ def play_emergency(game, moves):
     beads_moved = len(emerg_board)
 
     # Move beads - If round 1 or 3, no red beads to Market Housing
-    if game.round_count == 1 or 3:
+    if game.round_count == 1 or game.round_count == 3:
         no_red = True
     else:
         no_red = False
@@ -189,7 +189,7 @@ def play_emergency(game, moves):
     # Save played board
     emerg.board = pickle.dumps(emerg_board)
     db.session.commit()
-    return moves, beads_moved
+    return moves, beads_moved, no_red
 
 
 def play_rapid(game, moves):
@@ -204,7 +204,7 @@ def play_rapid(game, moves):
     len_start = len(rapid_board)
 
     # Move beads - If round 2 or 4, no red beads move
-    if game.round_count == 2 or 4:
+    if game.round_count == 2 or game.round_count == 4:
         no_red = True
     else:
         no_red = False
@@ -218,7 +218,7 @@ def play_rapid(game, moves):
     # Save played board
     rapid.board = pickle.dumps(rapid_board)
     db.session.commit()
-    return moves, beads_moved
+    return moves, beads_moved, no_red
 
 
 def play_outreach(game, moves):
@@ -240,7 +240,7 @@ def play_outreach(game, moves):
     outreach.board = pickle.dumps(outreach_board)
     db.session.commit()
     # Outreach is filled to 10 and emptied each round
-    return moves, 10
+    return moves, 10, no_red
 
 
 def play_transitional(game, moves):
@@ -269,7 +269,7 @@ def play_transitional(game, moves):
     # Save played board
     trans.board = pickle.dumps(trans_board)
     db.session.commit()
-    return moves, beads_moved
+    return moves, beads_moved, no_red
 
 
 def play_permanent(game, moves):
@@ -292,17 +292,21 @@ def play_permanent(game, moves):
     perm.board = pickle.dumps(perm_board)
     db.session.commit()
     # Transitional board only moves 1 bead per round
-    return moves, 1
+    return moves, 1, no_red
 
 
-def load_boards(game_id, board_list):
+def load_boards_and_maxes(game_id, max_list, board_list):
     boards = {}
+    maxes = {}
     for board in board_list:
         prog_table = eval(board)
         prog = prog_table.query.filter_by(game_id=game_id).first()
         prog_board = pickle.loads(prog.board)
         boards[board] = prog_board
-    return boards
+        if board in max_list:
+            board_max = prog.maximum
+            maxes[board] = board_max
+    return boards, maxes
 
 
 def load_records(game_id, board_list):
@@ -345,6 +349,10 @@ def end_round(game, board_list):
 
 def update_all_records(game_id, round_count, board_list):
     for board in board_list:
+        prog_table = eval(board)
+        prog = prog_table.query.filter_by(game_id=game_id).first()
+        prog_board = pickle.loads(prog.board)
+        board_length = len(prog_board)
         record = Record.query.filter(Record.game_id == game_id,
                                      Record.board_name == board,
                                      Record.round_count == round_count
@@ -354,17 +362,18 @@ def update_all_records(game_id, round_count, board_list):
             record = Record(game_id=game_id,
                             round_count=round_count,
                             board_name=board)
-            prog_table = eval(board)
-            prog = prog_table.query.filter_by(game_id=game_id).first()
-            prog_board = pickle.loads(prog.board)
-            record.beads_in = len(prog_board)
-            record.end_count = len(prog_board)
+            record.beads_in = board_length
+            record.end_count = board_length
             db.session.add(record)
             print("Added NEW end_count record for " + board + ": " +
                   str(record.end_count))
         else:
             print("update_all_records found " + str(record))
-            record.end_count = record.calc_end_count()
+            calc_end = record.calc_end_count()
+            if board_length != calc_end:
+                print(board + " length= " + board_length + "; calc_end=" +
+                      calc_end)
+            record.end_count = board_length
             print("Updated end_count record for " + board + ": " +
                   str(record.end_count))
         db.session.commit()
@@ -377,7 +386,10 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
                       'Permanent': play_permanent}
 
 
+# TODO: One-button run simulation version
 # TODO: integrate system_event as (disappearing) part of status page
 # TODO: Add major game choices to score board
+# TODO: Adjust system_event conversion so that closed boards don't appear on drop down
 # TODO: Something is STILL funky with validation of which board to play next
 # TODO: Once we're back to functionality - try removing __init__ in methods
+# TODO: Remove check_end_count once it's clear all the math works
