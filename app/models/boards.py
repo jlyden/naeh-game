@@ -1,8 +1,8 @@
-import random
 import pickle
 from app import db
 from sqlalchemy import desc
 from .score import Record
+from app.utils import move_beads
 
 
 # Mixin class for related boards
@@ -113,18 +113,6 @@ class Market(db.Model, Other_Boards):
 
 
 # Helper methods
-def move_beads(number, from_board, to_board, no_red):
-    for i in range(number):
-        selection = random.choice(from_board)
-        # If no_red = True, and this bead is red, don't move it
-        if no_red and selection < 65:
-            pass
-        else:
-            to_board.append(selection)
-            from_board.remove(selection)
-    return from_board, to_board
-
-
 def find_room(board_max, board):
     room = board_max - len(board)
     return room
