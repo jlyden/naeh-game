@@ -12,17 +12,13 @@ class Other_Boards(object):
 
     def __repr__(self):
         board = pickle.loads(self.board)
-        return "Game %r" % str(board)
-
-    def __init__(self, game_id, board, maximum):
-        self.game_id = game_id
-        self.board = board
-        self.maximum = maximum
+        return "%r -> %r" % self.__tablename__, str(board)
 
     def receive_beads(self, bead_count, from_board, no_red, moves):
+        # transitional board may reject red beads
         if self.__tablename__ == 'transitional':
             no_red = self.no_red
-        beads_moved = 0
+
         this_board = pickle.loads(self.board)
         room = find_room(self.maximum, this_board)
         if room != 0:
@@ -35,16 +31,15 @@ class Other_Boards(object):
                                          Record.board_name ==
                                          self.__tablename__.title()
                                          ).order_by(desc(Record.id)).first()
-            print("receive_beads found " + str(record))
             record.record_change_beads('in', beads_moved, no_red)
         else:
             extra = bead_count
+            beads_moved = 0
         db.session.commit()
         moves.append(message_for(str(beads_moved), self.__tablename__.title()))
         return extra, from_board, moves
 
     def receive_unlimited(self, beads, from_board, no_red, moves):
-        # No need for records here - end_count captured at end of round
         this_board = pickle.loads(self.board)
         from_board, this_board = move_beads(beads, from_board,
                                             this_board, no_red)
@@ -53,7 +48,6 @@ class Other_Boards(object):
                                      Record.board_name ==
                                      self.__tablename__.title()
                                      ).order_by(desc(Record.id)).first()
-        print("receive_unlimited found " + str(record))
         record.record_change_beads('in', beads, no_red)
         db.session.commit()
         moves.append(message_for(beads, self.__tablename__.title()))

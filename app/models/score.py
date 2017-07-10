@@ -18,11 +18,6 @@ class Record(db.Model):
                                                            self.round_count,
                                                            self.board_name)
 
-    def __init__(self, game_id, round_count, board_name):
-        self.game_id = game_id
-        self.round_count = round_count
-        self.board_name = board_name
-
     def record_change_beads(self, direction, bead_count, no_red):
         if direction == 'in':
             self.beads_in = self.beads_in + bead_count
