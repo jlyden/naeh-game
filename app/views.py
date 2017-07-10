@@ -127,9 +127,23 @@ def system_event(game_id):
             this_game.calculate_final_score()
             this_score = Score.query.filter_by(game_id=game_id).first()
             return render_template('event.html', game=this_game,
-                                   score=this_score)
+                                   score=this_score, progs={})
         else:
-            return render_template('event.html', game=this_game)
+            progs = generate_progs_for_sys_event(this_game.board_list_pickle)
+            print("Passing progs: " + str(progs))
+            return render_template('event.html', game=this_game, progs=progs)
+
+
+def generate_progs_for_sys_event(board_list_pickle):
+    board_list = pickle.loads(board_list_pickle)
+    progs_list = board_list[:]
+    progs_list.remove('Intake')
+    progs_dict = {}
+    for prog in progs_list:
+        short_list = progs_list[:]
+        short_list.remove(prog)
+        progs_dict[prog] = short_list
+    return progs_dict
 
 
 def play_intake(game, moves):
@@ -371,8 +385,8 @@ def update_all_records(game_id, round_count, board_list):
             print("update_all_records found " + str(record))
             calc_end = record.calc_end_count()
             if board_length != calc_end:
-                print(board + " length= " + board_length + "; calc_end=" +
-                      calc_end)
+                print(board + " length= " + str(board_length) + "; calc_end=" +
+                      str(calc_end))
             record.end_count = board_length
             print("Updated end_count record for " + board + ": " +
                   str(record.end_count))
@@ -389,7 +403,8 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
 # TODO: One-button run simulation version
 # TODO: integrate system_event as (disappearing) part of status page
 # TODO: Add major game choices to score board
+
 # TODO: Adjust system_event conversion so that closed boards don't appear on drop down
 # TODO: Something is STILL funky with validation of which board to play next
 # TODO: Once we're back to functionality - try removing __init__ in methods
-# TODO: Remove check_end_count once it's clear all the math works
+# TODO: Remove calc_end_count once it's clear all the math works

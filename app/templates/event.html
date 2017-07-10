@@ -3,13 +3,15 @@
 
 window.onload = function() {
   // progs is an object but you can think of it as a lookup table
-  var progs = {
+/*  var progs = {
         'Emergency': ['Rapid', 'Outreach', 'Transitional', 'Permanent'],
         'Rapid': ['Emergency', 'Outreach', 'Transitional', 'Permanent'],
         'Outreach': ['Emergency', 'Rapid', 'Transitional', 'Permanent'],
         'Transitional': ['Emergency', 'Rapid', 'Outreach', 'Permanent'],
         'Permanent': ['Emergency', 'Rapid', 'Outreach', 'Transitional']
       },
+      var progs = progs,
+*/
       // just grab references to the two drop-downs
       from_select = document.querySelector('#from_program'),
       to_select = document.querySelector('#to_program');

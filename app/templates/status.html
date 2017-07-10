@@ -6,6 +6,16 @@
         {% include 'score.html' %}
         {% include 'charts.html' %}
       {% endif %}
+      {% if game.board_to_play == 0 %}
+        <div class="panel-heading">
+          <h2 class="panel-title">
+            Play Entire Round
+              <a href="{{ url_for('play_round', game_id=game.id) }}" class="pull-right">Play</a>
+          </h2>
+        </div>
+        <div class="panel-body">
+        </div>
+      {% endif %}
       <div class="panel-heading">
         <h2 class="panel-title">
           Board to Play: {{ board_list[game.board_to_play] }}
