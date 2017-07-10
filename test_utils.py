@@ -118,6 +118,17 @@ class TestGameplay(unittest.TestCase):
         assert extra == 5
         return
 
+    def test_message_for(self):
+        from app.utils import message_for
+        # setup
+        beads_moved = 5
+        board_name = "Emergency"
+        message = message_for(beads_moved, board_name)
+
+        assert message == "5 beads to Emergency"
+        return
+
+
 # Test POST assert does not raise exception
 # Tests in classes by topic
 # view tests, model tests, api tests, unit tests
