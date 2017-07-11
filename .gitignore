@@ -7,7 +7,6 @@ Vagrantfile
 *.sqlite
 
 *.log
-migrations/*
 
 *~
 
