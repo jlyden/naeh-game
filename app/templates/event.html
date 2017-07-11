@@ -3,25 +3,17 @@
 
 window.onload = function() {
   // progs is an object but you can think of it as a lookup table
-/*  var progs = {
-        'Emergency': ['Rapid', 'Outreach', 'Transitional', 'Permanent'],
-        'Rapid': ['Emergency', 'Outreach', 'Transitional', 'Permanent'],
-        'Outreach': ['Emergency', 'Rapid', 'Transitional', 'Permanent'],
-        'Transitional': ['Emergency', 'Rapid', 'Outreach', 'Permanent'],
-        'Permanent': ['Emergency', 'Rapid', 'Outreach', 'Transitional']
-      },
-      var progs = progs,
-*/
+  var progs = {{ programs | tojson }},
       // just grab references to the two drop-downs
       from_select = document.querySelector('#from_program'),
       to_select = document.querySelector('#to_program');
 
-  // populate the from_program drop-down
+  // populate from_program drop-down
   setOptions(from_select, Object.keys(progs));
-  // populate the to_program drop-from_progn
+  // populate to_program drop-down
   setOptions(to_select, progs[from_select.value]);
 
-  // attach a change event listener to the from_prog drop-down
+  // attach a change event listener to the from_program drop-down
   from_select.addEventListener('change', function() {
     // get the to_progs for the selected from_prog
     setOptions(to_select, progs[from_select.value]);

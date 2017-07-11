@@ -129,12 +129,13 @@ def system_event(game_id):
             return render_template('event.html', game=this_game,
                                    score=this_score, progs={})
         else:
-            progs = generate_progs_for_sys_event(this_game.board_list_pickle)
-            print("Passing progs: " + str(progs))
-            return render_template('event.html', game=this_game, progs=progs)
+            programs = gen_progs_for_sys_event(this_game.board_list_pickle)
+            print("Passing programs: " + str(programs))
+            return render_template('event.html', game=this_game,
+                                   programs=programs)
 
 
-def generate_progs_for_sys_event(board_list_pickle):
+def gen_progs_for_sys_event(board_list_pickle):
     board_list = pickle.loads(board_list_pickle)
     progs_list = board_list[:]
     progs_list.remove('Intake')
