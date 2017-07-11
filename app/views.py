@@ -408,9 +408,9 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
                       'Permanent': play_permanent}
 
 
-# TODO: Add major game choices to score board
+# TODO: Major refactor!
 # TODO: Add bar charts to show bead movement
-# TODO: One-button run simulation version
+# TODO: One-button run simulation version with side-by-side comparison
 # TODO: integrate system_event as (disappearing) part of status page
 # TODO: Something is STILL funky with validation of which board to play next
 # TODO: Remove calc_end_count once it's clear all the math works
