@@ -27,11 +27,3 @@ def use_room(room, number_beads, from_board, to_board, no_red):
         from_board, to_board = move_beads(room, from_board, to_board, no_red)
         extra = number_beads - room
     return extra, from_board, to_board
-
-
-def message_for(beads_moved, board_name):
-    if beads_moved == "0":
-        message = "No room in " + board_name
-    else:
-        message = str(beads_moved) + " beads to " + board_name
-    return message

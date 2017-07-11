@@ -6,20 +6,9 @@ from app import db
 from .boards import Emergency, Rapid, Outreach, Transitional, Permanent
 from .boards import Unsheltered, Market, move_beads
 from .score import Score, Record, Log
-
-
-# Beads 1-65 are red
-# ALL_BEADS = list(range(1, 325))
-EMERG_START = pickle.dumps(list(range(1, 7)) + list(range(66, 80)))
-RAPID_START = pickle.dumps(list(range(7, 8)) + list(range(80, 89)))
-OUTREACH_START = pickle.dumps(list(range(8, 10)) + list(range(89, 95)))
-TRANS_START = pickle.dumps(list(range(10, 14)) + list(range(95, 107)))
-PERM_START = pickle.dumps(list(range(14, 26)) + list(range(107, 115)))
-AVAILABLE_BEADS = pickle.dumps(list(range(26, 66)) + list(range(115, 325)))
-EMPTY_LIST = pickle.dumps(list())
-EXTRA_BOARD = 25
-BOARD_LIST = pickle.dumps(["Intake", "Emergency", "Rapid",
-                           "Outreach", "Transitional", "Permanent"])
+from utils import BOARD_LIST, AVAILABLE_BEADS, EMERG_START, RAPID_START
+from utils import OUTREACH_START, TRANS_START, PERM_START, EMPTY_LIST
+from utils import EXTRA_BOARD, load_counts
 
 
 class Game(db.Model):
@@ -267,18 +256,3 @@ def generate_anywhere_list(board_list_pickle):
     if "Outreach" in board_list:
         board_list.remove("Outreach")
     return random.sample(board_list, len(board_list))
-
-
-def load_counts(game_id, board_list):
-    counts = {}
-    for board in board_list:
-        board_counts = []
-        # Get all records associated wtih the board, in order
-        records = Record.query.filter(Record.game_id == game_id,
-                                      Record.board_name == board
-                                      ).order_by(Record.id)
-        # Pull the end_counts from each record
-        for record in records:
-            board_counts.append(record.end_count)
-        counts[board] = board_counts
-    return counts
