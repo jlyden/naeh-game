@@ -18,13 +18,11 @@ class Record(db.Model):
                                                            self.round_count,
                                                            self.board_name)
 
-    def record_change_beads(self, direction, bead_count, no_red):
+    def record_change_beads(self, direction, bead_count):
         if direction == 'in':
             self.beads_in = self.beads_in + bead_count
         elif direction == 'out':
             self.beads_out = self.beads_out + bead_count
-        if no_red:
-            self.note = self.board_name + ": No red beads moved " + direction
         db.session.commit()
         print(self.board_name + " moved " + str(bead_count) + " beads " + direction)
         return
@@ -34,7 +32,7 @@ class Record(db.Model):
         last_record = Record.query.filter(Record.game_id == self.game_id,
                                           Record.board_name == self.board_name,
                                           Record.round_count == self.round_count - 1
-                                         ).order_by(desc(Record.id)).first()
+                                          ).order_by(desc(Record.id)).first()
         last_end_count = last_record.end_count
         # add beads_in, subtract beads out
         return last_end_count + self.beads_in - self.beads_out

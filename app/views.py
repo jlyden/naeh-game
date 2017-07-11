@@ -29,11 +29,13 @@ def status(game_id):
     boards, maxes = load_boards_and_maxes(game_id, board_list, RECORDS_LIST)
     records = load_records(game_id, board_list)
     counts = load_counts(game_id, RECORDS_LIST)
+    decisions = load_decisions(game_id)
     this_score = Score.query.filter_by(game_id=game_id).first()
     return render_template('status.html', game=this_game,
                            board_list=board_list, boards=boards,
                            maxes=maxes, records=records,
-                           counts=counts, score=this_score)
+                           counts=counts, decisions=decisions,
+                           score=this_score)
 
 
 @app.route('/view_log/<game_id>')
@@ -85,7 +87,7 @@ def play_board(board_name, game_id):
                                      Record.board_name == board_name,
                                      ).order_by(desc(Record.id)).first()
         print("play_board found " + str(record))
-        record.record_change_beads('out', beads_moved, no_red)
+        record.record_change_beads('out', beads_moved)
     move_log = Log(game_id, game.round_count, board_name, moves)
     db.session.add(move_log)
     game.board_to_play += 1
@@ -112,8 +114,6 @@ def system_event(game_id):
         elif this_game.round_count == 3 or this_game.round_count == 4:
             from_program = request.form.get('from_program')
             to_program = request.form.get('to_program')
-            print('from_program is ' + str(from_program))
-            print('to_program is ' + str(to_program))
             moves = this_game.convert_program(from_program, to_program, moves)
 
         # Set "board_played == 6" for sake of log
@@ -125,12 +125,9 @@ def system_event(game_id):
         # Time to calculate Final Score
         if this_game.round_count == 6:
             this_game.calculate_final_score()
-            this_score = Score.query.filter_by(game_id=game_id).first()
-            return render_template('event.html', game=this_game,
-                                   score=this_score, progs={})
+            return render_template('event.html', game=this_game, programs={})
         else:
             programs = gen_progs_for_sys_event(this_game.board_list_pickle)
-            print("Passing programs: " + str(programs))
             return render_template('event.html', game=this_game,
                                    programs=programs)
 
@@ -336,6 +333,16 @@ def load_records(game_id, board_list):
     return records
 
 
+def load_decisions(game_id):
+    decisions = []
+    records = Record.query.filter(Record.game_id == game_id,
+                                  Record.note.isnot(None)
+                                  ).order_by(desc(Record.id))
+    for record in records:
+        decisions.append(record.note)
+    return decisions
+
+
 def intiate_records(game):
     # Initiate records which don't already exist
     for board in RECORDS_LIST:
@@ -401,11 +408,9 @@ DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
                       'Permanent': play_permanent}
 
 
+# TODO: Add major game choices to score board
+# TODO: Add bar charts to show bead movement
 # TODO: One-button run simulation version
 # TODO: integrate system_event as (disappearing) part of status page
-# TODO: Add major game choices to score board
-
-# TODO: Adjust system_event conversion so that closed boards don't appear on drop down
 # TODO: Something is STILL funky with validation of which board to play next
-# TODO: Once we're back to functionality - try removing __init__ in methods
 # TODO: Remove calc_end_count once it's clear all the math works

@@ -168,7 +168,7 @@ class Game(db.Model):
             prog_record = Record(game_id=self.id, round_count=self.round_count,
                                  board_name="Market")
             print("open_new diversion found: " + str(prog_record))
-            prog_record.note = "Diversion to Market began before " + \
+            prog_record.note = "Diversion to Market began before Round " + \
                 str(self.round_count)
         # Add 'extra' board (i.e. 25 slots to selected board/program)
         else:
@@ -180,9 +180,9 @@ class Game(db.Model):
             prog_record = Record(game_id=self.id, round_count=self.round_count,
                                  board_name=program)
             print("open_new found: " + str(prog_record))
-            prog_record.note = program + ": Expanded before " + \
+            prog_record.note = program + ": Expanded before Round " + \
                 str(self.round_count)
-
+        db.session.add(prog_record)
         db.session.commit()
         message = "New " + program + " program added"
         moves.append(message)
@@ -202,7 +202,7 @@ class Game(db.Model):
                              board_name=from_program)
         print("convert_program creating from: " + str(from_record))
         from_record.beads_out = beads_moved
-        from_record.note = from_program + ": Closed before " + \
+        from_record.note = from_program + ": Closed before Round " + \
             str(self.round_count)
         to_record = Record(game_id=self.id, round_count=self.round_count,
                            board_name=to_program)
@@ -210,7 +210,7 @@ class Game(db.Model):
         to_record.beads_in = beads_moved
         to_record.beads_out = 0
         to_record.end_count = to_record.calc_end_count()
-        to_record.note = to_program + ": Expanded before " + \
+        to_record.note = to_program + ": Expanded before Round " + \
             str(self.round_count)
         db.session.add_all([from_record, to_record])
         # Move beads from from_prog.board to to_prog.board

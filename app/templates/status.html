@@ -162,6 +162,21 @@
     <div class="col-sm-1">
     </div><!-- ./panel center -->
     <div class="col-sm-4">
+      {% if game.round_count > 1 %}
+        <div class="panel panel-warning">
+          <div class="panel-heading">
+            <h2 class="panel-title">Major Decisions</h2>
+          </div>
+          <div class="panel-body">
+          <ul class="list-group">
+            {% for decision in decisions %}
+              <li class="list-group-item">
+                {{ decision }}
+              </li>
+            {% endfor %}
+          </ul>
+        </div><!-- ./div panel Major Decisions -->
+      {% endif %}
       <div class="panel panel-info">
         <div class="panel-heading">
             <h2 class="panel-title">Recent Records</h2>
@@ -180,35 +195,7 @@
               Full Log
             </a>
         </div>
-      </div><!-- ./div panel Moves -->
-      <div class="panel panel-warning">
-        <div class="panel-heading">
-            <h2 class="panel-title">Stats</h2>
-        </div>
-        <div class="panel-body">
-        <ul class="list-group">
-          <li class="list-group-item">
-              People in Market Housing
-              <span class="label label-info ">
-                {{ boards['Market']|length }}
-              </span>
-          </li>
-          <li class="list-group-item">
-              People without Shelter
-              <span class="label label-info ">
-                {{ boards['Unsheltered']|length }}
-              </span>
-          </li>
-<!--           <li class="list-group-item">
-              Emergency Housing Per Round
-              <span class="label label-info ">{{ counts['Emergency'] }}</span>
-          </li>
-          <li class="list-group-item">
-              Transitional Housing Per Round
-              <span class="label label-info ">{{ counts['Transitional'] }}</span>
-          </li>
- -->        </ul>
-      </div><!-- ./div panel Bins -->
+      </div><!-- ./div panel Records -->
     </div><!-- ./panel right -->
   </div><!-- ./row -->
 {% endblock %}

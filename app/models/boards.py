@@ -31,7 +31,7 @@ class Other_Boards(object):
                                          Record.board_name ==
                                          self.__tablename__.title()
                                          ).order_by(desc(Record.id)).first()
-            record.record_change_beads('in', beads_moved, no_red)
+            record.record_change_beads('in', beads_moved)
         else:
             extra = bead_count
             beads_moved = 0
@@ -48,7 +48,7 @@ class Other_Boards(object):
                                      Record.board_name ==
                                      self.__tablename__.title()
                                      ).order_by(desc(Record.id)).first()
-        record.record_change_beads('in', beads, no_red)
+        record.record_change_beads('in', beads)
         db.session.commit()
         moves.append(message_for(beads, self.__tablename__.title()))
         return from_board, moves
@@ -79,7 +79,7 @@ class Outreach(db.Model, Other_Boards):
                                      self.__tablename__.title()
                                      ).order_by(desc(Record.id)).first()
         print("fill_from found " + str(record))
-        record.record_change_beads('in', room, no_red)
+        record.record_change_beads('in', room)
         message = str(room) + " beads from Unsheltered to Outreach"
         moves.append(message)
         return unsheltered_board, outreach_board, moves
