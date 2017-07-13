@@ -1,8 +1,8 @@
 import math
 import pickle
 from app import db
-from app.models import Emergency, Rapid, Outreach, Transitional, Permanent
-from app.models import Unsheltered, Market
+from ..models.boards import Emergency, Rapid, Outreach, Transitional, Permanent
+from ..models.boards import Unsheltered, Market
 from .recordkeeping import intiate_records
 
 

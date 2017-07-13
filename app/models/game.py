@@ -1,14 +1,15 @@
 import pickle
-import random
 from datetime import datetime
 from flask import redirect, url_for, flash
 from app import db
-from .boards import Emergency, Rapid, Outreach, Transitional, Permanent
-from .boards import Unsheltered, Market, move_beads
+from .boards import Emergency, Rapid, Outreach, Transitional
+from .boards import Permanent, Unsheltered, Market
 from .score import Score, Record, Log
-from utils import BOARD_LIST, AVAILABLE_BEADS, EMERG_START, RAPID_START
-from utils import OUTREACH_START, TRANS_START, PERM_START, EMPTY_LIST
-from utils import EXTRA_BOARD, load_counts
+from ..utils.lists import BOARD_LIST, AVAILABLE_BEADS, EMERG_START
+from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
+from ..utils.lists import EMPTY_LIST, EXTRA_BOARD, generate_anywhere_list
+from ..utils.statusloads import load_counts
+from ..utils.beadmoves import move_beads
 
 
 class Game(db.Model):
@@ -246,13 +247,3 @@ class Game(db.Model):
         db.session.add(new_Score)
         db.session.commit()
         return new_Score
-
-
-# Helper methods
-def generate_anywhere_list(board_list_pickle):
-    # Board list always contains "Intake"
-    board_list = pickle.loads(board_list_pickle)
-    board_list.remove("Intake")
-    if "Outreach" in board_list:
-        board_list.remove("Outreach")
-    return random.sample(board_list, len(board_list))

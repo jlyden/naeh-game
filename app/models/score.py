@@ -3,6 +3,25 @@ from sqlalchemy import desc
 from app import db
 
 
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    round_count = db.Column(db.Integer, nullable=False)
+    board_played = db.Column(db.String(25))
+    moves = db.Column(db.PickleType)
+
+    def __repr__(self):
+        return "<Log: Game %r, Round %r, Board %r >" % (self.game_id,
+                                                        self.round_count,
+                                                        self.board_played)
+
+    def __init__(self, game_id, round_count, board_played, moves):
+        self.game_id = game_id
+        self.round_count = round_count
+        self.board_played = board_played
+        self.moves = pickle.dumps(moves)
+
+
 class Record(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
@@ -24,37 +43,18 @@ class Record(db.Model):
         elif direction == 'out':
             self.beads_out = self.beads_out + bead_count
         db.session.commit()
-        print(self.board_name + " moved " + str(bead_count) + " beads " + direction)
         return
 
     def calc_end_count(self):
         # get end_count from last round
         last_record = Record.query.filter(Record.game_id == self.game_id,
                                           Record.board_name == self.board_name,
-                                          Record.round_count == self.round_count - 1
+                                          Record.round_count ==
+                                          self.round_count - 1
                                           ).order_by(desc(Record.id)).first()
         last_end_count = last_record.end_count
         # add beads_in, subtract beads out
         return last_end_count + self.beads_in - self.beads_out
-
-
-class Log(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-    round_count = db.Column(db.Integer, nullable=False)
-    board_played = db.Column(db.String(25))
-    moves = db.Column(db.PickleType)
-
-    def __repr__(self):
-        return "<Log: Game %r, Round %r, Board %r >" % (self.game_id,
-                                                        self.round_count,
-                                                        self.board_played)
-
-    def __init__(self, game_id, round_count, board_played, moves):
-        self.game_id = game_id
-        self.round_count = round_count
-        self.board_played = board_played
-        self.moves = pickle.dumps(moves)
 
 
 class Score(db.Model):

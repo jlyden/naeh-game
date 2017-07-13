@@ -2,8 +2,14 @@ import pickle
 from flask import request, render_template, redirect, url_for, flash
 from sqlalchemy import desc
 from app import app, db
-from .models import Game, Record, Log, Score
-from .utils import BOARD_LIST, RECORDS_LIST, DISPATCHER_DEFAULT, load_counts
+from .models.game import Game
+from .models.score import Record, Log, Score
+from .utils.boardplay import DISPATCHER_DEFAULT
+from .utils.lists import BOARD_LIST, RECORDS_LIST
+from .utils.misc import gen_progs_for_sys_event
+from .utils.recordkeeping import end_round
+from .utils.statusloads import load_boards_and_maxes, load_counts
+from .utils.statusloads import load_decisions, load_logs, load_records
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -115,109 +121,6 @@ def system_event(game_id):
             programs = gen_progs_for_sys_event(this_game.board_list_pickle)
             return render_template('event.html', game=this_game,
                                    programs=programs)
-
-
-def gen_progs_for_sys_event(board_list_pickle):
-    board_list = pickle.loads(board_list_pickle)
-    progs_list = board_list[:]
-    progs_list.remove('Intake')
-    progs_dict = {}
-    for prog in progs_list:
-        short_list = progs_list[:]
-        short_list.remove(prog)
-        progs_dict[prog] = short_list
-    return progs_dict
-
-
-def load_boards_and_maxes(game_id, max_list, board_list):
-    boards = {}
-    maxes = {}
-    for board in board_list:
-        prog_table = eval(board)
-        prog = prog_table.query.filter_by(game_id=game_id).first()
-        prog_board = pickle.loads(prog.board)
-        boards[board] = prog_board
-        if board in max_list:
-            board_max = prog.maximum
-            maxes[board] = board_max
-    return boards, maxes
-
-
-def load_records(game_id, board_list):
-    records = []
-    for board in board_list:
-        if board != 'Intake':
-            # This order_by gives us last record per board
-            record = Record.query.filter(Record.game_id == game_id,
-                                         Record.board_name == board
-                                         ).order_by(desc(Record.id)).first()
-            records.append(record)
-    return records
-
-
-def load_decisions(game_id):
-    decisions = []
-    records = Record.query.filter(Record.game_id == game_id,
-                                  Record.note.isnot(None)
-                                  ).order_by(desc(Record.id))
-    for record in records:
-        decisions.append(record.note)
-    return decisions
-
-
-def load_logs(game_id, round_count):
-    moves_by_round = []
-    for i in range(1, 6):
-        round_logs = Log.query.filter(Log.game_id == game_id,
-                                      Log.round_count == i).order_by(Log.id)
-        logs = []
-        for log in round_logs:
-            last_moves = pickle.loads(log.moves)
-            logs.append(last_moves)
-        moves_by_round.append(logs)
-    return moves_by_round
-
-
-def end_round(game, board_list):
-    # Update record and reset counters - for ALL boards, even not being played
-    update_all_records(game.id, game.round_count, RECORDS_LIST)
-    game.round_count += 1
-    game.board_to_play = 0
-    db.session.commit()
-    return
-
-
-def update_all_records(game_id, round_count, board_list):
-    for board in board_list:
-        prog_table = eval(board)
-        prog = prog_table.query.filter_by(game_id=game_id).first()
-        prog_board = pickle.loads(prog.board)
-        board_length = len(prog_board)
-        record = Record.query.filter(Record.game_id == game_id,
-                                     Record.board_name == board,
-                                     Record.round_count == round_count
-                                     ).order_by(desc(Record.id)).first()
-        if record is None:
-            # initiate record for current round
-            record = Record(game_id=game_id,
-                            round_count=round_count,
-                            board_name=board)
-            record.beads_in = board_length
-            record.end_count = board_length
-            db.session.add(record)
-            print("Added NEW end_count record for " + board + ": " +
-                  str(record.end_count))
-        else:
-            print("update_all_records found " + str(record))
-            calc_end = record.calc_end_count()
-            if board_length != calc_end:
-                print(board + " length= " + str(board_length) + "; calc_end=" +
-                      str(calc_end))
-            record.end_count = board_length
-            print("Updated end_count record for " + board + ": " +
-                  str(record.end_count))
-        db.session.commit()
-    return
 
 
 # TODO: Major refactor!

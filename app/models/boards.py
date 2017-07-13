@@ -1,8 +1,9 @@
 import pickle
-from app import db
 from sqlalchemy import desc
+from app import db
 from .score import Record
-from app.utils import move_beads, find_room, use_room, message_for
+from ..utils.beadmoves import move_beads, find_room, use_room
+from ..utils.misc import message_for
 
 
 # Mixin class for related boards
