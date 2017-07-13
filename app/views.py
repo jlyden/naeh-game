@@ -65,7 +65,6 @@ def play_round(game_id):
 def play_board(board_name, game_id):
     # Set up
     game = Game.query.get_or_404(int(game_id))
-    game.verify_board_to_play(board_name)
     print("Playing " + str(game.board_to_play) + ", " + board_name)
     moves = []
 
@@ -123,9 +122,7 @@ def system_event(game_id):
                                    programs=programs)
 
 
-# TODO: Major refactor!
 # TODO: Add bar charts to show bead movement
 # TODO: One-button run simulation version with side-by-side comparison
 # TODO: integrate system_event as (disappearing) part of status page
-# TODO: Something is STILL funky with validation of which board to play next
 # TODO: Remove calc_end_count once it's clear all the math works
