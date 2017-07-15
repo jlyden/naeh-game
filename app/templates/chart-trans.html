@@ -1,0 +1,55 @@
+            <!-- transitional chart and legend  -->
+            <canvas id="trans_chart" width="400" height="200"></canvas>
+            <div id="trans_legend"></div>
+
+<script>
+{% if changes %}
+  // status bar charts
+  var transData = {
+    labels : [1, 2, 3, 4, 5],
+    datasets : [{
+          data: [{% for a,_ in changes['Transitional'] %}
+                    {{a}},
+                  {% endfor %}],
+          label: "In",
+          fillColor: "rgba(151,187,205,.2)",
+          strokeColor: "rgba(151,187,205,.6)",
+          pointColor: "rgba(151,187,205,.6)",
+        },{
+          data: [{% for _,b in changes['Transitional'] %}
+                    {{b}},
+                  {% endfor %}],
+          label: "Out",
+          fillColor: "rgba(255,51,51,.2)",
+          strokeColor: "rgba(255,51,51,.6)",
+          pointColor: "rgba(255,51,51,.6)",
+        }
+      ]
+    }
+  // Set defaults and options
+  Chart.defaults.global.responsive = false;
+  Chart.defaults.global.scaleLineColor = "black";
+  Chart.defaults.global.scaleFontSize = 16;
+  // legendTemplate takes a template as a string
+  var options = {
+    display: true,
+    scaleShowGridLines : false,
+    barShowStroke : true,
+    bezierCurve: false,
+    multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
+    legendTemplate : '<ul class="list-inline">'
+                      +'<% for (var i=0; i<datasets.length; i++) { %>'
+                      +'<li class="list-group-item">'
+                        +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
+                        +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'
+                      +'</span></li>'
+                      +'<% } %>'
+                    +'</ul>'
+    }
+
+  // trans chart - draw chart and legend
+  var echart = new Chart(document.getElementById("trans_chart").getContext("2d"))
+  var trans_chart = echart.Bar(transData, options);
+  document.getElementById("trans_legend").innerHTML = trans_chart.generateLegend();
+{% endif %}
+</script>

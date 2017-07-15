@@ -8,7 +8,7 @@ from .score import Score, Record, Log
 from ..utils.lists import BOARD_LIST, AVAILABLE_BEADS, EMERG_START
 from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
 from ..utils.lists import EMPTY_LIST, EXTRA_BOARD, generate_anywhere_list
-from ..utils.statusloads import load_counts
+from ..utils.statusloads import load_counts_and_changes
 from ..utils.beadmoves import move_beads
 
 
@@ -225,7 +225,9 @@ class Game(db.Model):
 
     def calculate_final_score(self):
         # Count lists
-        counts = load_counts(self.id, ['Emergency', 'Transitional'])
+        counts, changes = load_counts_and_changes(self.id,
+                                                  ['Emergency',
+                                                   'Transitional'])
         # end_counts
         end_counts = {}
         for board in ['Rapid', 'Permanent', 'Unsheltered', 'Market']:

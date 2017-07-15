@@ -4,7 +4,7 @@
     <div class="panel panel-primary col-sm-7">
       {% if game.round_count == 6 %}
         {% include 'score.html' %}
-        {% include 'charts.html' %}
+        {% include 'chart-totals.html' %}
       {% endif %}
       <div class="panel-heading">
         <h2 class="panel-title">
@@ -21,8 +21,8 @@
               {% endif %}
             </h4>
           </li>
-          {% if 'Emergency' in board_list %}
-            <li class="list-group-item">
+          <li class="list-group-item">
+            {% if 'Emergency' in board_list %}
               <h4>Emergency Housing
                 <span class="label label-info ">
                   {{ boards['Emergency']|length }}
@@ -33,19 +33,18 @@
                   </small></mark>
                 {% endif %}
               </h4>
-            </li>
-          {% else %}
-            <li class="list-group-item">
+            {% else %}
               <h4><s>Emergency Housing</s>
                 <span class="label label-info ">
                   {{ boards['Emergency']|length }}
                 </span>
                 <mark><small>Closed</small></mark>
               </h4>
-            </li>
-          {% endif %}
-          {% if 'Rapid' in board_list %}
-            <li class="list-group-item">
+            {% endif %}
+            {% include 'chart-emerg.html' %}
+          </li>
+          <li class="list-group-item">
+            {% if 'Rapid' in board_list %}
               <h4>Rapid Rehousing
                 <span class="label label-info ">
                   {{ boards['Rapid']|length }}
@@ -56,19 +55,18 @@
                   </small></mark>
                 {% endif %}
               </h4>
-            </li>
-          {% else %}
-            <li class="list-group-item">
+            {% else %}
               <h4><s>Rapid Housing</s>
                 <span class="label label-info ">
                   {{ boards['Rapid']|length }}
                 </span>
                 <mark><small>Closed</small></mark>
               </h4>
-            </li>
-          {% endif %}
-          {% if 'Outreach' in board_list %}
-            <li class="list-group-item">
+            {% endif %}
+            {% include 'chart-rapid.html' %}
+          </li>
+          <li class="list-group-item">
+            {% if 'Outreach' in board_list %}
               <h4>Outreach Program
                 <span class="label label-info ">
                   {{ boards['Outreach']|length }}
@@ -79,19 +77,17 @@
                   </small></mark>
                 {% endif %}
               </h4>
-            </li>
-          {% else %}
-            <li class="list-group-item">
+            {% else %}
               <h4><s>Outreach Housing</s>
                 <span class="label label-info ">
                   {{ boards['Outreach']|length }}
                 </span>
                 <mark><small>Closed</small></mark>
               </h4>
-            </li>
-          {% endif %}
-          {% if 'Transitional' in board_list %}
-            <li class="list-group-item">
+            {% endif %}
+          </li>
+          <li class="list-group-item">
+            {% if 'Transitional' in board_list %}
               <h4>Transitional Housing
                 <span class="label label-info ">
                   {{ boards['Transitional']|length }}
@@ -102,19 +98,18 @@
                   </small></mark>
                 {% endif %}
               </h4>
-            </li>
-          {% else %}
-            <li class="list-group-item">
+            {% else %}
               <h4><s>Transitional Housing</s>
                 <span class="label label-info ">
                   {{ boards['Transitional']|length }}
                 </span>
                 <mark><small>Closed</small></mark>
               </h4>
-            </li>
-          {% endif %}
-          {% if 'Permanent' in board_list %}
-            <li class="list-group-item">
+            {% endif %}
+            {% include 'chart-trans.html' %}
+          </li>
+          <li class="list-group-item">
+            {% if 'Permanent' in board_list %}
               <h4>Permanent Supportive Housing
                 <span class="label label-info ">
                   {{ boards['Permanent']|length }}
@@ -125,21 +120,20 @@
                   </small></mark>
                 {% endif %}
               </h4>
-            </li>
-          {% else %}
-            <li class="list-group-item">
+            {% else %}
               <h4><s>Permanent Housing</s>
                 <span class="label label-info ">
                   {{ boards['Permanent']|length }}
                 </span>
                 <mark><small>Closed</small></mark>
               </h4>
-            </li>
-          {% endif %}
+            {% endif %}
+            {% include 'chart-perm.html' %}
+          </li>
         </ul>
       </div><!-- ./panel body -->
       {% if game.round_count > 1  and game.round_count < 6 %}
-        {% include 'charts.html' %}
+        {% include 'chart-totals.html' %}
       {% endif %}
 
     </div><!-- ./panel left -->
@@ -182,5 +176,5 @@
       </div><!-- ./div panel Records -->
     </div><!-- ./panel right -->
   </div><!-- ./row -->
-{% endblock %}
 
+{% endblock %}

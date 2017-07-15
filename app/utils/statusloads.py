@@ -19,19 +19,27 @@ def load_boards_and_maxes(game_id, max_list, board_list):
     return boards, maxes
 
 
-def load_counts(game_id, board_list):
+def load_counts_and_changes(game_id, board_list):
     counts = {}
+    changes = {}
     for board in board_list:
         board_counts = []
-        # Get all records associated wtih the board, in order
+        changes_tuples = []
+        # Get all records associated with the board, in order
         records = Record.query.filter(Record.game_id == game_id,
                                       Record.board_name == board
                                       ).order_by(Record.id)
         # Pull the end_counts from each record
         for record in records:
             board_counts.append(record.end_count)
+            tup = (record.beads_in, record.beads_out)
+            changes_tuples.append(tup)
         counts[board] = board_counts
-    return counts
+        # Trim first tup, b/c it's before round 1
+        changes_tuples.pop(0)
+        changes[board] = changes_tuples
+        print(str(changes))
+    return counts, changes
 
 
 def load_decisions(game_id):

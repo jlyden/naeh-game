@@ -8,7 +8,7 @@ from .utils.boardplay import DISPATCHER_DEFAULT
 from .utils.lists import BOARD_LIST, RECORDS_LIST
 from .utils.misc import gen_progs_for_sys_event
 from .utils.recordkeeping import end_round
-from .utils.statusloads import load_boards_and_maxes, load_counts
+from .utils.statusloads import load_boards_and_maxes, load_counts_and_changes
 from .utils.statusloads import load_decisions, load_logs, load_records
 
 
@@ -28,14 +28,14 @@ def status(game_id):
     board_list = pickle.loads(this_game.board_list_pickle)
     boards, maxes = load_boards_and_maxes(game_id, board_list, RECORDS_LIST)
     records = load_records(game_id, board_list)
-    counts = load_counts(game_id, RECORDS_LIST)
+    counts, changes = load_counts_and_changes(game_id, RECORDS_LIST)
     decisions = load_decisions(game_id)
     score = Score.query.filter_by(game_id=game_id).first()
     return render_template('status.html', game=this_game,
                            board_list=board_list, boards=boards,
                            maxes=maxes, records=records,
-                           counts=counts, decisions=decisions,
-                           score=score)
+                           counts=counts, changes=changes,
+                           decisions=decisions, score=score)
 
 
 @app.route('/view_log/<game_id>')
