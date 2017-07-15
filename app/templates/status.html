@@ -1,16 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
+  {% if game.round_count == 6 %}
+    <div class="row">
+      <div class="panel panel-primary col-sm-8">
+          {% include 'score.html' %}
+        </div><!--./panel -->
+        <div class="col-sm-4">
+          {% include 'decisions.html' %}
+        </div>
+    </div><!-- ./row -->
+    <div class="row">
+      {% include 'chart-totals.html' %}
+    </div><!-- ./row -->
+  {% endif %}
   <div class="row">
-    <div class="panel panel-primary col-sm-7">
-      {% if game.round_count == 6 %}
-        {% include 'score.html' %}
-        {% include 'chart-totals.html' %}
-      {% endif %}
+    <div class="panel panel-primary col-sm-10">
       <div class="panel-heading">
-        <h2 class="panel-title">
-          <a href="{{ url_for('play_round', game_id=game.id) }}">Play Round</a>
+        <h2 class="panel-title">Boards
+          <a href="{{ url_for('play_round', game_id=game.id) }}" class="pull-right">
+            Play Round
+          </a>
         </h2>
       </div>
+    </div>
+    <div class="col-sm-2">
+    </div>
+  </div><!-- ./row -->
+  <div class="row">
+    <div class="panel panel-primary col-sm-5">
       <div class="panel-body">
         <ul class="list-group">
           <li class="list-group-item">
@@ -41,7 +58,9 @@
                 <mark><small>Closed</small></mark>
               </h4>
             {% endif %}
-            {% include 'chart-emerg.html' %}
+            {% if game.round_count > 1 %}
+              {% include 'chart-emerg.html' %}
+            {% endif %}
           </li>
           <li class="list-group-item">
             {% if 'Rapid' in board_list %}
@@ -63,8 +82,16 @@
                 <mark><small>Closed</small></mark>
               </h4>
             {% endif %}
-            {% include 'chart-rapid.html' %}
+            {% if game.round_count > 1 %}
+              {% include 'chart-rapid.html' %}
+            {% endif %}
           </li>
+        </ul>
+      </div><!-- ./panel body -->
+    </div><!-- ./panel left -->
+    <div class="panel panel-primary col-sm-5">
+      <div class="panel-body">
+        <ul class="list-group">
           <li class="list-group-item">
             {% if 'Outreach' in board_list %}
               <h4>Outreach Program
@@ -106,7 +133,9 @@
                 <mark><small>Closed</small></mark>
               </h4>
             {% endif %}
-            {% include 'chart-trans.html' %}
+            {% if game.round_count > 1 %}
+              {% include 'chart-trans.html' %}
+            {% endif %}
           </li>
           <li class="list-group-item">
             {% if 'Permanent' in board_list %}
@@ -128,53 +157,20 @@
                 <mark><small>Closed</small></mark>
               </h4>
             {% endif %}
-            {% include 'chart-perm.html' %}
+            {% if game.round_count > 1 %}
+              {% include 'chart-perm.html' %}
+            {% endif %}
           </li>
         </ul>
       </div><!-- ./panel body -->
-      {% if game.round_count > 1  and game.round_count < 6 %}
-        {% include 'chart-totals.html' %}
-      {% endif %}
-
-    </div><!-- ./panel left -->
-    <div class="col-sm-1">
     </div><!-- ./panel center -->
-    <div class="col-sm-4">
-      {% if game.round_count > 1 %}
-        <div class="panel panel-warning">
-          <div class="panel-heading">
-            <h2 class="panel-title">Major Decisions</h2>
-          </div>
-          <div class="panel-body">
-          <ul class="list-group">
-            {% for decision in decisions %}
-              <li class="list-group-item">
-                {{ decision }}
-              </li>
-            {% endfor %}
-          </ul>
-        </div><!-- ./div panel Major Decisions -->
-      {% endif %}
-      <div class="panel panel-info">
-        <div class="panel-heading">
-            <h2 class="panel-title">Recent Records</h2>
-        </div>
-        <div class="panel-body">
-            <ul class="list-group">
-              {% for record in records %}
-                <li class="list-group-item">
-                  {{ record.board_name }} Board:
-                  {{ record.beads_in }} beads in,
-                  {{ record.beads_out }} beads out
-                </li>
-              {% endfor %}
-            </ul>
-            <a href="{{ url_for('view_log', game_id=game.id) }}">
-              Full Log
-            </a>
-        </div>
-      </div><!-- ./div panel Records -->
-    </div><!-- ./panel right -->
+    {% if game.round_count > 1  and game.round_count < 6 %}
+        <div class="col-sm-2">
+          {% include 'decisions.html' %}
+        </div><!-- ./panel right -->
+      </div><!-- ./row -->
+      <div class="row">
+          {% include 'chart-totals.html' %}
+    {% endif %}
   </div><!-- ./row -->
-
 {% endblock %}

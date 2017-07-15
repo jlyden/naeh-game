@@ -38,7 +38,6 @@ def load_counts_and_changes(game_id, board_list):
         # Trim first tup, b/c it's before round 1
         changes_tuples.pop(0)
         changes[board] = changes_tuples
-        print(str(changes))
     return counts, changes
 
 

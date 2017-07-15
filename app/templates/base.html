@@ -24,7 +24,9 @@
               <a href="{{ url_for('home') }}" class="navbar-link">Home</a>
             </li>
             {% if game and game.round_count < 6 %}
-              <li class="navbar-text">Game {{ game.id }}: Round {{ game.round_count }}</li>
+              <li class="navbar-text">
+                Game {{ game.id }}: Round {{ game.round_count }}
+              </li>
             {% elif game and game.round_count == 6 %}
               <li class="navbar-text">Game {{ game.id }}: Game Over</li>
             {% else %}

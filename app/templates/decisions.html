@@ -1,0 +1,15 @@
+      {% if game.round_count > 1 %}
+        <div class="panel panel-warning">
+          <div class="panel-heading">
+            <h2 class="panel-title">Major Decisions</h2>
+          </div>
+          <div class="panel-body">
+          <ul class="list-group">
+            {% for decision in decisions %}
+              <li class="list-group-item">
+                {{ decision }}
+              </li>
+            {% endfor %}
+          </ul>
+        </div><!-- ./div panel Major Decisions -->
+      {% endif %}
