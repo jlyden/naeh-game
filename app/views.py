@@ -122,7 +122,7 @@ def system_event(game_id):
                                    programs=programs)
 
 
-# TODO: Add bar charts to show bead movement
-# TODO: One-button run simulation version with side-by-side comparison
 # TODO: integrate system_event as (disappearing) part of status page
-# TODO: Remove calc_end_count once it's clear all the math works
+# TODO: One-button run simulation version with side-by-side comparison
+# TODO: add animation
+# TODO: add informative details (definitions of boards, etc)
