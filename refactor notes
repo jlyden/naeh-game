@@ -1,5 +1,0 @@
-refactor notes
-
-models: just model classes and add, update, methods
-views: just views
-utils: helper methods, gameplay logic, constants file
