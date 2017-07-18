@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-sm-4">
+    <div id="emerg" class="well well-lg">Emerg: </div>
+  </div>
+  <div class="col-sm-4">
+    <div id="market" class="well well-lg">Market: </div>
+  </div>
+  <div class="col-sm-4">
+    <div id="rapid" class="well well-lg">Rapid: </div>
+  </div>
+</div><!-- ./row -->
+
+<div class="row">
+  <div class="panel col-sm-4">
+    <div id="outreach" class="well well-lg">Outreach: </div>
+  </div>
+  <div class="panel col-sm-4">
+    <div id="intake" class="well well-lg">Intake:
+      <div id="bead-one">Bead One</div>
+    </div>
+  </div>
+  <div class="panel col-sm-4">
+    <div id="diversion" class="well well-lg">Divers: </div>
+  </div>
+</div><!-- ./row -->
+
+<div class="row">
+  <div class="panel col-sm-4">
+    <div id="transitional" class="well well-lg">Trans: </div>
+  </div>
+  <div class="panel col-sm-4">
+    <div id="unsheltered" class="well well-lg">Unshelt: </div>
+  </div>
+  <div class="panel col-sm-4">
+    <div id="permanent" class="well well-lg">Perm: </div>
+  </div>
+</div><!-- ./row -->
+
+<!-- 900 x 600 -->
+
+<script>
+var $beadOne = $("#bead-one");
+
+$beadOne.velocity({ translateX: "100px" });
+
+</script>
+{% endblock %}

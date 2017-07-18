@@ -48,6 +48,12 @@ def view_log(game_id):
                            moves_by_round=moves_by_round)
 
 
+@app.route('/animated/<game_id>')
+def animated(game_id):
+    this_game = Game.query.get_or_404(int(game_id))
+    return render_template('animated.html', game=this_game)
+
+
 @app.route('/play_round/<game_id>')
 def play_round(game_id):
     this_game = Game.query.get_or_404(int(game_id))
