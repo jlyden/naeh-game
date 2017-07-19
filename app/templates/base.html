@@ -11,10 +11,11 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
     <script src="{{ url_for('static', filename='js/Chart.min.js') }}"></script>
  </head>
   <body>
-    <div class="container" style="min-height:100% width:80%">
+    <div id="top" class="container">
       <nav class="navbar navbar-default">
         <div class="navbar-header">
           <img class="navbar-left" alt="Logo" src="../static/img/sm-blue-house.png">
@@ -49,11 +50,17 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
+    </div><!-- ./top -->
 
+    <div id="middle" class="container">
     {% block content %}
     {% endblock %}
+    </div><!-- /.middle -->
 
-    </div><!-- /.container -->
+    <div id="bottom" class="container">
+      <p>Text Copyright &#169; National Alliance to End Homelessness ~ 2017</p>
+      <p>Design Copyright &#169; jennifer lyden ~ 2017</p>
+    </div><!-- /.bottom -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="../static/js/bootstrap.min.js"></script>
