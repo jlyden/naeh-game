@@ -1,22 +1,46 @@
-            <!-- rapid chart and legend  -->
-            <canvas id="rapid_chart" width="300" height="200"></canvas>
-            <div id="rapid_legend"></div>
+<h4>
+  <a href="#" data-toggle="tooltip" title="{{ tips['ttip'] }}">
+  {% if 'Transitional' not in board_list %}<s>{% endif %}
+    Transitional Housing</a>
+  {% if 'Transitional' in board_list %}
+    <span class="label label-info ">
+      {{ boards['Transitional']|length }}
+    </span>
+    {% if maxes['Transitional'] > 20 %}
+      <mark><small>
+        Expanded to {{ maxes['Transitional'] }} slots
+      </small></mark>
+    {% endif %}
+  {% else %}
+    </s>
+    <span class="label label-info ">
+      {{ boards['Transitional']|length }}
+    </span>
+    <mark><small>Closed</small></mark>
+  {% endif %}
+</h4>
+{% if game.round_count > 1 %}
+  <div>
+    <canvas id="trans_chart"></canvas>
+    <div id="trans_legend"></div>
+  </div>
+{% endif %}
 
 <script>
 {% if changes %}
   // status bar charts
-  var rapidData = {
+  var transData = {
     labels : [1, 2, 3, 4, 5],
     datasets : [{
           data: [{% for _,b in changes['Transitional'] %}
-                    40,
+                    30,
                   {% endfor %}],
           label: "",
           fillColor: "rgba(255,255,255,.2)",
           strokeColor: "rgba(255,255,255,.2)",
           pointColor: "rgba(255,255,255,.2)",
         },{
-          data: [{% for a,_ in changes['Rapid'] %}
+          data: [{% for a,_ in changes['Transitional'] %}
                     {{a}},
                   {% endfor %}],
           label: "Beads In",
@@ -24,7 +48,7 @@
           strokeColor: "rgba(151,187,205,.6)",
           pointColor: "rgba(151,187,205,.6)",
         },{
-          data: [{% for _,b in changes['Rapid'] %}
+          data: [{% for _,b in changes['Transitional'] %}
                     {{b}},
                   {% endfor %}],
           label: "Beads Out",
@@ -35,7 +59,7 @@
       ]
     }
   // Set defaults and options
-  Chart.defaults.global.responsive = false;
+  Chart.defaults.global.responsive = true;
   Chart.defaults.global.scaleLineColor = "black";
   Chart.defaults.global.scaleFontSize = 16;
   // legendTemplate takes a template as a string
@@ -46,7 +70,7 @@
     bezierCurve: false,
     multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
     legendTemplate : '<ul class="list-inline">'
-                      +'<% for (var i=0; i<datasets.length; i++) { %>'
+                      +'<% for (var i=1; i<datasets.length; i++) { %>'
                       +'<li class="list-group-item">'
                         +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
                         +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'
@@ -55,9 +79,9 @@
                     +'</ul>'
     }
 
-  // rapid chart - draw chart and legend
-  var echart = new Chart(document.getElementById("rapid_chart").getContext("2d"))
-  var rapid_chart = echart.Bar(rapidData, options);
-  document.getElementById("rapid_legend").innerHTML = rapid_chart.generateLegend();
+  // trans chart - draw chart and legend
+  var echart = new Chart(document.getElementById("trans_chart").getContext("2d"))
+  var trans_chart = echart.Bar(transData, options);
+  document.getElementById("trans_legend").innerHTML = trans_chart.generateLegend();
 {% endif %}
 </script>

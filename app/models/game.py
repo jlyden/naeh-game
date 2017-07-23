@@ -132,7 +132,6 @@ class Game(db.Model):
     def send_anywhere(self, extra, from_board, no_red, moves):
         # Get list of available programs to send beads
         anywhere_list = generate_anywhere_list(self.board_list_pickle)
-        print("Anywhere_list is " + str(anywhere_list))
         # Cycle through programs, moving as many beads as possible to each
         while len(from_board) > 0 and len(anywhere_list) > 0:
             prog_table = eval(anywhere_list.pop())
@@ -154,23 +153,18 @@ class Game(db.Model):
         # Add 'diversion' column to intake board
         if program == 'Diversion':
             self.intake_cols = 6
-            print("Intake_cols is now " + str(self.intake_cols))
             prog_record = Record(game_id=self.id, round_count=self.round_count,
                                  board_name="Market")
-            print("open_new diversion found: " + str(prog_record))
-            prog_record.note = "Diversion to Market began before Round " + \
+            prog_record.note = "Diversion opened round " + \
                 str(self.round_count)
         # Add 'extra' board (i.e. 25 slots to selected board/program)
         else:
             prog_table = eval(program)
             prog = prog_table.query.filter_by(game_id=self.id).first()
             prog.maximum = EXTRA_BOARD + prog.maximum
-            print(prog.__tablename__.title() + " max is now " +
-                  str(prog.maximum))
             prog_record = Record(game_id=self.id, round_count=self.round_count,
                                  board_name=program)
-            print("open_new found: " + str(prog_record))
-            prog_record.note = program + ": Expanded before Round " + \
+            prog_record.note = program + " expanded round " + \
                 str(self.round_count)
         db.session.add(prog_record)
         db.session.commit()
@@ -190,17 +184,15 @@ class Game(db.Model):
         # Initiate relevant records (in between rounds)
         from_record = Record(game_id=self.id, round_count=self.round_count,
                              board_name=from_program)
-        print("convert_program creating from: " + str(from_record))
         from_record.beads_out = beads_moved
-        from_record.note = from_program + ": Closed before Round " + \
+        from_record.note = from_program + " closed round " + \
             str(self.round_count)
         to_record = Record(game_id=self.id, round_count=self.round_count,
                            board_name=to_program)
-        print("convert_program creating to: " + str(to_record))
         to_record.beads_in = beads_moved
         to_record.beads_out = 0
         to_record.end_count = to_record.calc_end_count()
-        to_record.note = to_program + ": Expanded before Round " + \
+        to_record.note = to_program + " expanded round " + \
             str(self.round_count)
         db.session.add_all([from_record, to_record])
         # Move beads from from_prog.board to to_prog.board

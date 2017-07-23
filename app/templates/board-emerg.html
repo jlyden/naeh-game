@@ -1,6 +1,31 @@
-            <!-- emergency chart and legend  -->
-            <canvas id="emerg_chart" width="300" height="200"></canvas>
-            <div id="emerg_legend"></div>
+
+<h4>
+  <a href="#" data-toggle="tooltip" title="{{ tips['etip'] }}">
+    {% if 'Emergency' not in board_list %}<s>{% endif %}
+      Emergency Housing</a>
+    {% if 'Emergency' in board_list %}
+      <span class="label label-info ">
+        {{ boards['Emergency']|length }}
+      </span>
+      {% if maxes['Emergency'] > 25 %}
+        <mark><small>
+          Expanded to {{ maxes['Emergency'] }} slots
+        </small></mark>
+      {% endif %}
+    {% else %}
+      </s>
+      <span class="label label-info ">
+        {{ boards['Emergency']|length }}
+      </span>
+      <mark><small>Closed</small></mark>
+    {% endif %}
+</h4>
+{% if game.round_count > 1 %}
+  <div>
+    <canvas id="emerg_chart"></canvas>
+    <div id="emerg_legend"></div>
+  </div>
+{% endif %}
 
 <script>
 {% if changes %}
@@ -8,8 +33,8 @@
   var emergData = {
     labels : [1, 2, 3, 4, 5],
     datasets : [{
-          data: [{% for _,b in changes['Transitional'] %}
-                    40,
+          data: [{% for _,b in changes['Emergency'] %}
+                    30,
                   {% endfor %}],
           label: "",
           fillColor: "rgba(255,255,255,.2)",
@@ -35,7 +60,7 @@
       ]
     }
   // Set defaults and options
-  Chart.defaults.global.responsive = false;
+  Chart.defaults.global.responsive = true;
   Chart.defaults.global.scaleLineColor = "black";
   Chart.defaults.global.scaleFontSize = 16;
   // legendTemplate takes a template as a string
@@ -46,7 +71,7 @@
     bezierCurve: false,
     multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
     legendTemplate : '<ul class="list-inline">'
-                      +'<% for (var i=0; i<datasets.length; i++) { %>'
+                      +'<% for (var i=1; i<datasets.length; i++) { %>'
                       +'<li class="list-group-item">'
                         +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
                         +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'

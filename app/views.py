@@ -10,6 +10,7 @@ from .utils.misc import gen_progs_for_sys_event
 from .utils.recordkeeping import end_round
 from .utils.statusloads import load_boards_and_maxes, load_counts_and_changes
 from .utils.statusloads import load_decisions, load_logs, load_records
+from .utils.content import tips
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -35,7 +36,8 @@ def status(game_id):
                            board_list=board_list, boards=boards,
                            maxes=maxes, records=records,
                            counts=counts, changes=changes,
-                           decisions=decisions, score=score)
+                           decisions=decisions, score=score,
+                           tips=tips)
 
 
 @app.route('/view_log/<game_id>')

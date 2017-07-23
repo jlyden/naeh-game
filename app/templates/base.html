@@ -1,68 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The 3 meta tags above *must* come first in the head -->
-    <link rel="shortcut icon" href="../static/img/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="../static/img/favicon.ico" type="image/x-icon">
-    <title>NAEH - Homeless Services Game</title>
-    <!-- Bootstrap -->
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script src="{{ url_for('static', filename='js/Chart.min.js') }}"></script>
- </head>
-  <body>
-    <div id="top" class="container">
-      <nav class="navbar navbar-default">
-        <div class="navbar-header">
-          <img class="navbar-left" alt="Logo" src="../static/img/sm-blue-house.png">
-          <h3 class="navbar-text">NAEH Game</h3>
-          <ul class="nav navbar-nav navbar-right">
-            <li>
-              <a href="{{ url_for('home') }}" class="navbar-link">Home</a>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The 3 meta tags above *must* come first in the head -->
+  <link rel="shortcut icon" href="../static/img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="../static/img/favicon.ico" type="image/x-icon">
+  <title>NAEH - Homeless Services Game</title>
+  <!-- Bootstrap -->
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="{{ url_for('static', filename='js/Chart.min.js') }}"></script>
+</head>
+<body>
+  <div id="top" class="container">
+    <nav class="navbar navbar-default">
+      <div class="navbar-header">
+        <img class="navbar-left" alt="Logo" src="../static/img/sm-blue-house.png">
+        <h3 class="navbar-text">NAEH Game</h3>
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <a href="{{ url_for('home') }}" class="navbar-link">Home</a>
+          </li>
+          {% if game and game.round_count < 6 %}
+            <li class="navbar-text">
+              Game {{ game.id }}: Round {{ game.round_count }}
             </li>
-            {% if game and game.round_count < 6 %}
-              <li class="navbar-text">
-                Game {{ game.id }}: Round {{ game.round_count }}
-              </li>
-            {% elif game and game.round_count == 6 %}
-              <li class="navbar-text">Game {{ game.id }}: Game Over</li>
-            {% else %}
-              <form class="navbar-form navbar-right" role="new" action="" method="POST" name="new_game">
-                <div class="form-group">
-                  <button type="submit" class="btn btn-link">New Game</button>
-                </div>
-              </form>
-            {% endif %}
-          </ul>
+          {% elif game and game.round_count == 6 %}
+            <li class="navbar-text">Game {{ game.id }}: Game Over</li>
+          {% else %}
+            <form class="navbar-form navbar-right" role="new" action="" method="POST" name="new_game">
+              <div class="form-group">
+                <button type="submit" class="btn btn-link">New Game</button>
+              </div>
+            </form>
+          {% endif %}
+        </ul>
+      </div>
+    </nav>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+          {{ message }}
         </div>
-      </nav>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}" role="alert">
-          <!-- <strong>Title</strong> --> {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    </div><!-- ./top -->
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  </div><!-- ./top -->
 
-    <div id="middle" class="container">
-    {% block content %}
-    {% endblock %}
-    </div><!-- /.middle -->
+  <div id="middle" class="container">
+  {% block content %}
+  {% endblock %}
+  </div><!-- /.middle -->
 
-    <div id="bottom" class="container">
-      <p>Text Copyright &#169; National Alliance to End Homelessness ~ 2017</p>
-      <p>Design Copyright &#169; jennifer lyden ~ 2017</p>
-    </div><!-- /.bottom -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
-    <script src="../static/js/bootstrap.min.js"></script>
-  </body>
+  <div id="bottom" class="container">
+    <p>Text Copyright &#169; National Alliance to End Homelessness ~ 2017</p>
+    <p>Design Copyright &#169; jennifer lyden ~ 2017</p>
+  </div><!-- /.bottom -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+  <script src="../static/js/bootstrap.min.js"></script>
+</body>
 </html>
