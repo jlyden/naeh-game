@@ -4,12 +4,12 @@
     <div class="row">
       <div class="panel panel-primary col-sm-12">
         {% include 'score.html' %}
-      </div><!--./panel -->
+      </div>
     </div><!-- ./row -->
     <div class="row">
       <div class="col-sm-12">
         {% include 'decisions.html' %}
-      </div><!-- ./panel -->
+      </div>
     </div><!-- ./row -->
     <div class="row">
       <div class="panel panel-primary col-sm-6">
@@ -17,6 +17,27 @@
       </div>
       <div class="panel panel-primary col-sm-6">
         {% include 'chart-after-progs.html' %}
+      </div>
+    </div><!-- ./row -->
+  {% endif %}
+  {% if game.round_count == 1 %}
+    <div class="well">
+      <p>The goal of the game is to place as many people in permanent housing as possible, and to prevent people exiting your system into unsheltered homelessness. The lower your score, the better you have achieved your goal.<p>
+      <p>Points will be added to your score for
+      <ul><li>The number of people in Transitional Housing and Emergency Sheleter at the end of <b>each round</b></li>
+      <li>The number of people who are Unsheletered at the <b>end of the game</b></li>
+      </ul></p>
+      <p>Points will be subtracted from your score for
+      <ul><li>The number of people who have Market Housing at the <b>end of the game</b></li>
+      <li>The number of people who are in Rapid Re-Housing and Permanent Supportive Housing at the <b>end of the game</b></li>
+      </ul></p>
+      <p>You will have the opportunity to make decisions about programs to open or close as the game goes on. Learn more about the different types of programs by hovering or clicking on their names.</p>
+      <p>To start your game, click "Run Simulation Round" below.</p>
+    </div>
+  {% elif game.round_count > 1  and game.round_count < 6 %}
+    <div class="row">
+      <div class="col-sm-12">
+        {% include 'decisions.html' %}
       </div>
     </div><!-- ./row -->
   {% endif %}
@@ -31,37 +52,18 @@
           {% endif %}
         </h2>
       </div>
-    </div>
-  </div><!-- ./row -->
-  {% if game.round_count > 1  and game.round_count < 6 %}
-    <div class="row">
-      <div class="col-sm-12">
-        {% include 'decisions.html' %}
-        </div><!-- ./panel center -->
-    </div><!-- ./row -->
-  {% endif %}
-  <div class="row">
+    </div><!-- ./panel -->
     <div class="panel panel-primary col-sm-6">
       <div class="panel-body">
         <ul class="list-group">
           <li class="list-group-item">
-            <h4>
-              <a data-toggle="tooltip" title="{{ tips['itip'] }}">
-                  Intake Program</a>
-              <span class="label label-info ">0</span>
-              {% if game.intake_cols == 6 %}
-                <mark><small>
-                <a href="#" data-toggle="tooltip" title="{{ tips['dtip'] }}">
-                  Diversion</a>  Column enabled
-                </small></mark>
-              {% endif %}
-            </h4>
+            {% include 'boards/board-intake.html' %}
           </li>
           <li class="list-group-item">
-            {% include 'board-emerg.html' %}
+            {% include 'boards/board-emerg.html' %}
           </li>
           <li class="list-group-item">
-            {% include 'board-rapid.html' %}
+            {% include 'boards/board-rapid.html' %}
           </li>
         </ul>
       </div><!-- ./panel body -->
@@ -70,39 +72,17 @@
       <div class="panel-body">
         <ul class="list-group">
           <li class="list-group-item">
-            <h4>
-              <a href="#" data-toggle="tooltip" title="{{ tips['otip'] }}">
-                {% if 'Outreach' not in board_list %}<s>{% endif %}
-                  Outreach Program</a>
-                {% if 'Outreach' in board_list %}
-                  <span class="label label-info ">
-                    {{ boards['Outreach']|length }}
-                  </span>
-                  {% if maxes['Outreach'] > 10 %}
-                    <mark><small>
-                      Expanded to {{ maxes['Outreach'] }} slots
-                    </small></mark>
-                  {% endif %}
-                {% else %}
-                  </s>
-                  <span class="label label-info ">
-                    {{ boards['Outreach']|length }}
-                  </span>
-                  <mark><small>Closed</small></mark>
-                {% endif %}
-            </h4>
+            {% include 'boards/board-outreach.html' %}
           </li>
           <li class="list-group-item">
-            {% include 'board-trans.html' %}
+            {% include 'boards/board-trans.html' %}
           </li>
           <li class="list-group-item">
-            {% include 'board-perm.html' %}
+            {% include 'boards/board-perm.html' %}
           </li>
         </ul>
       </div><!-- ./panel body -->
     </div><!-- ./panel right -->
-      <div class="col-sm-1">
-      </div>
   </div><!-- ./row -->
   {% if game.round_count > 1  and game.round_count < 6 %}
     <div class="row">

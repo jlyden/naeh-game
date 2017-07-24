@@ -24,12 +24,22 @@
           <li>
             <a href="{{ url_for('home') }}" class="navbar-link">Home</a>
           </li>
-          {% if game and game.round_count < 6 %}
+          {% if game %}
             <li class="navbar-text">
-              Game {{ game.id }}: Round {{ game.round_count }}
+              Game {{ game.id }}
+              {% if game.round_count < 6 %}
+                : Round {{ game.round_count }}
+              {% else %}
+                : Game Over
+              {% endif %}
             </li>
-          {% elif game and game.round_count == 6 %}
-            <li class="navbar-text">Game {{ game.id }}: Game Over</li>
+            <li>
+              {% if 'view_log' or 'about_boards' in request.path %}
+              <a href="{{ url_for('status', game_id=game.id) }}" class="navbar-link">Play Game {{ game.id }}</a>
+              {% else  %}
+              <a href="{{ url_for('view_log', game_id=game.id) }}" class="navbar-link">View Log for Game {{ game.id }}</a>
+              {% endif %}
+            </li>
           {% else %}
             <form class="navbar-form navbar-right" role="new" action="" method="POST" name="new_game">
               <div class="form-group">

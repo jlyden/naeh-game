@@ -1,5 +1,5 @@
 tips = {
-    'itip': 'How people enter the homelessness system',
+    'itip': 'How people enter the homelessness system.',
     'dtip': 'Identifies immediately available permanent housing for people at intake',
     'etip': 'Short term housing not requiring leases or occupancy agreements',
     'rtip': 'Short-term assistance without preconditions like employment, income or sobriety',

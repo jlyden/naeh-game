@@ -19,8 +19,12 @@ def home():
         new_game = Game.create()
         return redirect(url_for('status', game_id=new_game.id))
     elif request.method == 'GET':
-        recent_games = Game.query.order_by(Game.start_datetime.desc())
-        return render_template('home.html', recent_games=recent_games)
+        current_games = Game.query.filter(Game.final_score == 0
+                                          ).order_by(Game.start_datetime.desc())
+        complete_games = Game.query.filter(Game.final_score > 0
+                                          ).order_by(Game.final_score)
+        return render_template('home.html', current_games=current_games,
+                               complete_games=complete_games)
 
 
 @app.route('/status/<game_id>')
@@ -116,13 +120,20 @@ def system_event(game_id):
     else:
         # Time to calculate Final Score
         if this_game.round_count == 6:
-            this_game.calculate_final_score()
+            final_score = this_game.calculate_final_score()
+            this_game.final_score = final_score
+            db.session.commit()
             return render_template('event.html', game=this_game, programs={})
         else:
             programs = gen_progs_for_sys_event(this_game.board_list_pickle)
             return render_template('event.html', game=this_game,
                                    programs=programs)
 
+
+@app.route('/about_boards/<game_id>')
+def about_boards(game_id):
+    this_game = Game.query.get_or_404(int(game_id))
+    return render_template('about-boards.html', game=this_game)
 
 # TODO: integrate system_event as (disappearing) part of status page
 # TODO: One-button run simulation version with side-by-side comparison

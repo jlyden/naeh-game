@@ -20,6 +20,7 @@ class Game(db.Model):
     intake_cols = db.Column(db.Integer, default=5)
     available_pickle = db.Column(db.PickleType, default=AVAILABLE_BEADS)
     board_list_pickle = db.Column(db.PickleType, default=BOARD_LIST)
+    final_score = db.Column(db.Integer, default=0)
     # One to One relationships
     emergency = db.relationship('Emergency', uselist=False)
     rapid = db.relationship('Rapid', uselist=False)
@@ -227,7 +228,6 @@ class Game(db.Model):
                                               Record.board_name == board,
                                               Record.round_count == 5,
                                               ).first()
-            print("calculate_final_score found " + str(this_record))
             end_counts[board] = this_record.end_count
 
         # Create, fill and return the scoreboard
@@ -240,4 +240,7 @@ class Game(db.Model):
         new_Score.market = end_counts['Market']
         db.session.add(new_Score)
         db.session.commit()
-        return new_Score
+        final_score = (new_Score.unsheltered * 3) + new_Score.emerg_total \
+                      + new_Score.trans_total - new_Score.market \
+                      + new_Score.rapid + new_Score.perm
+        return final_score

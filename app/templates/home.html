@@ -2,7 +2,7 @@
 {% block content %}
   <div class="row">
     <div class="well">
-      <p>The Homeless System Simulation Game is designed to help communities understand how the homeless assistance system works. The simulation is a very simplified version of how homelessness assistance systems work, and was designed using actual data for outcomes of programs in different communities across the country. The game encourages thought and discussion regarding your local homelessness assistance system, the impact of decisions and strategies to reduce homelessness, and system-wide outcomes. Questions regarding the game should be directed to <a href="mailto:thecenter@naeh.org?Subject=Online%20Simulation" target="_top">thecenter@naeh.org</a>.</p>
+      <p>The Homeless System Simulation Game is designed to help communities understand how the homeless assistance system works. The simulation is a very simplified version of how homelessness assistance systems work, and was designed using actual data for outcomes of programs in different communities across the country. The game encourages thought about your local homelessness assistance system, the impact of decisions and strategies to reduce homelessness, and system-wide outcomes. Questions regarding the game should be directed to <a href="mailto:thecenter@naeh.org?Subject=Online%20Simulation" target="_top">thecenter@naeh.org</a>.</p>
       <p>
         <form class="" role="new" action="" method="POST" name="new_game">
           Click
@@ -15,10 +15,10 @@
   <div class="row">
     <div class="col-sm-1">
     </div>
-    <div class="panel panel-info col-sm-4">
-      {% if not recent_games %}
+    <div class="panel panel-info col-sm-5">
+      {% if not current_games %}
         <div class="panel-body">
-          <p>No games started yet.</p>
+          <p>No games in play.</p>
         </div>
       {% else %}
         <div class="panel-heading">
@@ -26,40 +26,40 @@
         </div>
         <div class="panel-body">
           <ul class="list-group">
-            {% for game in recent_games %}
-              {% if game.round_count < 6 %}
-                <li class="list-group-item">
-                  <a href="{{ url_for('status', game_id=game.id) }}">
-                    Game {{ game.id }}: Round {{ game.round_count }}
-                  </a>
-                </li>
-              {% endif %}
+            {% for game in current_games %}
+              <li class="list-group-item">
+                <a href="{{ url_for('status', game_id=game.id) }}">
+                  Game {{ game.id }}: Round {{ game.round_count }}
+                </a>
+              </li>
             {% endfor %}
           </ul>
         </div> <!-- ./panel-body -->
+      {% endif %}
     </div> <!-- ./panel -->
-    <div class="col-sm-1">
-    </div>
-    <div class="panel panel-warning col-sm-4">
+    <div class="panel panel-warning col-sm-5">
+      {% if not complete_games %}
+        <div class="panel-body">
+          <p>No completed games.</p>
+        </div>
+      {% else %}
       <div class="panel-heading">
         <h2 class="panel-title">Completed Games</h2>
       </div>
       <div class="panel-body">
         <ul class="list-group">
-          {% for game in recent_games %}
-            {% if game.round_count == 6 %}
-              <li class="list-group-item">
-                <a href="{{ url_for('status', game_id=game.id) }}">
-                  Game {{ game.id }}
-                </a>
-              </li>
-            {% endif %}
+          {% for game in complete_games %}
+            <li class="list-group-item">
+              <a href="{{ url_for('status', game_id=game.id) }}">
+                Game {{ game.id }}: Score {{ game.final_score }}
+              </a>
+            </li>
           {% endfor %}
         </ul>
       </div> <!-- ./panel-body -->
+      {% endif %}
     </div> <!-- ./panel -->
-    {% endif %}
-    <div class="col-sm-2">
+    <div class="col-sm-1">
     </div>
   </div> <!-- ./row -->
 {% endblock %}

@@ -1,47 +1,46 @@
-
 <h4>
-  <a href="#" data-toggle="tooltip" title="{{ tips['etip'] }}">
-    {% if 'Emergency' not in board_list %}<s>{% endif %}
-      Emergency Housing</a>
-    {% if 'Emergency' in board_list %}
+  <a href="{{ url_for('about_boards', game_id=game.id, _anchor='perm') }}" data-toggle="tooltip" title="{{ tips['ptip'] }}">
+    {% if 'Permanent' not in board_list %}<s>{% endif %}
+      Permanent Supportive</a>
+    {% if 'Permanent' in board_list %}
       <span class="label label-info ">
-        {{ boards['Emergency']|length }}
+        {{ boards['Permanent']|length }}
       </span>
-      {% if maxes['Emergency'] > 25 %}
+      {% if maxes['Permanent'] > 20 %}
         <mark><small>
-          Expanded to {{ maxes['Emergency'] }} slots
+          Expanded to {{ maxes['Permanent'] }} slots
         </small></mark>
       {% endif %}
     {% else %}
       </s>
       <span class="label label-info ">
-        {{ boards['Emergency']|length }}
+        {{ boards['Permanent']|length }}
       </span>
       <mark><small>Closed</small></mark>
     {% endif %}
 </h4>
 {% if game.round_count > 1 %}
   <div>
-    <canvas id="emerg_chart"></canvas>
-    <div id="emerg_legend"></div>
+    <canvas id="perm_chart"></canvas>
+    <div id="perm_legend"></div>
   </div>
 {% endif %}
 
 <script>
 {% if changes %}
   // status bar charts
-  var emergData = {
+  var permData = {
     labels : [1, 2, 3, 4, 5],
     datasets : [{
-          data: [{% for _,b in changes['Emergency'] %}
-                    30,
+          data: [{% for _,b in changes['Permanent'] %}
+                    40,
                   {% endfor %}],
           label: "",
           fillColor: "rgba(255,255,255,.2)",
           strokeColor: "rgba(255,255,255,.2)",
           pointColor: "rgba(255,255,255,.2)",
         },{
-          data: [{% for a,_ in changes['Emergency'] %}
+          data: [{% for a,_ in changes['Permanent'] %}
                     {{a}},
                   {% endfor %}],
           label: "Beads In",
@@ -49,7 +48,7 @@
           strokeColor: "rgba(151,187,205,.6)",
           pointColor: "rgba(151,187,205,.6)",
         },{
-          data: [{% for _,b in changes['Emergency'] %}
+          data: [{% for _,b in changes['Permanent'] %}
                     {{b}},
                   {% endfor %}],
           label: "Beads Out",
@@ -80,9 +79,9 @@
                     +'</ul>'
     }
 
-  // emerg chart - draw chart and legend
-  var echart = new Chart(document.getElementById("emerg_chart").getContext("2d"))
-  var emerg_chart = echart.Bar(emergData, options);
-  document.getElementById("emerg_legend").innerHTML = emerg_chart.generateLegend();
+  // perm chart - draw chart and legend
+  var echart = new Chart(document.getElementById("perm_chart").getContext("2d"))
+  var perm_chart = echart.Bar(permData, options);
+  document.getElementById("perm_legend").innerHTML = perm_chart.generateLegend();
 {% endif %}
 </script>

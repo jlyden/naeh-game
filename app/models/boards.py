@@ -79,7 +79,6 @@ class Outreach(db.Model, Other_Boards):
                                      Record.board_name ==
                                      self.__tablename__.title()
                                      ).order_by(desc(Record.id)).first()
-        print("fill_from found " + str(record))
         record.record_change_beads('in', room)
         message = str(room) + " beads from Unsheltered to Outreach"
         moves.append(message)

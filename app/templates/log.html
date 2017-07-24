@@ -1,73 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="row">
-    <div class="col-sm-2">
+    <div class="col-sm-1">
     </div>
-    <div class="panel panel-info col-sm-6">
-      <a href="{{ url_for('status', game_id=game.id) }}" class="pull-right">
-          Back to Game
-      </a>
-      {% if moves_by_round[0] %}
-        <div class="panel-heading">
-          <h2 class="panel-title">Round One</h2>
-        </div>
-        <div class="panel-body">
-          <ul class="list-group">
-            {% for move in moves_by_round[0] %}
-              <li class="list-group-item">{{ move }}</li>
-            {% endfor %}
-          </ul>
-        </div><!--./panel-body -->
-      {% endif %}
-      {% if moves_by_round[1] %}
-        <div class="panel-heading">
-          <h2 class="panel-title">Round Two</h2>
-        </div>
-        <div class="panel-body">
-          <ul class="list-group">
-            {% for move in moves_by_round[1] %}
-              <li class="list-group-item">{{ move }}</li>
-            {% endfor %}
-          </ul>
-        </div><!--./panel-body -->
-      {% endif %}
-      {% if moves_by_round[2] %}
-        <div class="panel-heading">
-          <h2 class="panel-title">Round Three</h2>
-        </div>
-        <div class="panel-body">
-          <ul class="list-group">
-            {% for move in moves_by_round[2] %}
-              <li class="list-group-item">{{ move }}</li>
-            {% endfor %}
-          </ul>
-        </div><!--./panel-body -->
-      {% endif %}
-      {% if moves_by_round[3] %}
-        <div class="panel-heading">
-          <h2 class="panel-title">Round Four</h2>
-        </div>
-        <div class="panel-body">
-          <ul class="list-group">
-            {% for move in moves_by_round[3] %}
-              <li class="list-group-item">{{ move }}</li>
-            {% endfor %}
-          </ul>
-        </div><!--./panel-body -->
-      {% endif %}
-      {% if moves_by_round[4] %}
-        <div class="panel-heading">
-          <h2 class="panel-title">Round Five</h2>
-        </div>
-        <div class="panel-body">
-          <ul class="list-group">
-            {% for move in moves_by_round[4] %}
-              <li class="list-group-item">{{ move }}</li>
-            {% endfor %}
-          </ul>
-        </div><!--./panel-body -->
-      {% endif %}
-    <div class="col-sm-4">
+    <div class="panel panel-info col-sm-10">
+      {% for i in range(5) %}
+        {% if moves_by_round[i] %}
+          <div class="panel-heading">
+            <h2 class="panel-title">Round {{ i+1 }}</h2>
+          </div>
+          <div class="panel-body">
+            <ul class="list-group">
+              {% for moves in moves_by_round[i] %}
+                {% for move in moves %}
+                  {% if 'room' not in move %}
+                    {% if 'beads' in move %}
+                      <li class="list-group-item">
+                    {% else %}
+                      <li class="list-group-item list-group-item-success">
+                    {% endif %}
+                    {{ move }}</li>
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div><!--./panel-body -->
+        {% endif %}
+      {% endfor %}
+    <div class="col-sm-1">
     </div>
   </div><!--./row -->
 {% endblock %}

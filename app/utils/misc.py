@@ -2,7 +2,7 @@ import pickle
 
 
 def message_for(beads_moved, board_name):
-    if beads_moved == "0":
+    if beads_moved != "0":
         message = "No room in " + board_name
     else:
         message = str(beads_moved) + " beads to " + board_name
