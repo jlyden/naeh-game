@@ -51,16 +51,7 @@ def update_all_records(game_id, round_count, board_list):
             record.beads_in = board_length
             record.end_count = board_length
             db.session.add(record)
-            print("Added NEW end_count record for " + board + ": " +
-                  str(record.end_count))
         else:
-            print("update_all_records found " + str(record))
-            calc_end = record.calc_end_count()
-            if board_length != calc_end:
-                print(board + " length= " + str(board_length) + "; calc_end=" +
-                      str(calc_end))
             record.end_count = board_length
-            print("Updated end_count record for " + board + ": " +
-                  str(record.end_count))
         db.session.commit()
     return

@@ -82,7 +82,6 @@ def play_board(board_name, game_id):
         record = Record.query.filter(Record.game_id == game_id,
                                      Record.board_name == board_name,
                                      ).order_by(desc(Record.id)).first()
-        print("play_board found " + str(record))
         record.record_change_beads('out', beads_moved)
     move_log = Log(game_id, game.round_count, board_name, moves)
     db.session.add(move_log)
@@ -102,7 +101,6 @@ def play_board(board_name, game_id):
 def system_event(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if request.method == 'POST':
-        print("Executing System Event")
         moves = []
         if this_game.round_count == 2:
             program = request.form.get('program')
@@ -138,4 +136,3 @@ def about_boards(game_id):
 # TODO: integrate system_event as (disappearing) part of status page
 # TODO: One-button run simulation version with side-by-side comparison
 # TODO: add animation
-# TODO: add informative details (definitions of boards, etc)

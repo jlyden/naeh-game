@@ -11,28 +11,12 @@
         {% include 'decisions.html' %}
       </div>
     </div><!-- ./row -->
-    <div class="row">
-      <div class="panel panel-primary col-sm-6">
-        {% include 'chart-in-progs.html' %}
-      </div>
-      <div class="panel panel-primary col-sm-6">
-        {% include 'chart-after-progs.html' %}
-      </div>
-    </div><!-- ./row -->
   {% endif %}
   {% if game.round_count == 1 %}
-    <div class="well">
-      <p>The goal of the game is to place as many people in permanent housing as possible, and to prevent people exiting your system into unsheltered homelessness. The lower your score, the better you have achieved your goal.<p>
-      <p>Points will be added to your score for
-      <ul><li>The number of people in Transitional Housing and Emergency Sheleter at the end of <b>each round</b></li>
-      <li>The number of people who are Unsheletered at the <b>end of the game</b></li>
-      </ul></p>
-      <p>Points will be subtracted from your score for
-      <ul><li>The number of people who have Market Housing at the <b>end of the game</b></li>
-      <li>The number of people who are in Rapid Re-Housing and Permanent Supportive Housing at the <b>end of the game</b></li>
-      </ul></p>
-      <p>You will have the opportunity to make decisions about programs to open or close as the game goes on. Learn more about the different types of programs by hovering or clicking on their names.</p>
-      <p>To start your game, click "Run Simulation Round" below.</p>
+    <div class="row">
+      <div class="col-sm-12">
+        {% include 'help.html' %}
+      </div>
     </div>
   {% elif game.round_count > 1  and game.round_count < 6 %}
     <div class="row">
@@ -40,9 +24,17 @@
         {% include 'decisions.html' %}
       </div>
     </div><!-- ./row -->
+    <div class="row">
+      <div class="panel panel-warning col-sm-6">
+        {% include 'chart-in-progs.html' %}
+      </div>
+      <div class="panel panel-success col-sm-6">
+        {% include 'chart-after-progs.html' %}
+      </div>
+    </div><!-- ./row -->
   {% endif %}
   <div class="row">
-    <div class="panel panel-primary col-sm-12">
+    <div class="panel panel-danger col-sm-12">
       <div class="panel-heading">
         <h2 class="panel-title">Programs
           {% if game.round_count < 6 %}
@@ -84,16 +76,6 @@
       </div><!-- ./panel body -->
     </div><!-- ./panel right -->
   </div><!-- ./row -->
-  {% if game.round_count > 1  and game.round_count < 6 %}
-    <div class="row">
-      <div class="panel panel-primary col-sm-6">
-        {% include 'chart-in-progs.html' %}
-      </div>
-      <div class="panel panel-primary col-sm-6">
-        {% include 'chart-after-progs.html' %}
-      </div>
-    </div><!-- ./row -->
-  {% endif %}
 
 <script>
   $(function () {

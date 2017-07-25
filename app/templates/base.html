@@ -34,11 +34,14 @@
               {% endif %}
             </li>
             <li>
-              {% if 'view_log' or 'about_boards' in request.path %}
+              {% if 'view' in request.path or 'about' in request.path %}
               <a href="{{ url_for('status', game_id=game.id) }}" class="navbar-link">Play Game {{ game.id }}</a>
               {% else  %}
               <a href="{{ url_for('view_log', game_id=game.id) }}" class="navbar-link">View Log for Game {{ game.id }}</a>
               {% endif %}
+            </li>
+            <li>
+              <a href="{{ url_for('about_boards', game_id=game.id, _anchor='help') }}" class="navbar-link">Help</a>
             </li>
           {% else %}
             <form class="navbar-form navbar-right" role="new" action="" method="POST" name="new_game">
