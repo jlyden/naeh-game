@@ -10,6 +10,7 @@ def message_for(beads_moved, board_name):
 
 
 def gen_progs_for_sys_event(board_list_pickle):
+    """Generate programs dict for round 2/3 system_event"""
     board_list = pickle.loads(board_list_pickle)
     progs_list = board_list[:]
     progs_list.remove('Intake')
