@@ -33,11 +33,13 @@ class Other_Boards(object):
                                          self.__tablename__.title()
                                          ).order_by(desc(Record.id)).first()
             record.record_change_beads('in', beads_moved)
+            db.session.commit()
+            print('room is > 0, beads_moved is ' + str(beads_moved))
         else:
             extra = bead_count
             beads_moved = 0
-        db.session.commit()
         moves.append(message_for(str(beads_moved), self.__tablename__.title()))
+        print(str(moves))
         return extra, from_board, moves
 
     def receive_unlimited(self, beads, from_board, no_red, moves):
@@ -52,6 +54,7 @@ class Other_Boards(object):
         record.record_change_beads('in', beads)
         db.session.commit()
         moves.append(message_for(beads, self.__tablename__.title()))
+        print(str(moves))
         return from_board, moves
 
 
