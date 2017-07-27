@@ -148,12 +148,56 @@ class TestMisc(unittest.TestCase):
         return
 
 
+class TestLists(unittest.TestCase):
+
+    def test_generate_anywhere_list_no_Outreach(self):
+        from app.utils.lists import generate_anywhere_list
+        import pickle
+        # arrange
+        pre_test_list = ['Intake', 'a', 'b', 'c', 'd']
+        test_list_pickle = pickle.dumps(pre_test_list)
+        verification_list = ['a', 'b', 'c', 'd']
+
+        # act
+        test_list = generate_anywhere_list(test_list_pickle)
+
+        # assert - check contents
+        assert len(test_list) == len(pre_test_list) - 1
+        assert set(test_list).issubset(pre_test_list)
+        assert set(test_list).issubset(verification_list)
+        assert 'Intake' not in test_list
+        # assert - check randomness
+        test_list_sorted = sorted(test_list)
+        assert test_list_sorted != test_list
+        return
+
+    def test_generate_anywhere_list_yes_Outreach(self):
+        from app.utils.lists import generate_anywhere_list
+        import pickle
+        # arrange
+        pre_test_list = ['Intake', 'Outreach', 'a', 'b', 'c', 'd']
+        test_list_pickle = pickle.dumps(pre_test_list)
+        verification_list = ['a', 'b', 'c', 'd']
+
+        # act
+        test_list = generate_anywhere_list(test_list_pickle)
+
+        # assert - check contents
+        assert len(test_list) == len(pre_test_list) - 2
+        assert set(test_list).issubset(pre_test_list)
+        assert set(test_list).issubset(verification_list)
+        assert 'Intake' not in test_list
+        assert 'Outreach' not in test_list
+        # assert - check randomness
+        test_list_sorted = sorted(test_list)
+        assert test_list_sorted != test_list
+        return
+
+
 # Test POST assert does not raise exception
-# Tests in classes by topic
 # view tests, model tests, api tests, unit tests
 # expect exception
 # create test database - have manage.py manage that too. define in config.py
-# Test for each helper method
 # Test for each database interaction (create, GET, update)
 
 
