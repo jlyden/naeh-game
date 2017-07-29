@@ -1,28 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
 
-  {% if game.round_count == 6 %}
-    <div class="row">
-      <div class="col-sm-12">
-        {% include 'score.html' %}
-      </div>
-    </div><!-- ./row -->
-
-    <div class="row">
-      <div class="col-sm-12">
-        {% include 'decisions.html' %}
-      </div>
-    </div><!-- ./row -->
-  {% endif %}
-
   {% if game.round_count == 1 %}
     <div class="row">
       <div class="col-sm-12">
         {% include 'help.html' %}
       </div>
     </div>
+  {% endif %}
 
-  {% elif game.round_count > 1  and game.round_count < 6 %}
+  {% if game.board_to_play == 9 %}
+    <div class="row">
+    <div class="col-sm-1">
+    </div>
+      <div class="col-sm-10">
+        {% include 'event.html' %}
+      </div>
+    <div class="col-sm-1">
+    </div>
+    </div><!-- ./row -->
+  {% endif %}
+
+  {% if game.round_count == 6 %}
+    <div class="row">
+      <div class="col-sm-12">
+        {% include 'score.html' %}
+      </div>
+    </div><!-- ./row -->
+  {% endif %}
+
+  {% if game.round_count > 1 %}
     <div class="row">
       <div class="col-sm-12">
         {% include 'decisions.html' %}
