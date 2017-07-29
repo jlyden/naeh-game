@@ -1,80 +1,105 @@
 {% extends "base.html" %}
 {% block content %}
-  {% if game.round_count == 6 %}
-    <div class="row">
-      <div class="panel panel-primary col-sm-12">
-        {% include 'score.html' %}
-      </div>
-    </div><!-- ./row -->
-    <div class="row">
-      <div class="col-sm-12">
-        {% include 'decisions.html' %}
-      </div>
-    </div><!-- ./row -->
-  {% endif %}
+
   {% if game.round_count == 1 %}
     <div class="row">
       <div class="col-sm-12">
         {% include 'help.html' %}
       </div>
     </div>
-  {% elif game.round_count > 1  and game.round_count < 6 %}
+  {% endif %}
+
+  {% if game.board_to_play == 9 %}
+    <div class="row">
+    <div class="col-sm-1">
+    </div>
+      <div class="col-sm-10">
+        {% include 'event.html' %}
+      </div>
+    <div class="col-sm-1">
+    </div>
+    </div><!-- ./row -->
+  {% endif %}
+
+  {% if game.round_count == 6 %}
+    <div class="row">
+      <div class="col-sm-12">
+        {% include 'score.html' %}
+      </div>
+    </div><!-- ./row -->
+  {% endif %}
+
+  {% if game.round_count > 1 %}
     <div class="row">
       <div class="col-sm-12">
         {% include 'decisions.html' %}
       </div>
     </div><!-- ./row -->
+
     <div class="row">
-      <div class="panel panel-warning col-sm-6">
-        {% include 'chart-in-progs.html' %}
+      <div class="col-sm-6">
+        <div class="panel panel-warning">
+          {% include 'chart-in-progs.html' %}
+        </div>
       </div>
-      <div class="panel panel-success col-sm-6">
-        {% include 'chart-after-progs.html' %}
+      <div class="col-sm-6">
+        <div class="panel panel-success">
+          {% include 'chart-after-progs.html' %}
+        </div>
       </div>
     </div><!-- ./row -->
   {% endif %}
+
   <div class="row">
-    <div class="panel panel-danger col-sm-12">
-      <div class="panel-heading">
-        <h2 class="panel-title">Programs
-          {% if game.round_count < 6 %}
-            <a href="{{ url_for('play_round', game_id=game.id) }}" class="pull-right">
-              Run Simulation Round
-            </a>
-          {% endif %}
-        </h2>
-      </div>
-    </div><!-- ./panel -->
-    <div class="panel panel-primary col-sm-6">
-      <div class="panel-body">
-        <ul class="list-group">
-          <li class="list-group-item">
-            {% include 'boards/board-intake.html' %}
-          </li>
-          <li class="list-group-item">
-            {% include 'boards/board-emerg.html' %}
-          </li>
-          <li class="list-group-item">
-            {% include 'boards/board-rapid.html' %}
-          </li>
-        </ul>
-      </div><!-- ./panel body -->
-    </div><!-- ./panel left -->
-    <div class="panel panel-primary col-sm-6">
-      <div class="panel-body">
-        <ul class="list-group">
-          <li class="list-group-item">
-            {% include 'boards/board-outreach.html' %}
-          </li>
-          <li class="list-group-item">
-            {% include 'boards/board-trans.html' %}
-          </li>
-          <li class="list-group-item">
-            {% include 'boards/board-perm.html' %}
-          </li>
-        </ul>
-      </div><!-- ./panel body -->
-    </div><!-- ./panel right -->
+    <div class="col-sm-12">
+      <div class="panel panel-danger">
+        <div class="panel-heading">
+          <h2 class="panel-title">Programs
+            {% if game.round_count < 6 %}
+              <a href="{{ url_for('play_round', game_id=game.id) }}" class="pull-right">
+                Run Simulation Round
+              </a>
+            {% endif %}
+          </h2>
+        </div>
+      </div><!-- ./panel -->
+    </div><!-- ./col -->
+
+    <div class="col-sm-6">
+      <div class="panel panel-primary">
+        <div class="panel-body">
+          <ul class="list-group">
+            <li class="list-group-item">
+              {% include 'boards/board-intake.html' %}
+            </li>
+            <li class="list-group-item">
+              {% include 'boards/board-emerg.html' %}
+            </li>
+            <li class="list-group-item">
+              {% include 'boards/board-rapid.html' %}
+            </li>
+          </ul>
+        </div><!-- ./panel body -->
+      </div><!-- ./panel left -->
+    </div><!-- ./col -->
+
+    <div class="col-sm-6">
+      <div class="panel panel-primary">
+        <div class="panel-body">
+          <ul class="list-group">
+            <li class="list-group-item">
+              {% include 'boards/board-outreach.html' %}
+            </li>
+            <li class="list-group-item">
+              {% include 'boards/board-trans.html' %}
+            </li>
+            <li class="list-group-item">
+              {% include 'boards/board-perm.html' %}
+            </li>
+          </ul>
+        </div><!-- ./panel body -->
+      </div><!-- ./panel right -->
+    </div><!-- ./col -->
   </div><!-- ./row -->
 
 <script>

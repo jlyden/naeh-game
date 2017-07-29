@@ -13,53 +13,53 @@
     </div>
   </div> <!-- ./row -->
   <div class="row">
-    <div class="col-sm-1">
-    </div>
-    <div class="panel panel-info col-sm-5">
-      {% if not current_games %}
-        <div class="panel-body">
-          <p>No games in play.</p>
-        </div>
-      {% else %}
+    <div class="col-sm-6">
+      <div class="panel panel-info">
+        {% if not current_games %}
+          <div class="panel-body">
+            <p>No games in play.</p>
+          </div>
+        {% else %}
+          <div class="panel-heading">
+            <h2 class="panel-title">Games in Progress</h2>
+          </div>
+          <div class="panel-body">
+            <ul class="list-group">
+              {% for game in current_games %}
+                <li class="list-group-item">
+                  <a href="{{ url_for('status', game_id=game.id) }}">
+                    Game {{ game.id }}: Round {{ game.round_count }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div> <!-- ./panel-body -->
+        {% endif %}
+      </div> <!-- ./panel -->
+    </div> <!-- ./col -->
+    <div class="col-sm-6">
+      <div class="panel panel-warning">
+        {% if not complete_games %}
+          <div class="panel-body">
+            <p>No completed games.</p>
+          </div>
+        {% else %}
         <div class="panel-heading">
-          <h2 class="panel-title">Games in Progress</h2>
+          <h2 class="panel-title">Completed Games</h2>
         </div>
         <div class="panel-body">
           <ul class="list-group">
-            {% for game in current_games %}
+            {% for game in complete_games %}
               <li class="list-group-item">
                 <a href="{{ url_for('status', game_id=game.id) }}">
-                  Game {{ game.id }}: Round {{ game.round_count }}
+                  Game {{ game.id }}: Score {{ game.final_score }}
                 </a>
               </li>
             {% endfor %}
           </ul>
         </div> <!-- ./panel-body -->
-      {% endif %}
-    </div> <!-- ./panel -->
-    <div class="panel panel-warning col-sm-5">
-      {% if not complete_games %}
-        <div class="panel-body">
-          <p>No completed games.</p>
-        </div>
-      {% else %}
-      <div class="panel-heading">
-        <h2 class="panel-title">Completed Games</h2>
-      </div>
-      <div class="panel-body">
-        <ul class="list-group">
-          {% for game in complete_games %}
-            <li class="list-group-item">
-              <a href="{{ url_for('status', game_id=game.id) }}">
-                Game {{ game.id }}: Score {{ game.final_score }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </div> <!-- ./panel-body -->
-      {% endif %}
-    </div> <!-- ./panel -->
-    <div class="col-sm-1">
-    </div>
+        {% endif %}
+      </div> <!-- ./panel -->
+    </div><!-- ./col -->
   </div> <!-- ./row -->
 {% endblock %}

@@ -11,7 +11,11 @@ def end_round(game, board_list):
     # Update record and reset counters - for ALL boards, even not being played
     update_all_records(game.id, game.round_count, RECORDS_LIST)
     game.round_count += 1
-    game.board_to_play = 0
+    # System event if moving into round 2-4
+    if game.round_count < 5:
+        game.board_to_play = 9
+    else:
+        game.board_to_play = 0
     db.session.commit()
     return
 
