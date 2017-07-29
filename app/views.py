@@ -10,6 +10,7 @@ from .utils.misc import gen_progs_for_sys_event
 from .utils.recordkeeping import end_round
 from .utils.statusloads import load_boards_and_maxes, load_counts_and_changes
 from .utils.statusloads import load_decisions, load_logs, load_records
+from .utils.content import tips
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -18,8 +19,12 @@ def home():
         new_game = Game.create()
         return redirect(url_for('status', game_id=new_game.id))
     elif request.method == 'GET':
-        recent_games = Game.query.order_by(Game.start_datetime.desc())
-        return render_template('home.html', recent_games=recent_games)
+        current_games = Game.query.filter(Game.final_score == 0
+                                          ).order_by(Game.start_datetime.desc())
+        complete_games = Game.query.filter(Game.final_score > 0
+                                          ).order_by(Game.final_score)
+        return render_template('home.html', current_games=current_games,
+                               complete_games=complete_games)
 
 
 @app.route('/status/<game_id>')
@@ -35,7 +40,8 @@ def status(game_id):
                            board_list=board_list, boards=boards,
                            maxes=maxes, records=records,
                            counts=counts, changes=changes,
-                           decisions=decisions, score=score)
+                           decisions=decisions, score=score,
+                           tips=tips)
 
 
 @app.route('/view_log/<game_id>')
@@ -82,7 +88,6 @@ def play_board(board_name, game_id):
         record = Record.query.filter(Record.game_id == game_id,
                                      Record.board_name == board_name,
                                      ).order_by(desc(Record.id)).first()
-        print("play_board found " + str(record))
         record.record_change_beads('out', beads_moved)
     move_log = Log(game_id, game.round_count, board_name, moves)
     db.session.add(move_log)
@@ -102,7 +107,6 @@ def play_board(board_name, game_id):
 def system_event(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     if request.method == 'POST':
-        print("Executing System Event")
         moves = []
         if this_game.round_count == 2:
             program = request.form.get('program')
@@ -120,7 +124,9 @@ def system_event(game_id):
     else:
         # Time to calculate Final Score
         if this_game.round_count == 6:
-            this_game.calculate_final_score()
+            final_score = this_game.calculate_final_score()
+            this_game.final_score = final_score
+            db.session.commit()
             return render_template('event.html', game=this_game, programs={})
         else:
             programs = gen_progs_for_sys_event(this_game.board_list_pickle)
@@ -128,7 +134,11 @@ def system_event(game_id):
                                    programs=programs)
 
 
+@app.route('/about_boards/<game_id>')
+def about_boards(game_id):
+    this_game = Game.query.get_or_404(int(game_id))
+    return render_template('about-boards.html', game=this_game)
+
 # TODO: integrate system_event as (disappearing) part of status page
 # TODO: One-button run simulation version with side-by-side comparison
 # TODO: add animation
-# TODO: add informative details (definitions of boards, etc)
