@@ -1,0 +1,12 @@
+<h4>
+  <a href="{{ url_for('about_boards', game_id=game.id, _anchor='intake') }}" data-toggle="tooltip" title="{{ tips['itip'] }}">
+      Intake Program</a>
+  <span class="label label-info ">0</span>
+  {% if game.intake_cols == 6 %}
+    <mark><small>
+    <a href="about-boards.html#diversion" data-toggle="tooltip" title="{{ tips['dtip'] }}">
+      Diversion enabled</a>
+    </small></mark>
+  {% endif %}
+</h4>
+

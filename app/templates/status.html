@@ -2,175 +2,84 @@
 {% block content %}
   {% if game.round_count == 6 %}
     <div class="row">
-      <div class="panel panel-primary col-sm-8">
-          {% include 'score.html' %}
-        </div><!--./panel -->
-        <div class="col-sm-4">
-          {% include 'decisions.html' %}
-        </div>
+      <div class="panel panel-primary col-sm-12">
+        {% include 'score.html' %}
+      </div>
     </div><!-- ./row -->
     <div class="row">
-      {% include 'chart-totals.html' %}
+      <div class="col-sm-12">
+        {% include 'decisions.html' %}
+      </div>
+    </div><!-- ./row -->
+  {% endif %}
+  {% if game.round_count == 1 %}
+    <div class="row">
+      <div class="col-sm-12">
+        {% include 'help.html' %}
+      </div>
+    </div>
+  {% elif game.round_count > 1  and game.round_count < 6 %}
+    <div class="row">
+      <div class="col-sm-12">
+        {% include 'decisions.html' %}
+      </div>
+    </div><!-- ./row -->
+    <div class="row">
+      <div class="panel panel-warning col-sm-6">
+        {% include 'chart-in-progs.html' %}
+      </div>
+      <div class="panel panel-success col-sm-6">
+        {% include 'chart-after-progs.html' %}
+      </div>
     </div><!-- ./row -->
   {% endif %}
   <div class="row">
-    <div class="panel panel-primary col-sm-10">
+    <div class="panel panel-danger col-sm-12">
       <div class="panel-heading">
-        <h2 class="panel-title">Boards
-          <a href="{{ url_for('play_round', game_id=game.id) }}" class="pull-right">
-            Play Round
-          </a>
+        <h2 class="panel-title">Programs
+          {% if game.round_count < 6 %}
+            <a href="{{ url_for('play_round', game_id=game.id) }}" class="pull-right">
+              Run Simulation Round
+            </a>
+          {% endif %}
         </h2>
       </div>
-    </div>
-    <div class="col-sm-2">
-    </div>
-  </div><!-- ./row -->
-  <div class="row">
-    <div class="panel panel-primary col-sm-5">
+    </div><!-- ./panel -->
+    <div class="panel panel-primary col-sm-6">
       <div class="panel-body">
         <ul class="list-group">
           <li class="list-group-item">
-            <h4>Intake Program
-              <span class="label label-info ">0</span>
-              {% if game.intake_cols == 6 %}
-                <mark><small>Diversion Column enabled</small></mark>
-              {% endif %}
-            </h4>
+            {% include 'boards/board-intake.html' %}
           </li>
           <li class="list-group-item">
-            {% if 'Emergency' in board_list %}
-              <h4>Emergency Housing
-                <span class="label label-info ">
-                  {{ boards['Emergency']|length }}
-                </span>
-                {% if maxes['Emergency'] > 25 %}
-                  <mark><small>
-                    Expanded to {{ maxes['Emergency'] }} slots
-                  </small></mark>
-                {% endif %}
-              </h4>
-            {% else %}
-              <h4><s>Emergency Housing</s>
-                <span class="label label-info ">
-                  {{ boards['Emergency']|length }}
-                </span>
-                <mark><small>Closed</small></mark>
-              </h4>
-            {% endif %}
-            {% if game.round_count > 1 %}
-              {% include 'chart-emerg.html' %}
-            {% endif %}
+            {% include 'boards/board-emerg.html' %}
           </li>
           <li class="list-group-item">
-            {% if 'Rapid' in board_list %}
-              <h4>Rapid Rehousing
-                <span class="label label-info ">
-                  {{ boards['Rapid']|length }}
-                </span>
-                {% if maxes['Rapid'] > 10 %}
-                  <mark><small>
-                    Expanded to {{ maxes['Rapid'] }} slots
-                  </small></mark>
-                {% endif %}
-              </h4>
-            {% else %}
-              <h4><s>Rapid Housing</s>
-                <span class="label label-info ">
-                  {{ boards['Rapid']|length }}
-                </span>
-                <mark><small>Closed</small></mark>
-              </h4>
-            {% endif %}
-            {% if game.round_count > 1 %}
-              {% include 'chart-rapid.html' %}
-            {% endif %}
+            {% include 'boards/board-rapid.html' %}
           </li>
         </ul>
       </div><!-- ./panel body -->
     </div><!-- ./panel left -->
-    <div class="panel panel-primary col-sm-5">
+    <div class="panel panel-primary col-sm-6">
       <div class="panel-body">
         <ul class="list-group">
           <li class="list-group-item">
-            {% if 'Outreach' in board_list %}
-              <h4>Outreach Program
-                <span class="label label-info ">
-                  {{ boards['Outreach']|length }}
-                </span>
-                {% if maxes['Outreach'] > 10 %}
-                  <mark><small>
-                    Expanded to {{ maxes['Outreach'] }} slots
-                  </small></mark>
-                {% endif %}
-              </h4>
-            {% else %}
-              <h4><s>Outreach Housing</s>
-                <span class="label label-info ">
-                  {{ boards['Outreach']|length }}
-                </span>
-                <mark><small>Closed</small></mark>
-              </h4>
-            {% endif %}
+            {% include 'boards/board-outreach.html' %}
           </li>
           <li class="list-group-item">
-            {% if 'Transitional' in board_list %}
-              <h4>Transitional Housing
-                <span class="label label-info ">
-                  {{ boards['Transitional']|length }}
-                </span>
-                {% if maxes['Transitional'] > 20 %}
-                  <mark><small>
-                    Expanded to {{ maxes['Transitional'] }} slots
-                  </small></mark>
-                {% endif %}
-              </h4>
-            {% else %}
-              <h4><s>Transitional Housing</s>
-                <span class="label label-info ">
-                  {{ boards['Transitional']|length }}
-                </span>
-                <mark><small>Closed</small></mark>
-              </h4>
-            {% endif %}
-            {% if game.round_count > 1 %}
-              {% include 'chart-trans.html' %}
-            {% endif %}
+            {% include 'boards/board-trans.html' %}
           </li>
           <li class="list-group-item">
-            {% if 'Permanent' in board_list %}
-              <h4>Permanent Supportive Housing
-                <span class="label label-info ">
-                  {{ boards['Permanent']|length }}
-                </span>
-                {% if maxes['Permanent'] > 20 %}
-                  <mark><small>
-                    Expanded to {{ maxes['Permanent'] }} slots
-                  </small></mark>
-                {% endif %}
-              </h4>
-            {% else %}
-              <h4><s>Permanent Housing</s>
-                <span class="label label-info ">
-                  {{ boards['Permanent']|length }}
-                </span>
-                <mark><small>Closed</small></mark>
-              </h4>
-            {% endif %}
-            {% if game.round_count > 1 %}
-              {% include 'chart-perm.html' %}
-            {% endif %}
+            {% include 'boards/board-perm.html' %}
           </li>
         </ul>
       </div><!-- ./panel body -->
-    </div><!-- ./panel center -->
-    {% if game.round_count > 1  and game.round_count < 6 %}
-        <div class="col-sm-2">
-          {% include 'decisions.html' %}
-        </div><!-- ./panel right -->
-      </div><!-- ./row -->
-      <div class="row">
-          {% include 'chart-totals.html' %}
-    {% endif %}
+    </div><!-- ./panel right -->
   </div><!-- ./row -->
+
+<script>
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
 {% endblock %}

@@ -1,0 +1,18 @@
+<div class="well">
+  <p>The goal of the game is to place as many people in permanent housing as possible, and to prevent people exiting your system into unsheltered homelessness. The lower your score, the better you have achieved your goal.<p>
+  <p>Points will be added to your score for
+  <ul><li>The number of people in Transitional Housing and Emergency Sheleter at the end of <b>each round</b></li>
+  <li>The number of people who are Unsheletered at the <b>end of the game</b></li>
+  </ul></p>
+  <p>Points will be subtracted from your score for
+  <ul><li>The number of people who have Market Housing at the <b>end of the game</b></li>
+  <li>The number of people who are in Rapid Re-Housing and Permanent Supportive Housing at the <b>end of the game</b></li>
+  </ul></p>
+  <p>You will have the opportunity to make decisions about programs to open or close as the game goes on. Learn more about the different types of programs by hovering or clicking on their names.</p>
+  {% if 'about' in request.path %}
+    <p>To continue your game, click "Play Game" above.</p>
+  {% else %}
+    <p>To play each round of your game, click "Run Simulation Round" below.</p>
+  {% endif %}
+  <p>To see this help again, click "Help" in the menu bar above.</p>
+</div>

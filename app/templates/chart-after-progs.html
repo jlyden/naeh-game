@@ -1,0 +1,55 @@
+      <div class="panel-heading">
+        <h2 class="panel-title">People After Programs</h2>
+      </div>
+      <div class="panel-body">
+        <div>
+          <canvas id="after_program_chart"></canvas>
+          <div id="after_program_legend"></div>
+        </div>
+      </div>
+
+<script>
+  // after_program_chart data
+  var afterData = {
+  labels : [0, 1, 2, 3, 4, 5],
+  datasets : [{
+        data: [{% for count in counts['Market'] %}
+                  {{count}},
+                {% endfor %}],
+        label: "Market",
+        fillColor: "rgba(255,255,255,.2)",
+        strokeColor: "rgba(151,187,205,.6)",
+        pointColor: "rgba(151,187,205,.6)",
+      },{
+        data: [{% for count in counts['Unsheltered'] %}
+                  {{count}},
+                {% endfor %}],
+        label: "Unsheltered",
+        fillColor: "rgba(255,255,255,.2)",
+        strokeColor: "rgba(255,51,51,.6)",
+        pointColor: "rgba(255,51,51,.6)",
+      }
+    ]
+  }
+  // legendTemplate takes a template as a string
+  var options = {
+    display: true,
+    scaleShowGridLines : false,
+    barShowStroke : true,
+    bezierCurve: false,
+    multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
+    legendTemplate : '<ul class="list-inline">'
+                      +'<% for (var i=0; i<datasets.length; i++) { %>'
+                      +'<li class="list-group-item">'
+                        +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
+                        +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'
+                      +'</span></li>'
+                      +'<% } %>'
+                    +'</ul>'
+    }
+
+  // in_program_chart - draw chart and legend
+  var achart = new Chart(document.getElementById("after_program_chart").getContext("2d"))
+  var after_chart = achart.Line(afterData, options);
+  document.getElementById("after_program_legend").innerHTML = after_chart.generateLegend();
+</script>

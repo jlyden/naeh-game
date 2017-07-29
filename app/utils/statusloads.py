@@ -45,7 +45,7 @@ def load_decisions(game_id):
     decisions = []
     records = Record.query.filter(Record.game_id == game_id,
                                   Record.note.isnot(None)
-                                  ).order_by(desc(Record.id))
+                                  ).order_by(Record.id)
     for record in records:
         decisions.append(record.note)
     return decisions

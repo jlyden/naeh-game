@@ -1,0 +1,87 @@
+<h4>
+  <a href="{{ url_for('about_boards', game_id=game.id, _anchor='perm') }}" data-toggle="tooltip" title="{{ tips['ptip'] }}">
+    {% if 'Permanent' not in board_list %}<s>{% endif %}
+      Permanent Supportive</a>
+    {% if 'Permanent' in board_list %}
+      <span class="label label-info ">
+        {{ boards['Permanent']|length }}
+      </span>
+      {% if maxes['Permanent'] > 20 %}
+        <mark><small>
+          Expanded to {{ maxes['Permanent'] }} slots
+        </small></mark>
+      {% endif %}
+    {% else %}
+      </s>
+      <span class="label label-info ">
+        {{ boards['Permanent']|length }}
+      </span>
+      <mark><small>Closed</small></mark>
+    {% endif %}
+</h4>
+{% if game.round_count > 1 %}
+  <div>
+    <canvas id="perm_chart"></canvas>
+    <div id="perm_legend"></div>
+  </div>
+{% endif %}
+
+<script>
+{% if changes %}
+  // status bar charts
+  var permData = {
+    labels : [1, 2, 3, 4, 5],
+    datasets : [{
+          data: [{% for _,b in changes['Permanent'] %}
+                    40,
+                  {% endfor %}],
+          label: "",
+          fillColor: "rgba(255,255,255,.2)",
+          strokeColor: "rgba(255,255,255,.2)",
+          pointColor: "rgba(255,255,255,.2)",
+        },{
+          data: [{% for a,_ in changes['Permanent'] %}
+                    {{a}},
+                  {% endfor %}],
+          label: "Beads In",
+          fillColor: "rgba(151,187,205,.2)",
+          strokeColor: "rgba(151,187,205,.6)",
+          pointColor: "rgba(151,187,205,.6)",
+        },{
+          data: [{% for _,b in changes['Permanent'] %}
+                    {{b}},
+                  {% endfor %}],
+          label: "Beads Out",
+          fillColor: "rgba(255,51,51,.2)",
+          strokeColor: "rgba(255,51,51,.6)",
+          pointColor: "rgba(255,51,51,.6)",
+        }
+      ]
+    }
+  // Set defaults and options
+  Chart.defaults.global.responsive = true;
+  Chart.defaults.global.scaleLineColor = "black";
+  Chart.defaults.global.scaleFontSize = 16;
+  // legendTemplate takes a template as a string
+  var options = {
+    display: true,
+    scaleShowGridLines : false,
+    barShowStroke : true,
+    bezierCurve: false,
+    multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
+    legendTemplate : '<ul class="list-inline">'
+                      +'<% for (var i=1; i<datasets.length; i++) { %>'
+                      +'<li class="list-group-item">'
+                        +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
+                        +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'
+                      +'</span></li>'
+                      +'<% } %>'
+                    +'</ul>'
+    }
+
+  // perm chart - draw chart and legend
+  var echart = new Chart(document.getElementById("perm_chart").getContext("2d"))
+  var perm_chart = echart.Bar(permData, options);
+  document.getElementById("perm_legend").innerHTML = perm_chart.generateLegend();
+{% endif %}
+</script>
