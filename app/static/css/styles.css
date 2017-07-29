@@ -23,3 +23,9 @@
     position: relative;
     background: yellow;
 }
+
+.narrow-sl {
+    width: 70%;
+    margin: auto;
+    font-size: large;
+}
