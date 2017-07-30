@@ -13,19 +13,21 @@ from .utils.statusloads import load_decisions, load_logs, load_records
 from .utils.content import tips
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def home():
-    if request.method == 'POST':
-        new_game = Game.create()
-        return redirect(url_for('status', game_id=new_game.id))
-    elif request.method == 'GET':
-        # Unfinished games have a final_score of 0 by default
-        cur_games = Game.query.filter(Game.final_score == 0
-                                      ).order_by(Game.start_datetime.desc())
-        complete_games = Game.query.filter(Game.final_score > 0
-                                           ).order_by(Game.final_score)
-        return render_template('home.html', current_games=cur_games,
-                               complete_games=complete_games)
+    # Unfinished games have a final_score of 0 by default
+    cur_games = Game.query.filter(Game.final_score == 0
+                                  ).order_by(Game.start_datetime.desc())
+    complete_games = Game.query.filter(Game.final_score > 0
+                                       ).order_by(Game.final_score)
+    return render_template('home.html', current_games=cur_games,
+                           complete_games=complete_games)
+
+
+@app.route('/new_game', methods=['POST'])
+def new_game():
+    new_game = Game.create()
+    return redirect(url_for('status', game_id=new_game.id))
 
 
 @app.route('/status/<game_id>')
