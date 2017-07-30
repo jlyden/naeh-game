@@ -28,51 +28,32 @@ def home():
                                complete_games=complete_games)
 
 
-@app.route('/status/<game_id>', methods=['GET', 'POST'])
+@app.route('/status/<game_id>')
 def status(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    if request.method == 'POST':
-        print("POST request to status")
-        moves = []
-        if this_game.round_count == 2:
-            program = request.form.get('program')
-            moves = this_game.open_new(program, moves)
-        elif this_game.round_count == 3 or this_game.round_count == 4:
-            from_program = request.form.get('from_program')
-            to_program = request.form.get('to_program')
-            moves = this_game.convert_program(from_program, to_program, moves)
-
-        # Set "board_played == 6" in log
-        move_log = Log(game_id, this_game.round_count, 6, moves)
-        db.session.add(move_log)
-        # Set board_to_play to 0
-        this_game.board_to_play = 0
+    programs = []
+    if this_game.round_count == 6:
+        # Time to calculate Final Score
+        final_score = this_game.calculate_final_score()
+        this_game.final_score = final_score
         db.session.commit()
-        return redirect(url_for('status', game_id=game_id))
-    elif request.method == 'GET':
-        print("GET request to status")
-        programs = []
-        if this_game.round_count == 6:
-            # Time to calculate Final Score
-            final_score = this_game.calculate_final_score()
-            this_game.final_score = final_score
-            db.session.commit()
-        elif this_game.board_to_play == 9:
-            programs = gen_progs_for_sys_event(this_game.board_list_pickle)
-        # Load data for status page
-        board_list = pickle.loads(this_game.board_list_pickle)
-        boards, maxes = load_boards_and_maxes(game_id, board_list,
-                                              RECORDS_LIST)
-        records = load_records(game_id, board_list)
-        counts, changes = load_counts_and_changes(game_id, RECORDS_LIST)
-        decisions = load_decisions(game_id)
-        score = Score.query.filter_by(game_id=game_id).first()
-        return render_template('status.html', game=this_game,
-                               board_list=board_list, boards=boards,
-                               maxes=maxes, records=records,
-                               counts=counts, changes=changes,
-                               decisions=decisions, score=score,
-                               tips=tips, programs=programs)
+    elif this_game.board_to_play == 9:
+        programs = gen_progs_for_sys_event(this_game.board_list_pickle)
+
+    # Load data for status page
+    board_list = pickle.loads(this_game.board_list_pickle)
+    boards, maxes = load_boards_and_maxes(game_id, board_list,
+                                          RECORDS_LIST)
+    records = load_records(game_id, board_list)
+    counts, changes = load_counts_and_changes(game_id, RECORDS_LIST)
+    decisions = load_decisions(game_id)
+    score = Score.query.filter_by(game_id=game_id).first()
+    return render_template('status.html', game=this_game,
+                           board_list=board_list, boards=boards,
+                           maxes=maxes, records=records,
+                           counts=counts, changes=changes,
+                           decisions=decisions, score=score,
+                           tips=tips, programs=programs)
 
 
 @app.route('/view_log/<game_id>')
@@ -122,6 +103,26 @@ def play_board(board_name, game_id):
     board_list = pickle.loads(game.board_list_pickle)
     if game.board_to_play > len(board_list) - 1:
         end_round(game, board_list)
+    db.session.commit()
+    return redirect(url_for('status', game_id=game_id))
+
+
+@app.route('/event/<game_id>', methods=['POST'])
+def event(game_id):
+    this_game = Game.query.get_or_404(int(game_id))
+    moves = []
+    if this_game.round_count == 2:
+        program = request.form.get('program')
+        moves = this_game.open_new(program, moves)
+    elif this_game.round_count == 3 or this_game.round_count == 4:
+        from_program = request.form.get('from_program')
+        to_program = request.form.get('to_program')
+        moves = this_game.convert_program(from_program, to_program, moves)
+    # Set "board_played == 6" in log
+    move_log = Log(game_id, this_game.round_count, 6, moves)
+    db.session.add(move_log)
+    # Set board_to_play to 0
+    this_game.board_to_play = 0
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 
