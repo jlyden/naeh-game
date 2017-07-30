@@ -1,51 +1,69 @@
 {% extends "base.html" %}
 {% block content %}
 <div id="game-table">
+<p>
+<button onclick="myMove()">Click Me</button>
+</p>
   <div class="row">
-    <div class="col-sm-4">
-      <div id="emerg" class="well well-lg">Emerg: </div>
+    <div class="col-sm-2">
     </div>
-    <div class="col-sm-4">
-      <div id="market" class="well well-lg">Market: </div>
-    </div>
-    <div class="col-sm-4">
-      <div id="rapid" class="well well-lg">Rapid: </div>
-    </div>
-  </div><!-- ./row -->
-
-  <div class="row">
-    <div class="panel col-sm-4">
-      <div id="outreach" class="well well-lg">Outreach: </div>
-    </div>
-    <div class="panel col-sm-4">
+    <div class="col-sm-8">
       <div id="intake" class="well well-lg">Intake:
-        <div id="bead-one">Bead One</div>
+        <div id="bead-one" class="bead">1</div>
       </div>
     </div>
-    <div class="panel col-sm-4">
-      <div id="diversion" class="well well-lg">Divers: </div>
+    <div class="col-sm-2">
     </div>
   </div><!-- ./row -->
 
   <div class="row">
+    <div class="panel col-sm-1"></div>
+    <div class="panel col-sm-2">
+      <div id="emerg" class="board">Emergency</div>
+    </div>
+    <div class="panel col-sm-2">
+      <div id="rapid" class="well well-lg">Rapid</div>
+    </div>
+    <div class="panel col-sm-2">
+      <div id="outreach" class="well well-lg">Outreach</div>
+    </div>
+    <div class="panel col-sm-2">
+      <div id="transitional" class="well well-lg">Transitional</div>
+    </div>
+    <div class="panel col-sm-2">
+      <div id="permanent" class="well well-lg">Permanent</div>
+    </div>
+    <div class="panel col-sm-1"></div>
+  </div><!-- ./row -->
+
+  <div class="row">
+    <div class="panel col-sm-2"></div>
     <div class="panel col-sm-4">
-      <div id="transitional" class="well well-lg">Trans: </div>
+      <div id="unsheltered" class="well well-lg">Unsheltered</div>
     </div>
     <div class="panel col-sm-4">
-      <div id="unsheltered" class="well well-lg">Unshelt: </div>
+      <div id="market" class="well well-lg">Market</div>
     </div>
-    <div class="panel col-sm-4">
-      <div id="permanent" class="well well-lg">Perm: </div>
-    </div>
+    <div class="panel col-sm-2"></div>
   </div><!-- ./row -->
 </div><!-- ./game-table -->
 
 <!-- 900 x 600 -->
 
 <script>
-var $beadOne = $("#bead-one");
-
-$beadOne.velocity({ translateX: "100px" });
-
+function myMove() {
+    var elem = document.getElementById("bead-one");
+    var pos = 0;
+    var id = setInterval(frame, 5);
+    function frame() {
+        if (pos == 350) {
+            clearInterval(id);
+        } else {
+            pos++;
+            elem.style.top = pos + 'px';
+            elem.style.left = pos + 'px';
+        }
+    }
+}
 </script>
 {% endblock %}

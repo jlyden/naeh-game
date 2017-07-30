@@ -22,14 +22,20 @@
 }
 
 #game-table {
-    width: 400px;
-    height: 400px;
+    width: 100%;
+    margin: auto;
     position: relative;
-    background: yellow;
 }
 
-.narrow-sl {
-    width: 70%;
-    margin: auto;
-    font-size: large;
+.board {
+    border: 1px;
+    border-color: black;
+    height: 40px;
+}
+
+.bead {
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    background: red;
 }
