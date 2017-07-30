@@ -14,6 +14,7 @@ from .utils.content import tips
 
 
 @app.route('/')
+@app.route('/index')
 def home():
     # Unfinished games have a final_score of 0 by default
     cur_games = Game.query.filter(Game.final_score == 0
@@ -34,14 +35,9 @@ def new_game():
 def status(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     programs = []
-    if this_game.round_count == 6:
-        # Time to calculate Final Score
-        final_score = this_game.calculate_final_score()
-        this_game.final_score = final_score
-        db.session.commit()
-    elif this_game.board_to_play == 9:
+    # IF time for system event ...
+    if this_game.board_to_play == 9:
         programs = gen_progs_for_sys_event(this_game.board_list_pickle)
-
     # Load data for status page
     board_list = pickle.loads(this_game.board_list_pickle)
     boards, maxes = load_boards_and_maxes(game_id, board_list,
@@ -104,7 +100,13 @@ def play_board(board_name, game_id):
     # If board list is exhausted ...
     board_list = pickle.loads(game.board_list_pickle)
     if game.board_to_play > len(board_list) - 1:
-        end_round(game, board_list)
+        round_count = end_round(game, board_list)
+    else:
+        round_count = 0
+    # If game is over, time to calculate Final Score
+    if round_count == 6:
+        final_score = game.calculate_final_score()
+        game.final_score = final_score
     db.session.commit()
     return redirect(url_for('status', game_id=game_id))
 

@@ -17,7 +17,7 @@ def end_round(game, board_list):
     else:
         game.board_to_play = 0
     db.session.commit()
-    return
+    return game.round_count
 
 
 def intiate_records(game):

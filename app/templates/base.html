@@ -43,12 +43,6 @@
             <li>
               <a href="{{ url_for('about_boards', game_id=game.id, _anchor='help') }}" class="navbar-link">Help</a>
             </li>
-          {% else %}
-            <form class="navbar-form navbar-right" role="new" action="" method="POST" name="new_game">
-              <div class="form-group">
-                <button type="submit" class="btn btn-link">New Game</button>
-              </div>
-            </form>
           {% endif %}
         </ul>
       </div>
