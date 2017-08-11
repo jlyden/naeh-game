@@ -4,7 +4,7 @@ from flask import redirect, url_for, flash
 from app import db
 from .boards import Emergency, Rapid, Outreach, Transitional
 from .boards import Permanent, Unsheltered, Market
-from .score import Score, Record, Log
+from .score import Score, Record, Log, Intake
 from ..utils.lists import BOARD_LIST, AVAILABLE_BEADS, EMERG_START
 from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
 from ..utils.lists import EMPTY_LIST, EXTRA_BOARD, generate_anywhere_list
@@ -131,6 +131,11 @@ class Game(db.Model):
             return intake, moves
 
     def send_anywhere(self, extra, from_board, no_red, moves):
+        if self.board_to_play == 0:
+            intake_record = Intake.query.filter(Intake.game_id == self.id,
+                                                Intake.round_count == self.round_count
+                                                ).order_by(desc(Intake.id)).first()
+
         # Get list of available programs to send beads
         anywhere_list = generate_anywhere_list(self.board_list_pickle)
         # Cycle through programs, moving as many beads as possible to each

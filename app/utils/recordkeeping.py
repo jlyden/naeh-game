@@ -2,9 +2,9 @@ import pickle
 from sqlalchemy import desc
 from app import db
 from .lists import RECORDS_LIST
-from ..models.boards import Emergency, Rapid, Outreach, Transitional, Permanent
-from ..models.boards import Unsheltered, Market
-from ..models.score import Record
+from ..models.boards import Emergency, Rapid, Outreach, Transitional
+from ..models.boards import Permanent, Unsheltered, Market
+from ..models.score import Record, Intake
 
 
 def end_round(game, board_list):
@@ -59,3 +59,10 @@ def update_all_records(game_id, round_count, board_list):
             record.end_count = board_length
         db.session.commit()
     return
+
+
+def set_up_intake_record(game_id, round_count):
+    intake_record = Intake(game_id=game_id, round_count=round_count)
+    db.session.add(intake_record)
+    db.session.commit()
+    return intake_record

@@ -3,11 +3,12 @@ import pickle
 from app import db
 from ..models.boards import Emergency, Rapid, Outreach, Transitional, Permanent
 from ..models.boards import Unsheltered, Market
-from .recordkeeping import intiate_records
+from .recordkeeping import intiate_records, set_up_intake_record
 
 
 def play_intake(game, moves):
     intiate_records(game)
+    intake_record = set_up_intake_record(game.id, game.round_count)
     # Load boards
     intake, moves = game.load_intake(False, moves)
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
@@ -19,17 +20,28 @@ def play_intake(game, moves):
 
     # Move beads
     # If Diversion column is open
+    to_market = 0
     if game.intake_cols == 6:
         message = "Diversion column being played"
         moves.append(message)
         intake, moves = market.receive_unlimited(col, intake, no_red, moves)
+        to_market += col
     surplus, intake, moves = emerg.receive_beads(col, intake, no_red, moves)
+    to_emerg = col
+    to_unshel = 0
     if game.round_count == 1:
         intake, moves = unsheltered.receive_unlimited(col, intake, no_red,
                                                       moves)
+        to_unshel += col
     elif game.round_count == 4:
         surplus, intake, moves = emerg.receive_beads(col, intake, no_red,
                                                      moves)
+        to_emerg += col
+    intake_record.to_market = to_market
+    intake_record.to_emerg = to_emerg
+    intake_record.to_unshel = to_unshel
+    db.session.add(intake_record)
+    db.session.commit()
     intake, moves = game.send_anywhere(len(intake), intake, no_red, moves)
     # Intake always ends at 0, and can't receive, so not saved
     beads_moved = 50

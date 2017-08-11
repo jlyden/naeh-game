@@ -34,7 +34,7 @@ window.onload = function() {
   {% if game.round_count == 2 %}
     <!-- Add Program or Open Diversion -->
     <div class="panel-heading">
-      <h2 class="panel-title">Select a program to add,<br> or open the Diversion Column.</h2>
+      <h2 class="panel-title">Select a program to add or open the Diversion Column.</h2>
     </div>
     <div class="panel-body">
     <form action="{{ url_for('event', game_id=game.id) }}" method="POST" name="new_program">

@@ -9,6 +9,17 @@
     </div>
   {% endif %}
 
+  {% if game.round_count > 1 %}
+    <div class="row movement">
+      <div class="col-sm-6">
+        {% include 'intake-move.html' %}
+      </div>
+      <div class="col-sm-6">
+        {% include 'chart-in-progs.html' %}
+      </div>
+    </div>
+  {% endif %}
+
   {% if game.board_to_play == 9 %}
     <div class="row">
     <div class="col-sm-1">

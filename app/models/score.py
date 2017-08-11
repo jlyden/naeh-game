@@ -22,6 +22,22 @@ class Log(db.Model):
         self.moves = pickle.dumps(moves)
 
 
+class Intake(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    round_count = db.Column(db.Integer, nullable=False)
+    to_emerg = db.Column(db.Integer, default=0)
+    to_rapid = db.Column(db.Integer, default=0)
+    to_trans = db.Column(db.Integer, default=0)
+    to_perm = db.Column(db.Integer, default=0)
+    to_market = db.Column(db.Integer, default=0)
+    to_unshel = db.Column(db.Integer, default=0)
+
+    def __repr__(self):
+        return "<Intake Out: Game %r, Round %r>" % (self.game_id,
+                                                    self.round_count)
+
+
 class Record(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))

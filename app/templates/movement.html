@@ -1,0 +1,43 @@
+      <div class="panel-heading">
+        <h2 class="panel-title">50 people entered the intake program ...</h2>
+      </div>
+      <div class="panel-body">
+        <div>
+          <canvas id="intake_movement_chart"></canvas>
+          <div id="intake_movement_legend"></div>
+        </div>
+      </div>
+
+<script>
+  // intake_movement data
+  var intakeMovement = {
+    labels : ["Emergency", "Rapid", "Outreach", "Transitional", "Permanent", "Market", "Unsheltered"],
+    datasets : [{
+          data: [{% for count in counts['Market'] %}
+                    {{count}},
+                  {% endfor %}],
+            backgroundColor: []
+        }]
+  }
+  // legendTemplate takes a template as a string
+  var options = {
+    display: true,
+    scaleShowGridLines : false,
+    barShowStroke : true,
+    bezierCurve: false,
+    multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
+    legendTemplate : '<ul class="list-inline">'
+                      +'<% for (var i=0; i<datasets.length; i++) { %>'
+                      +'<li class="list-group-item">'
+                        +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
+                        +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'
+                      +'</span></li>'
+                      +'<% } %>'
+                    +'</ul>'
+    }
+
+  // in_program_chart - draw chart and legend
+  var achart = new Chart(document.getElementById("after_program_chart").getContext("2d"))
+  var after_chart = achart.Line(afterData, options);
+  document.getElementById("after_program_legend").innerHTML = after_chart.generateLegend();
+</script>
