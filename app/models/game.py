@@ -22,15 +22,18 @@ class Game(db.Model):
     board_list_pickle = db.Column(db.PickleType, default=BOARD_LIST)
     final_score = db.Column(db.Integer, default=0)
     # One to One relationships
-    emergency = db.relationship('Emergency', uselist=False)
-    rapid = db.relationship('Rapid', uselist=False)
-    outreach = db.relationship('Outreach', uselist=False)
-    transitional = db.relationship('Transitional', uselist=False)
-    permanent = db.relationship('Permanent', uselist=False)
-    unsheltered = db.relationship('Unsheltered', uselist=False)
-    market = db.relationship('Market', uselist=False)
-    score = db.relationship('Score', uselist=False)
+    emergency = db.relationship('Emergency', backref='game', uselist=False)
+    rapid = db.relationship('Rapid', backref='game', uselist=False)
+    outreach = db.relationship('Outreach', backref='game', uselist=False)
+    transitional = db.relationship('Transitional', uselist=False,
+                                   backref='game')
+    permanent = db.relationship('Permanent', backref='game', uselist=False)
+    unsheltered = db.relationship('Unsheltered', backref='game', uselist=False)
+    market = db.relationship('Market', backref='game', uselist=False)
+    score = db.relationship('Score', backref='game', uselist=False)
     # One to Many relationships
+    stats = db.relationship('Stats', backref='game')
+    counts = db.relationship('Counts', backref='game')
     record = db.relationship('Record')
     log = db.relationship('Log')
 

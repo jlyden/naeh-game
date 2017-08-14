@@ -19,6 +19,45 @@ def load_boards_and_maxes(game_id, max_list, board_list):
     return boards, maxes
 
 
+def load_counts(game_id, board_list):
+    counts = {}
+    for board_num in board_list:
+        board_counts = []
+        # Get all counts associated with the board, in order
+        counts = Counts.query.filter(Counts.game_id == game_id,
+                                      Counts.board_num == board_num
+                                      ).order_by(Counts.id)
+        # Put the counts into a list and add to dict
+        for count in counts:
+            board_counts.append(count.beads)
+        counts[board] = board_counts
+    return counts
+
+
+def load_changes(game_id, board_list):
+    changes = {}
+    for board_num in board_list:
+        changes_tuples = []
+        from_sum = 0
+        to_sum = 0
+        # Get all to_board stats for that board
+        to_board_stats = Stats.query.filter(Stats.game_id == game_id,
+                                            Stats.to_board == board_num)
+        # Sum beads_moved IN
+        for stat in to_board_stats:
+            to_sum += stat.beads_moved
+        # Get all from_board stats for that board
+        from_board_stats = Stats.query.filter(Stats.game_id == game_id,
+                                              Stats.from_board == board_num)
+        # Sum beads_moved OUT
+        for stat in from_board_stats:
+            from_sum += stat.beads_moved
+        # Add tuple of changes (to, from)
+        tup = (to_sum, from_sum)
+        changes_tuples.append(tup)
+    changes[board] = changes_tuples
+    return changes
+
 def load_counts_and_changes(game_id, board_list):
     counts = {}
     changes = {}

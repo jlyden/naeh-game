@@ -3,6 +3,51 @@ from sqlalchemy import desc
 from app import db
 
 
+class Stats(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    round_count = db.Column(db.Integer, nullable=False)
+    from_board = db.Column(db.Integer, nullable=False)
+    to_board = db.Column(db.Integer, nullable=False)
+    beads_moved = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return "<Stats: Game %r, Round %r, \
+                 From_Board %r, To_Board %r, Beads %r >" % (self.game_id,
+                                                            self.round_count,
+                                                            self.from_board,
+                                                            self.to_board,
+                                                            self.beads_moved)
+
+
+class Counts(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    round_count = db.Column(db.Integer, nullable=False)
+    board_num = db.Column(db.Integer, nullable=False)
+    beads = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return "<End Counts: Game %r, Round %r,\
+                 Board %r, Beads %r >" % (self.game_id,
+                                          self.round_count,
+                                          self.board,
+                                          self.beads)
+
+
+class Decisions(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    round_count = db.Column(db.Integer, nullable=False)
+    note = db.Column(db.String(500))
+
+    def __repr__(self):
+        return "<Decisions: Game %r, Round %r - %r >" % (self.game_id,
+                                                         self.round_count,
+                                                         self.note)
+
+
+# TODO: Delete after record refactor
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
@@ -22,6 +67,7 @@ class Log(db.Model):
         self.moves = pickle.dumps(moves)
 
 
+# TODO: Delete after record refactor
 class Intake(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
@@ -38,6 +84,7 @@ class Intake(db.Model):
                                                     self.round_count)
 
 
+# TODO: Delete after record refactor
 class Record(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
@@ -73,6 +120,7 @@ class Record(db.Model):
         return last_end_count + self.beads_in - self.beads_out
 
 
+# TODO: Delete after record refactor
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))

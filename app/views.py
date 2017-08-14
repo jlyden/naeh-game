@@ -3,13 +3,14 @@ from flask import request, render_template, redirect, url_for, flash
 from sqlalchemy import desc
 from app import app, db
 from .models.game import Game
-from .models.score import Record, Log, Score
+from .models.score import Record, Log, Score, Stats, Counts
 from .utils.boardplay import DISPATCHER_DEFAULT
 from .utils.lists import BOARD_LIST, RECORDS_LIST
 from .utils.misc import gen_progs_for_sys_event
 from .utils.recordkeeping import end_round
 from .utils.statusloads import load_boards_and_maxes, load_counts_and_changes
 from .utils.statusloads import load_decisions, load_logs, load_records
+from .utils.statusloads import load_counts, load_changes
 from .utils.content import tips
 
 
@@ -35,7 +36,7 @@ def new_game():
 def status(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     programs = []
-    # IF time for system event ...
+    # If time for system event, populate programs
     if this_game.board_to_play == 9:
         programs = gen_progs_for_sys_event(this_game.board_list_pickle)
     # Load data for status page
@@ -43,7 +44,8 @@ def status(game_id):
     boards, maxes = load_boards_and_maxes(game_id, board_list,
                                           RECORDS_LIST)
     records = load_records(game_id, board_list)
-    counts, changes = load_counts_and_changes(game_id, RECORDS_LIST)
+    counts = load_counts(game_id, RECORDS_LIST)
+    changes = load_changes(game_id, RECORDS_LIST)
     decisions = load_decisions(game_id)
     score = Score.query.filter_by(game_id=game_id).first()
     return render_template('status.html', game=this_game,
@@ -54,6 +56,7 @@ def status(game_id):
                            tips=tips, programs=programs)
 
 
+# TODO: Delete after record refactor
 @app.route('/view_log/<game_id>')
 def view_log(game_id):
     this_game = Game.query.get_or_404(int(game_id))
