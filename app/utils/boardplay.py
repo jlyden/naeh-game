@@ -3,52 +3,38 @@ import pickle
 from app import db
 from ..models.boards import Emergency, Rapid, Outreach, Transitional, Permanent
 from ..models.boards import Unsheltered, Market
-from .recordkeeping import intiate_records, set_up_intake_record
+from .recordkeeping import write_record
 
 
-def play_intake(game, moves):
-    intiate_records(game)
-    intake_record = set_up_intake_record(game.id, game.round_count)
+def play_intake(game):
     # Load boards
-    intake, moves = game.load_intake(False, moves)
+    intake = game.load_intake()
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     market = Market.query.filter_by(game_id=game.id).first()
     emerg = Emergency.query.filter_by(game_id=game.id).first()
     # col = one 'column' in game instructions
     col = math.ceil(50 / game.intake_cols)
-    no_red = False
 
-    # Move beads
-    # If Diversion column is open
-    to_market = 0
+    # Move beads and record moves
+    # If Diversion is open
     if game.intake_cols == 6:
-        message = "Diversion column being played"
-        moves.append(message)
-        intake, moves = market.receive_unlimited(col, intake, no_red, moves)
-        to_market += col
-    surplus, intake, moves = emerg.receive_beads(col, intake, no_red, moves)
-    to_emerg = col
-    to_unshel = 0
+        intake = market.receive_unlimited(col, intake)
+        write_record(game.id, game.round_count, 0, 7, col)
+    surplus, intake = emerg.receive_beads(col, intake)
+    write_record(game.id, game.round_count, 0, 1, col)
     if game.round_count == 1:
-        intake, moves = unsheltered.receive_unlimited(col, intake, no_red,
-                                                      moves)
-        to_unshel += col
+        intake = unsheltered.receive_unlimited(col, intake)
+        write_record(game.id, game.round_count, 0, 6, col)
     elif game.round_count == 4:
-        surplus, intake, moves = emerg.receive_beads(col, intake, no_red,
-                                                     moves)
-        to_emerg += col
-    intake_record.to_market = to_market
-    intake_record.to_emerg = to_emerg
-    intake_record.to_unshel = to_unshel
-    db.session.add(intake_record)
+        surplus, intake = emerg.receive_beads(col, intake,)
+        write_record(game.id, game.round_count, 0, 1, col)
     db.session.commit()
-    intake, moves = game.send_anywhere(len(intake), intake, no_red, moves)
-    # Intake always ends at 0, and can't receive, so not saved
-    beads_moved = 50
-    return moves, beads_moved, no_red
+    intake = game.send_anywhere(len(intake), intake, 0)
+    # Intake always ends at 0, and can't receive, so not saved to db
+    return
 
 
-def play_emergency(game, moves):
+def play_emergency(game):
     # Load boards
     emerg = Emergency.query.filter_by(game_id=game.id).first()
     emerg_board = pickle.loads(emerg.board)
@@ -56,29 +42,22 @@ def play_emergency(game, moves):
     market = Market.query.filter_by(game_id=game.id).first()
     # Each board has 5 columns - emergency rules say to move 1.5 cols
     col = math.ceil(1.5 * (emerg.maximum / 5))
-    # Emergency board is cleared each round
-    beads_moved = len(emerg_board)
 
-    # Move beads - If round 1 or 3, no red beads to Market Housing
-    if game.round_count == 1 or game.round_count == 3:
-        no_red = True
-    else:
-        no_red = False
-    emerg_board, moves = market.receive_unlimited(col, emerg_board, no_red,
-                                                  moves)
-    emerg_board, moves = unsheltered.receive_unlimited(col, emerg_board, False,
-                                                       moves)
+    # Move beads and record moves
+    emerg_board = market.receive_unlimited(col, emerg_board)
+    write_record(game.id, game.round_count, 1, 7, col)
+    emerg_board = unsheltered.receive_unlimited(col, emerg_board)
+    write_record(game.id, game.round_count, 1, 6, col)
     if len(emerg_board) > 0:
-        emerg_board, moves = game.send_anywhere(len(emerg_board), emerg_board,
-                                                False, moves)
+        emerg_board = game.send_anywhere(len(emerg_board), emerg_board, 1)
 
     # Save played board
     emerg.board = pickle.dumps(emerg_board)
     db.session.commit()
-    return moves, beads_moved, no_red
+    return
 
 
-def play_rapid(game, moves):
+def play_rapid(game):
     # Load boards
     rapid = Rapid.query.filter_by(game_id=game.id).first()
     rapid_board = pickle.loads(rapid.board)
@@ -86,50 +65,41 @@ def play_rapid(game, moves):
     emerg = Emergency.query.filter_by(game_id=game.id).first()
     # Each board has 5 columns
     col = math.ceil(rapid.maximum / 5)
-    # Save length so beads_moved can be calculated
-    len_start = len(rapid_board)
 
-    # Move beads - If round 2 or 4, no red beads move
-    if game.round_count == 2 or game.round_count == 4:
-        no_red = True
-    else:
-        no_red = False
-    rapid_board, moves = market.receive_unlimited(3 * col, rapid_board,
-                                                  no_red, moves)
-    extra, rapid_board, moves = emerg.receive_beads(col, rapid_board,
-                                                    no_red, moves)
-    len_end = len(rapid_board)
-    beads_moved = len_start - len_end
+    # Move beads and record moves
+    rapid_board, moves = market.receive_unlimited(3 * col, rapid_board)
+    write_record(game.id, game.round_count, 2, 7, 3 * col)
+    extra, rapid_board, moves = emerg.receive_beads(col, rapid_board)
+    write_record(game.id, game.round_count, 2, 1, col)
 
     # Save played board
     rapid.board = pickle.dumps(rapid_board)
     db.session.commit()
-    return moves, beads_moved, no_red
+    return
 
 
-def play_outreach(game, moves):
+def play_outreach(game):
     # Load boards
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     unsheltered_board = pickle.loads(unsheltered.board)
     outreach = Outreach.query.filter_by(game_id=game.id).first()
-    no_red = False
 
     # Move beads TO outreach
-    unsheltered_board, outreach_board, moves = \
-        outreach.fill_from(unsheltered_board, no_red, moves)
+    unsheltered_board, outreach_board,\
+        beads_moved = outreach.fill_from(unsheltered_board)
+    write_record(game.id, game.round_count, 6, 3, beads_moved)
     unsheltered.board = pickle.dumps(unsheltered_board)
     # Move beads FROM Outreach
-    outreach_board, moves = game.send_anywhere(len(outreach_board),
-                                               outreach_board, no_red, moves)
+    outreach_board = game.send_anywhere(len(outreach_board),
+                                        outreach_board, 3)
 
     # Save played board
     outreach.board = pickle.dumps(outreach_board)
     db.session.commit()
-    # Outreach is filled to 10 and emptied each round
-    return moves, 10, no_red
+    return
 
 
-def play_transitional(game, moves):
+def play_transitional(game):
     # Load boards
     trans = Transitional.query.filter_by(game_id=game.id).first()
     trans_board = pickle.loads(trans.board)
@@ -138,50 +108,45 @@ def play_transitional(game, moves):
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     # Each board has 5 columns
     col = math.ceil(trans.maximum / 5)
-    no_red = False
-    len_start = len(trans_board)
 
     # Move beads
-    trans_board, moves = market.receive_unlimited(col, trans_board, no_red,
-                                                  moves)
-    extra, trans_board, moves = emerg.receive_beads(col, trans_board, no_red,
-                                                    moves)
+    trans_board = market.receive_unlimited(col, trans_board)
+    write_record(game.id, game.round_count, 4, 7, col)
+    extra, trans_board = emerg.receive_beads(col, trans_board)
+    write_record(game.id, game.round_count, 4, 1, col)
     if extra:
-        trans_board, moves = unsheltered.receive_unlimited(extra, trans_board,
-                                                           no_red, moves)
-    len_end = len(trans_board)
-    beads_moved = len_start - len_end
+        trans_board = unsheltered.receive_unlimited(extra, trans_board, 4)
 
     # Save played board
     trans.board = pickle.dumps(trans_board)
     db.session.commit()
-    return moves, beads_moved, no_red
+    return
 
 
-def play_permanent(game, moves):
+def play_permanent(game):
     # Load board
     perm = Permanent.query.filter_by(game_id=game.id).first()
     perm_board = pickle.loads(perm.board)
-    no_red = False
 
     # Moves beads; different rules depending on even or odd round
     if game.round_count % 2 == 0:
         unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
-        perm_board, moves = unsheltered.receive_unlimited(1, perm_board,
-                                                          no_red, moves)
+        perm_board, moves = unsheltered.receive_unlimited(1, perm_board)
+        write_record(game.id, game.round_count, 5, 6, 1)
     else:
         market = Market.query.filter_by(game_id=game.id).first()
-        perm_board, moves = market.receive_unlimited(1, perm_board, no_red,
-                                                     moves)
+        perm_board = market.receive_unlimited(1, perm_board)
+        write_record(game.id, game.round_count, 5, 7, 1)
 
-    # Wrap up
+    # Save played board
     perm.board = pickle.dumps(perm_board)
     db.session.commit()
-    # Transitional board only moves 1 bead per round
-    return moves, 1, no_red
+    return
 
 
-DISPATCHER_DEFAULT = {'Intake': play_intake, 'Emergency': play_emergency,
-                      'Rapid': play_rapid, 'Outreach': play_outreach,
-                      'Transitional': play_transitional,
-                      'Permanent': play_permanent}
+DISPATCHER_DEFAULT = [play_intake,
+                      play_emergency,
+                      play_rapid,
+                      play_outreach,
+                      play_transitional,
+                      play_permanent]

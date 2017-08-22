@@ -1,68 +1,64 @@
 import pickle
 from sqlalchemy import desc
 from app import db
-from .lists import RECORDS_LIST
+from .lists import ALL_BOARDS_LIST
 from ..models.boards import Emergency, Rapid, Outreach, Transitional
 from ..models.boards import Permanent, Unsheltered, Market
-from ..models.score import Record, Intake
+from ..models.record import Record, Count
 
 
-def end_round(game, board_list):
-    # Update record and reset counters - for ALL boards, even not being played
-    update_all_records(game.id, game.round_count, RECORDS_LIST)
+def write_record(game_id, round_count, from_num, to_num, beads_moved):
+    new_record = Record(game_id=game_id,
+                        round_count=round_count,
+                        from_board_num=from_num,
+                        to_board_num=to_num,
+                        beads_moved=beads_moved)
+    db.session.add(new_record)
+    db.commit
+    print('New Record: from ' + from_num + ' to ' + to_num + ', ' +
+          beads_moved + ' beads')
+    return
+
+
+def end_round(game):
+    # Update counts, then reset counters
+    write_all_counts(game.id, game.round_count)
     game.round_count += 1
     # System event if moving into round 2-4
     if game.round_count < 5:
         game.board_to_play = 9
     else:
+        # This is safe, b/c intake board is always 0, and always played first
         game.board_to_play = 0
     db.session.commit()
     return game.round_count
 
 
-def intiate_records(game):
-    # Initiate records which don't already exist
-    for board in RECORDS_LIST:
-        record = Record.query.filter(Record.game_id == game.id,
-                                     Record.board_name == board,
-                                     Record.round_count == game.round_count
-                                     ).order_by(desc(Record.id)).first()
-        if record is None:
-            # initiate record for current round
-            record = Record(game_id=game.id,
-                            round_count=game.round_count,
-                            board_name=board)
-            db.session.add(record)
-    db.session.commit()
-    return
-
-
-def update_all_records(game_id, round_count, board_list):
-    for board in board_list:
+def write_all_counts(game_id, round_count):
+    for board in ALL_BOARDS_LIST:
+        # Get board number
+        board_num = get_board_number(board)
+        # Get board length
         prog_table = eval(board)
         prog = prog_table.query.filter_by(game_id=game_id).first()
         prog_board = pickle.loads(prog.board)
         board_length = len(prog_board)
-        record = Record.query.filter(Record.game_id == game_id,
-                                     Record.board_name == board,
-                                     Record.round_count == round_count
-                                     ).order_by(desc(Record.id)).first()
-        if record is None:
-            # initiate record for current round
-            record = Record(game_id=game_id,
-                            round_count=round_count,
-                            board_name=board)
-            record.beads_in = board_length
-            record.end_count = board_length
-            db.session.add(record)
-        else:
-            record.end_count = board_length
-        db.session.commit()
+        write_count(game_id, round_count, board_num, board_length)
     return
 
 
-def set_up_intake_record(game_id, round_count):
-    intake_record = Intake(game_id=game_id, round_count=round_count)
-    db.session.add(intake_record)
+def write_count(game_id, round_count, board, beads):
+    this_count = Count(game_id=game_id,
+                       round_count=round_count,
+                       board_name=board,
+                       beads=beads)
+    db.session.add(this_count)
     db.session.commit()
-    return intake_record
+    print('Board ' + board + ' has ' + beads + ' beads at end of round ' +
+          round_count)
+    return
+
+
+def get_board_number(board):
+    """ ALL_BOARDS_LIST doesn't have Intake, so shift for that """
+    return ALL_BOARDS_LIST.index(board) + 1

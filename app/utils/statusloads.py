@@ -1,115 +1,89 @@
 import pickle
-from sqlalchemy import desc
-from ..models.score import Record, Log
+from ..models.score import Count
 from ..models.boards import Emergency, Rapid, Outreach, Transitional, Permanent
 from ..models.boards import Unsheltered, Market
+from .lists import ALL_BOARDS_LIST
 
 
-def load_boards_and_maxes(game_id, max_list, board_list):
-    boards = {}
+def load_board_lens_and_maxes(game_id, current_board_list):
+    """ Get lengths of all boards and max values of active boards  """
+    board_lens = {}
     maxes = {}
-    for board in board_list:
+    for prog in ALL_BOARDS_LIST:
         prog_table = eval(board)
         prog = prog_table.query.filter_by(game_id=game_id).first()
         prog_board = pickle.loads(prog.board)
-        boards[board] = prog_board
-        if board in max_list:
+        board_lens[board] = len(prog_board)
+        if prog in current_board_list:
             board_max = prog.maximum
             maxes[board] = board_max
-    return boards, maxes
+    return board_lens, maxes
 
 
-def load_counts(game_id, board_list):
+def load_counts(game_id, board_num_list):
+    """ Get round-by-round counts of active boards """
     counts = {}
-    for board_num in board_list:
+    for board_num in board_num_list:
         board_counts = []
         # Get all counts associated with the board, in order
-        counts = Counts.query.filter(Counts.game_id == game_id,
-                                      Counts.board_num == board_num
-                                      ).order_by(Counts.id)
+        counts = Count.query.filter(Count.game_id == game_id,
+                                    Count.board_num == board_num
+                                    ).order_by(Count.id)
         # Put the counts into a list and add to dict
         for count in counts:
             board_counts.append(count.beads)
-        counts[board] = board_counts
+        counts[board_num] = board_counts
     return counts
 
 
-def load_changes(game_id, board_list):
+def load_final_count(game_id, board_num_list):
+    """ Get final counts (end of round 5) """
+    final_counts = {}
+    for board_num in board_num_list:
+        board_counts = []
+        # Get all counts associated with the board, in order
+        counts = Count.query.filter(Count.game_id == game_id,
+                                    Count.board_num == board_num
+                                    ).order_by(Count.id)
+        # Put the counts into a list and add to dict
+        for count in counts:
+            board_counts.append(count.beads)
+        counts[board_num] = board_counts
+    return counts
+
+
+
+def load_changes(game_id, board_num_list):
+    """ Get round-by-round changes (beads in, beads out) of active boards """
     changes = {}
-    for board_num in board_list:
+    for board_num in board_num_list:
         changes_tuples = []
         from_sum = 0
         to_sum = 0
         # Get all to_board stats for that board
-        to_board_stats = Stats.query.filter(Stats.game_id == game_id,
-                                            Stats.to_board == board_num)
+        to_board_recs = Record.query.filter(Record.game_id == game_id,
+                                            Record.to_board == board_num)
         # Sum beads_moved IN
-        for stat in to_board_stats:
-            to_sum += stat.beads_moved
+        for rec in to_board_recs:
+            to_sum += rec.beads_moved
         # Get all from_board stats for that board
-        from_board_stats = Stats.query.filter(Stats.game_id == game_id,
-                                              Stats.from_board == board_num)
+        from_board_recs = Record.query.filter(Record.game_id == game_id,
+                                              Record.from_board == board_num)
         # Sum beads_moved OUT
-        for stat in from_board_stats:
-            from_sum += stat.beads_moved
+        for rec in from_board_recs:
+            from_sum += rec.beads_moved
         # Add tuple of changes (to, from)
         tup = (to_sum, from_sum)
         changes_tuples.append(tup)
     changes[board] = changes_tuples
     return changes
 
-def load_counts_and_changes(game_id, board_list):
-    counts = {}
-    changes = {}
-    for board in board_list:
-        board_counts = []
-        changes_tuples = []
-        # Get all records associated with the board, in order
-        records = Record.query.filter(Record.game_id == game_id,
-                                      Record.board_name == board
-                                      ).order_by(Record.id)
-        # Pull the end_counts from each record
-        for record in records:
-            board_counts.append(record.end_count)
-            tup = (record.beads_in, record.beads_out)
-            changes_tuples.append(tup)
-        counts[board] = board_counts
-        # Trim first tup, b/c it's before round 1
-        changes_tuples.pop(0)
-        changes[board] = changes_tuples
-    return counts, changes
-
-
 def load_decisions(game_id):
+    """ Get major game decisions """
     decisions = []
-    records = Record.query.filter(Record.game_id == game_id,
-                                  Record.note.isnot(None)
-                                  ).order_by(Record.id)
-    for record in records:
-        decisions.append(record.note)
+    dec_objs = Decision.query.filter(Decision.game_id == game_id
+                                     ).order_by(Decision.id)
+    for dec in dec_objs:
+        decisions.append(dec.note)
     return decisions
 
-
-def load_logs(game_id, round_count):
-    moves_by_round = []
-    for i in range(1, 6):
-        round_logs = Log.query.filter(Log.game_id == game_id,
-                                      Log.round_count == i).order_by(Log.id)
-        logs = []
-        for log in round_logs:
-            last_moves = pickle.loads(log.moves)
-            logs.append(last_moves)
-        moves_by_round.append(logs)
-    return moves_by_round
-
-
-def load_records(game_id, board_list):
-    records = []
-    for board in board_list:
-        if board != 'Intake':
-            # This order_by gives us last record per board
-            record = Record.query.filter(Record.game_id == game_id,
-                                         Record.board_name == board
-                                         ).order_by(desc(Record.id)).first()
-            records.append(record)
-    return records

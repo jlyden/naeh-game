@@ -3,7 +3,7 @@ from sqlalchemy import desc
 from app import db
 from .score import Record
 from ..utils.beadmoves import move_beads, find_room, use_room
-from ..utils.misc import message_for
+from ..utils.misc import check_no_red
 
 
 # Mixin class for related boards
@@ -15,44 +15,30 @@ class Other_Boards(object):
         board = pickle.loads(self.board)
         return "%r -> %r" % self.__tablename__, str(board)
 
-    def receive_beads(self, bead_count, from_board, no_red, moves):
-        # transitional board may reject red beads
-        if self.__tablename__ == 'transitional':
-            no_red = self.no_red
-
+    def receive_beads(self, bead_count, from_board):
+        no_red = check_no_red(self.game_id, self.__tablename__)
         this_board = pickle.loads(self.board)
         room = find_room(self.maximum, this_board)
-        if room != 0:
+        if room > 0:
             extra, from_board, this_board = use_room(room, bead_count,
                                                      from_board, this_board,
                                                      no_red)
             self.board = pickle.dumps(this_board)
-            beads_moved = bead_count - extra
-            record = Record.query.filter(Record.game_id == self.game_id,
-                                         Record.board_name ==
-                                         self.__tablename__.title()
-                                         ).order_by(desc(Record.id)).first()
-            record.record_change_beads('in', beads_moved)
             db.session.commit()
+            beads_moved = bead_count - extra
         else:
             extra = bead_count
             beads_moved = 0
-        moves.append(message_for(str(beads_moved), self.__tablename__.title()))
-        return extra, from_board, moves
+        return extra, from_board, beads_moved
 
-    def receive_unlimited(self, beads, from_board, no_red, moves):
+    def receive_unlimited(self, bead_count, from_board):
+        no_red = check_no_red(self.game_id, self.__tablename__)
         this_board = pickle.loads(self.board)
-        from_board, this_board = move_beads(beads, from_board,
+        from_board, this_board = move_beads(bead_count, from_board,
                                             this_board, no_red)
         self.board = pickle.dumps(this_board)
-        record = Record.query.filter(Record.game_id == self.game_id,
-                                     Record.board_name ==
-                                     self.__tablename__.title()
-                                     ).order_by(desc(Record.id)).first()
-        record.record_change_beads('in', beads)
         db.session.commit()
-        moves.append(message_for(beads, self.__tablename__.title()))
-        return from_board, moves
+        return from_board
 
 
 class Emergency(db.Model, Other_Boards):
@@ -69,20 +55,14 @@ class Outreach(db.Model, Other_Boards):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
 
-    def fill_from(self, unsheltered_board, no_red, moves):
+    def fill_from(self, unsheltered_board):
         # Fill Outreach Board from Unsheltered
+        no_red = False  # No restrictions on red beads to Outreach
         outreach_board = pickle.loads(self.board)
         room = find_room(self.maximum, outreach_board)
         unsheltered_board, outreach_board = move_beads(room, unsheltered_board,
                                                        outreach_board, no_red)
-        record = Record.query.filter(Record.game_id == self.game_id,
-                                     Record.board_name ==
-                                     self.__tablename__.title()
-                                     ).order_by(desc(Record.id)).first()
-        record.record_change_beads('in', room)
-        message = str(room) + " beads from Unsheltered to Outreach"
-        moves.append(message)
-        return unsheltered_board, outreach_board, moves
+        return unsheltered_board, outreach_board, room
 
 
 class Transitional(db.Model, Other_Boards):

@@ -4,12 +4,14 @@ from flask import redirect, url_for, flash
 from app import db
 from .boards import Emergency, Rapid, Outreach, Transitional
 from .boards import Permanent, Unsheltered, Market
-from .score import Score, Record, Log, Intake
-from ..utils.lists import BOARD_LIST, AVAILABLE_BEADS, EMERG_START
+from .record import Record, Count
+from ..utils.lists import BOARD_NUM_LIST, AVAILABLE_BEADS, EMERG_START
+from ..utils.lists import BOARD_LIST
 from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
 from ..utils.lists import EMPTY_LIST, EXTRA_BOARD, generate_anywhere_list
-from ..utils.statusloads import load_counts_and_changes
+from ..utils.statusloads import load_counts, load_final_count
 from ..utils.beadmoves import move_beads
+from .recordkeeping import write_record
 
 
 class Game(db.Model):
@@ -19,7 +21,7 @@ class Game(db.Model):
     board_to_play = db.Column(db.Integer, default=0)
     intake_cols = db.Column(db.Integer, default=5)
     available_pickle = db.Column(db.PickleType, default=AVAILABLE_BEADS)
-    board_list_pickle = db.Column(db.PickleType, default=BOARD_LIST)
+    board_num_list_pickle = db.Column(db.PickleType, default=BOARD_NUM_LIST)
     final_score = db.Column(db.Integer, default=0)
     # One to One relationships
     emergency = db.relationship('Emergency', backref='game', uselist=False)
@@ -30,18 +32,18 @@ class Game(db.Model):
     permanent = db.relationship('Permanent', backref='game', uselist=False)
     unsheltered = db.relationship('Unsheltered', backref='game', uselist=False)
     market = db.relationship('Market', backref='game', uselist=False)
-    score = db.relationship('Score', backref='game', uselist=False)
     # One to Many relationships
-    stats = db.relationship('Stats', backref='game')
-    counts = db.relationship('Counts', backref='game')
-    record = db.relationship('Record')
-    log = db.relationship('Log')
+    records = db.relationship('Record', backref='game')
+    counts = db.relationship('Count', backref='game')
+    decisions = db.relationship('Decision', backref='game')
 
     def __repr__(self):
-        return "<Game %r, round %r>" % (self.id, self.round_count)
+        return "<Game %r, round %r, board %r>" % (self.id,
+                                                  self.round_count,
+                                                  self.board_to_play)
 
     @classmethod
-    def create(cls):
+    def setup(cls):
         # Instantiate game, to reference game.id
         new_game = cls()
         db.session.add(new_game)
@@ -68,95 +70,75 @@ class Game(db.Model):
         new_Market = Market(game_id=new_game.id,
                             board=EMPTY_LIST,
                             maximum=None)
-        # Instantiate Records - end_count = beads counts before first play
-        E_record = Record(game_id=new_game.id,
-                          round_count=0,
-                          board_name="Emergency")
-        E_record.end_count = 20
-        R_record = Record(game_id=new_game.id,
-                          round_count=0,
-                          board_name="Rapid")
-        R_record.end_count = 10
-        O_record = Record(game_id=new_game.id,
-                          round_count=0,
-                          board_name="Outreach")
-        O_record.end_count = 8
-        T_record = Record(game_id=new_game.id,
-                          round_count=0,
-                          board_name="Transitional")
-        T_record.end_count = 16
-        P_record = Record(game_id=new_game.id,
-                          round_count=0,
-                          board_name="Permanent")
-        P_record.end_count = 20
-        U_record = Record(game_id=new_game.id,
-                          round_count=0,
-                          board_name="Unsheltered")
-        M_record = Record(game_id=new_game.id,
-                          round_count=0,
-                          board_name="Market")
-        # Instantiate first Log
-        moves = []
-        moves.append("Game " + str(new_game.id) + " started")
-        move_log = Log(new_game.id, 1, 0, moves)
+        # Set up initial Counts for Charts
+        E_count = Count(game_id=new_game.id,
+                        round_count=0,
+                        board_num=1,
+                        beads=20)
+        R_count = Count(game_id=new_game.id,
+                        round_count=0,
+                        board_num=2,
+                        beads=10)
+        T_count = Count(game_id=new_game.id,
+                        round_count=0,
+                        board_num=4,
+                        beads=16)
+        P_count = Count(game_id=new_game.id,
+                        round_count=0,
+                        board_num=5,
+                        beads=20)
+        U_count = Count(game_id=new_game.id,
+                        round_count=0,
+                        board_num=6,
+                        beads=0)
+        M_count = Count(game_id=new_game.id,
+                        round_count=0,
+                        board_num=7,
+                        beads=0)
 
         db.session.add_all([new_Emergency, new_Rapid, new_Outreach,
                             new_Transitional, new_Permanent, new_Unsheltered,
-                            new_Market, E_record, R_record, O_record, T_record,
-                            P_record, U_record, M_record, move_log])
+                            new_Market, E_count, R_count, T_count,
+                            P_count, U_count, M_count])
         db.session.commit()
         return new_game
 
-    def verify_board_to_play(self, board_name):
-        board_list = pickle.loads(self.board_list_pickle)
-        if self.round_count > 5:
-            flash(u'Game over - no more plays.', 'warning')
-            return redirect(url_for('status', game_id=self.id))
-        elif board_list[self.board_to_play] != board_name:
-            flash(u'Time for ' + board_list[self.board_to_play] + ' board.',
-                  'warning')
-            return redirect(url_for('status', game_id=self.id))
-        else:
-            return
-
-    def load_intake(self, no_red, moves):
+    def load_intake(self):
         available_beads = pickle.loads(self.available_pickle)
         if len(available_beads) == 0:
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
         else:
             intake = []
+            no_red = False  # Red beads always allowed in Intake
             available_beads, intake = move_beads(50, available_beads, intake,
                                                  no_red)
             self.available_pickle = pickle.dumps(available_beads)
             db.session.commit()
-            moves.append("50 beads to intake")
-            return intake, moves
+            return intake
 
-    def send_anywhere(self, extra, from_board, no_red, moves):
-        if self.board_to_play == 0:
-            intake_record = Intake.query.filter(Intake.game_id == self.id,
-                                                Intake.round_count == self.round_count
-                                                ).order_by(desc(Intake.id)).first()
-
+    def send_anywhere(self, extra, from_board, from_board_num):
         # Get list of available programs to send beads
-        anywhere_list = generate_anywhere_list(self.board_list_pickle)
+        anywhere_list = generate_anywhere_list(self.board_num_list_pickle)
         # Cycle through programs, moving as many beads as possible to each
         while len(from_board) > 0 and len(anywhere_list) > 0:
-            prog_table = eval(anywhere_list.pop())
+            to_board_num = anywhere_list.pop()
+            prog_table = eval(BOARD_LIST[to_board_num])
             prog = prog_table.query.filter_by(game_id=self.id).first()
-            extra, from_board, moves = prog.receive_beads(extra,
-                                                          from_board,
-                                                          no_red,
-                                                          moves)
+            extra, from_board, beads_moved = prog.receive_beads(extra,
+                                                                from_board)
+            write_record(self.id, self.round_count, from_board_num,
+                         to_board_num, beads_moved)
+
         # Whatever remains is sent to unsheltered
         if len(from_board) > 0:
+            bead_count = len(from_board)
             unsheltered = Unsheltered.query.filter_by(game_id=self.id).first()
-            from_board, moves = unsheltered.receive_unlimited(len(from_board),
-                                                              from_board,
-                                                              no_red,
-                                                              moves)
-        return from_board, moves
+            from_board = unsheltered.receive_unlimited(bead_count,
+                                                       from_board)
+            write_record(self.id, self.round_count, from_board_num, 6,
+                         bead_count)
+        return from_board
 
     def open_new(self, program, moves):
         # Add 'diversion' column to intake board
@@ -224,31 +206,17 @@ class Game(db.Model):
         moves.append(message)
         return moves
 
-    def calculate_final_score(self):
+    def generate_score(self):
         # Count lists
-        counts, changes = load_counts_and_changes(self.id,
-                                                  ['Emergency',
-                                                   'Transitional'])
-        # end_counts
-        end_counts = {}
-        for board in ['Rapid', 'Permanent', 'Unsheltered', 'Market']:
-            this_record = Record.query.filter(Record.game_id == self.id,
-                                              Record.board_name == board,
-                                              Record.round_count == 5,
-                                              ).first()
-            end_counts[board] = this_record.end_count
+        counts = load_counts(self.id, [1, 4])
+        # End_counts
+        final_counts = load_final_count(self.id, [2, 5, 6, 7])
 
-        # Create, fill and return the scoreboard
-        new_Score = Score(game_id=self.id)
-        new_Score.emerg_total = sum(counts['Emergency'])
-        new_Score.rapid = end_counts['Rapid']
-        new_Score.trans_total = sum(counts['Transitional'])
-        new_Score.perm = end_counts['Permanent']
-        new_Score.unsheltered = end_counts['Unsheltered']
-        new_Score.market = end_counts['Market']
-        db.session.add(new_Score)
-        db.session.commit()
-        final_score = (new_Score.unsheltered * 3) + new_Score.emerg_total \
-                      + new_Score.trans_total - new_Score.market \
-                      + new_Score.rapid + new_Score.perm
+        # Calculate the final score
+        final_score = ((final_counts[6] * 3) +  # Unsheltered
+                       sum(counts[1]) +         # Emergency
+                       sum(counts[4]) -         # Transitional
+                       final_counts[7] +        # Market
+                       final_counts[2] +        # Rapid
+                       final_counts[5])         # Permanent
         return final_score

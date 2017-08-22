@@ -13,17 +13,20 @@ AVAILABLE_BEADS = pickle.dumps(list(range(26, 66)) + list(range(115, 325)))
 EMPTY_LIST = pickle.dumps(list())
 EXTRA_BOARD = 25
 
-BOARD_LIST = pickle.dumps(["Intake", "Emergency", "Rapid",
-                           "Outreach", "Transitional", "Permanent"])
+BOARD_LIST = ["Intake", "Emergency", "Rapid",
+              "Outreach", "Transitional", "Permanent"]
 
-RECORDS_LIST = ["Emergency", "Rapid", "Outreach", "Transitional",
-                "Permanent", "Unsheltered", "Market"]
+BOARD_NUM_LIST = pickle.dumps(list(range(0, 6)))
+
+ALL_BOARDS_LIST = ["Emergency", "Rapid", "Outreach", "Transitional",
+                   "Permanent", "Unsheltered", "Market"]
 
 
-def generate_anywhere_list(board_list_pickle):
-    # Board list always contains "Intake"
-    board_list = pickle.loads(board_list_pickle)
-    board_list.remove("Intake")
-    if "Outreach" in board_list:
-        board_list.remove("Outreach")
-    return random.sample(board_list, len(board_list))
+def generate_anywhere_list(board_num_list_pickle):
+    # Board list always contains 0 (Intake)
+    board_num_list = pickle.loads(board_num_list_pickle)
+    board_num_list.remove(0)
+    # Board list might contain 3 (Outreach)
+    if 3 in board_num_list:
+        board_num_list.remove(3)
+    return random.sample(board_num_list, len(board_num_list))
