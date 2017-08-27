@@ -2,14 +2,13 @@ import pickle
 from flask import request, render_template, redirect, url_for, flash
 from app import app, db
 from .models.game import Game
-from .models.score import Record, Count, Decision
 from .utils.boardplay import DISPATCHER_DEFAULT
-from .utils.lists import BOARD_LIST, ALL_BOARDS_LIST
+from .utils.lists import BOARD_LIST
 from .utils.misc import gen_board_string_list, gen_progs_for_sys_event
 from .utils.misc import set_board_to_play
 from .utils.recordkeeping import end_round
 from .utils.statusloads import load_board_lens_and_maxes, load_decisions
-from .utils.statusloads import load_records, load_counts, load_changes
+from .utils.statusloads import load_counts, load_changes
 from .utils.content import tips
 
 
@@ -102,10 +101,7 @@ def event(game_id):
     elif this_game.round_count == 3 or this_game.round_count == 4:
         from_program = request.form.get('from_program')
         to_program = request.form.get('to_program')
-        moves = this_game.convert_program(from_program, to_program, moves)
-    # Set "board_played == 6" in log
-    move_log = Log(game_id, this_game.round_count, 6, moves)
-    db.session.add(move_log)
+        this_game.convert_program(from_program, to_program)
     # Set board_to_play to 0
     this_game.board_to_play = 0
     db.session.commit()

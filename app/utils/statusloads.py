@@ -1,8 +1,6 @@
-import pickle
-from ..models.score import Count
-from ..models.boards import Emergency, Rapid, Outreach, Transitional, Permanent
-from ..models.boards import Unsheltered, Market
+from ..models.score import Record, Count, Decision
 from .lists import ALL_BOARDS_LIST
+from .dbsupport import get_board_contents
 
 
 def load_board_lens_and_maxes(game_id, current_board_list):
@@ -10,13 +8,11 @@ def load_board_lens_and_maxes(game_id, current_board_list):
     board_lens = {}
     maxes = {}
     for prog in ALL_BOARDS_LIST:
-        prog_table = eval(board)
-        prog = prog_table.query.filter_by(game_id=game_id).first()
-        prog_board = pickle.loads(prog.board)
-        board_lens[board] = len(prog_board)
+        program, prog_board = get_board_contents(prog)
+        board_lens[prog] = len(prog_board)
         if prog in current_board_list:
             board_max = prog.maximum
-            maxes[board] = board_max
+            maxes[prog] = board_max
     return board_lens, maxes
 
 
@@ -36,7 +32,7 @@ def load_counts(game_id, board_num_list):
     return counts
 
 
-def load_final_count(game_id, board_num_list):
+def load_final_counts(game_id, board_num_list):
     """ Get final counts (end of round 5) """
     final_counts = {}
     for board_num in board_num_list:
@@ -48,9 +44,8 @@ def load_final_count(game_id, board_num_list):
         # Put the counts into a list and add to dict
         for count in counts:
             board_counts.append(count.beads)
-        counts[board_num] = board_counts
-    return counts
-
+        final_counts[board_num] = board_counts
+    return final_counts
 
 
 def load_changes(game_id, board_num_list):
@@ -75,8 +70,9 @@ def load_changes(game_id, board_num_list):
         # Add tuple of changes (to, from)
         tup = (to_sum, from_sum)
         changes_tuples.append(tup)
-    changes[board] = changes_tuples
+    changes[board_num] = changes_tuples
     return changes
+
 
 def load_decisions(game_id):
     """ Get major game decisions """
@@ -86,4 +82,3 @@ def load_decisions(game_id):
     for dec in dec_objs:
         decisions.append(dec.note)
     return decisions
-

@@ -1,9 +1,6 @@
 import pickle
-from sqlalchemy import desc
 from app import db
 from .lists import ALL_BOARDS_LIST
-from ..models.boards import Emergency, Rapid, Outreach, Transitional
-from ..models.boards import Permanent, Unsheltered, Market
 from ..models.record import Record, Count
 
 

@@ -1,7 +1,5 @@
 import pickle
-from sqlalchemy import desc
 from app import db
-from .score import Record
 from ..utils.beadmoves import move_beads, find_room, use_room
 from ..utils.misc import check_no_red
 
@@ -84,4 +82,3 @@ class Unsheltered(db.Model, Other_Boards):
 class Market(db.Model, Other_Boards):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
-

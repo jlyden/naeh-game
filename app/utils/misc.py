@@ -1,5 +1,4 @@
 from .lists import BOARD_LIST
-from ..models.game import Game
 
 
 def gen_board_string_list(board_num_list):
@@ -30,23 +29,3 @@ def set_board_to_play(board_num, board_num_list):
     else:
         board_to_play = board_num_list(current_index + 1)
     return board_to_play
-
-
-def check_no_red(game_id, table_name):
-    # This is called from boards.py, so we need to query the game
-    this_game = Game.query.get_or_404(int(game_id))
-    # No_red beads rules for Transitional board
-    if table_name == "transitional":
-        no_red = True
-    # No_red beads rules for Emergency board
-    elif this_game.board_to_play == 1 and \
-        table_name == "market" and (this_game.round_count == 1 or
-                                    this_game.round_count == 3):
-        no_red = True
-    # No_red beads rules for Rapid board
-    elif this_game.board_to_play == 2 and (this_game.round_count == 2 or
-                                           this_game.round_count == 4):
-        no_red = True
-    else:
-        no_red = False
-    return no_red

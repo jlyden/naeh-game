@@ -10,7 +10,7 @@ from ..utils.lists import BOARD_NUM_LIST, AVAILABLE_BEADS, EMERG_START
 from ..utils.lists import BOARD_LIST
 from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
 from ..utils.lists import EMPTY_LIST, EXTRA_BOARD, generate_anywhere_list
-from ..utils.statusloads import load_counts, load_final_count
+from ..utils.statusloads import load_counts, load_final_counts
 from ..utils.beadmoves import move_beads
 from .recordkeeping import write_record
 
@@ -199,7 +199,7 @@ class Game(db.Model):
         # Count lists
         counts = load_counts(self.id, [1, 4])  # Emergency, Transitional
         # End_counts
-        final_counts = load_final_count(self.id, [2, 5, 6, 7])
+        final_counts = load_final_counts(self.id, [2, 5, 6, 7])
 
         # Calculate the final score
         final_score = ((final_counts[6] * 3) +  # Unsheltered
@@ -209,3 +209,22 @@ class Game(db.Model):
                        final_counts[2] +        # Rapid
                        final_counts[5])         # Permanent
         return final_score
+
+    def check_no_red(game_id, table_name):
+        # This is called from boards.py, so we need to query the game
+        this_game = Game.query.get_or_404(int(game_id))
+        # No_red beads rules for Transitional board
+        if table_name == "transitional":
+            no_red = True
+        # No_red beads rules for Emergency board
+        elif this_game.board_to_play == 1 and \
+            table_name == "market" and (this_game.round_count == 1 or
+                                        this_game.round_count == 3):
+            no_red = True
+        # No_red beads rules for Rapid board
+        elif this_game.board_to_play == 2 and (this_game.round_count == 2 or
+                                               this_game.round_count == 4):
+            no_red = True
+        else:
+            no_red = False
+        return no_red
