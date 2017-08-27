@@ -96,10 +96,9 @@ def play_board(game, board_num, board_num_list):
 @app.route('/event/<game_id>', methods=['POST'])
 def event(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    moves = []
     if this_game.round_count == 2:
         program = request.form.get('program')
-        moves = this_game.open_new(program, moves)
+        this_game.open_new(program)
     elif this_game.round_count == 3 or this_game.round_count == 4:
         from_program = request.form.get('from_program')
         to_program = request.form.get('to_program')

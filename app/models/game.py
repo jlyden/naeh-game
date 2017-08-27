@@ -4,7 +4,8 @@ from flask import redirect, url_for, flash
 from app import db
 from .boards import Emergency, Rapid, Outreach, Transitional
 from .boards import Permanent, Unsheltered, Market
-from .record import Record, Count
+from .record import Count, Decision
+from ..utils.dbsupport import get_board_contents
 from ..utils.lists import BOARD_NUM_LIST, AVAILABLE_BEADS, EMERG_START
 from ..utils.lists import BOARD_LIST
 from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
@@ -140,52 +141,34 @@ class Game(db.Model):
                          bead_count)
         return from_board
 
-    def open_new(self, program, moves):
-        # Add 'diversion' column to intake board
-        if program == 'Diversion':
+    def open_new(self, program_name):
+        if program_name == 'Diversion':
+            # Add 'diversion' column to intake board
             self.intake_cols = 6
-            prog_record = Record(game_id=self.id, round_count=self.round_count,
-                                 board_name="Market")
-            prog_record.note = "Diversion opened round " + \
-                str(self.round_count)
-        # Add 'extra' board (i.e. 25 slots to selected board/program)
+            note = "Diversion opened round " + str(self.round_count)
+            new_dec = Decision(game_id=self.id, round_count=self.round_count,
+                               note=note)
         else:
-            prog_table = eval(program)
+            # Add 'extra' board (i.e. 25 slots to selected board/program)
+            prog_table = eval(program_name)
             prog = prog_table.query.filter_by(game_id=self.id).first()
             prog.maximum = EXTRA_BOARD + prog.maximum
-            prog_record = Record(game_id=self.id, round_count=self.round_count,
-                                 board_name=program)
-            prog_record.note = program + " expanded round " + \
-                str(self.round_count)
-        db.session.add(prog_record)
+            note = program_name + " expanded round " + str(self.round_count)
+            new_dec = Decision(game_id=self.id, round_count=self.round_count,
+                               note=note)
+        db.session.add(new_dec)
         db.session.commit()
-        message = "New " + program + " program added"
-        moves.append(message)
-        return moves
+        return
 
-    def convert_program(self, from_program, to_program, moves):
+    def convert_program(self, from_program_name, to_program_name):
+        from_board_num = BOARD_LIST.index(from_program_name)
+        to_board_num = BOARD_LIST.index(to_program_name)
         # Get both database objects and unpickle boards
-        from_prog_table = eval(from_program)
-        from_prog = from_prog_table.query.filter_by(game_id=self.id).first()
-        from_prog_board = pickle.loads(from_prog.board)
+        from_prog, from_prog_board = get_board_contents(self.id,
+                                                        from_program_name)
+        to_prog, to_prog_board = get_board_contents(self.id, to_program_name)
         beads_moved = len(from_prog_board)
-        to_prog_table = eval(to_program)
-        to_prog = to_prog_table.query.filter_by(game_id=self.id).first()
-        to_prog_board = pickle.loads(to_prog.board)
-        # Initiate relevant records (in between rounds)
-        from_record = Record(game_id=self.id, round_count=self.round_count,
-                             board_name=from_program)
-        from_record.beads_out = beads_moved
-        from_record.note = from_program + " closed round " + \
-            str(self.round_count)
-        to_record = Record(game_id=self.id, round_count=self.round_count,
-                           board_name=to_program)
-        to_record.beads_in = beads_moved
-        to_record.beads_out = 0
-        to_record.end_count = to_record.calc_end_count()
-        to_record.note = to_program + " expanded round " + \
-            str(self.round_count)
-        db.session.add_all([from_record, to_record])
+
         # Move beads from from_prog.board to to_prog.board
         from_prog_board, to_prog_board = move_beads(beads_moved,
                                                     from_prog_board,
@@ -197,18 +180,24 @@ class Game(db.Model):
         to_prog.maximum = from_prog.maximum + to_prog.maximum
         from_prog.maximum = 0
         # Remove from_prog from play
-        board_list = pickle.loads(self.board_list_pickle)
-        board_list.remove(from_prog.__tablename__.title())
-        self.board_list_pickle = pickle.dumps(board_list)
+        board__num_list = pickle.loads(self.board_num_list_pickle)
+        board__num_list.remove(from_board_num)
+        self.board_num_list_pickle = pickle.dumps(board__num_list)
         db.session.commit()
-        message = from_prog.__tablename__.title() + " converted to " \
-            + to_prog.__tablename__.title()
-        moves.append(message)
-        return moves
+
+        # Write record and decision
+        write_record(self.id, self.round_count, from_board_num, to_board_num,
+                     beads_moved)
+        note = from_program_name + " converted to " + to_program_name + \
+            " round " + str(self.round_count)
+        new_dec = Decision(game_id=self.id, round_count=self.round_count,
+                           note=note)
+        db.session.add(new_dec)
+        return
 
     def generate_score(self):
         # Count lists
-        counts = load_counts(self.id, [1, 4])
+        counts = load_counts(self.id, [1, 4])  # Emergency, Transitional
         # End_counts
         final_counts = load_final_count(self.id, [2, 5, 6, 7])
 
