@@ -4,7 +4,7 @@
       Outreach Program</a>
     {% if 'Outreach' in board_list %}
       <span class="label label-info ">
-        {{ boards['Outreach']|length }}
+        {{ board_lens['Outreach'] }}
       </span>
       {% if maxes['Outreach'] > 10 %}
         <mark><small>
@@ -14,7 +14,7 @@
     {% else %}
       </s>
       <span class="label label-info ">
-        {{ boards['Outreach']|length }}
+        {{ board_lens['Outreach'] }}
       </span>
       <mark><small>Closed</small></mark>
     {% endif %}

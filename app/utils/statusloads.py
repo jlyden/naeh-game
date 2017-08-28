@@ -1,5 +1,5 @@
 from ..models.record import Record, Count, Decision
-from .lists import ALL_BOARDS_LIST
+from .lists import pull_intake
 from .dbsupport import get_board_contents
 
 
@@ -7,18 +7,19 @@ def load_board_lens_and_maxes(game_id, current_board_list):
     """ Get lengths of all boards and max values of active boards  """
     board_lens = {}
     maxes = {}
-    for prog in ALL_BOARDS_LIST:
-        program, prog_board = get_board_contents(prog)
+    trimmed_board_list = pull_intake()
+    for prog in trimmed_board_list:
+        program, prog_board = get_board_contents(game_id, prog)
         board_lens[prog] = len(prog_board)
         if prog in current_board_list:
-            board_max = prog.maximum
+            board_max = program.maximum
             maxes[prog] = board_max
     return board_lens, maxes
 
 
 def load_counts(game_id, board_num_list):
     """ Get round-by-round counts of active boards """
-    counts = {}
+    all_counts = {}
     for board_num in board_num_list:
         board_counts = []
         # Get all counts associated with the board, in order
@@ -28,8 +29,8 @@ def load_counts(game_id, board_num_list):
         # Put the counts into a list and add to dict
         for count in counts:
             board_counts.append(count.beads)
-        counts[board_num] = board_counts
-    return counts
+        all_counts[board_num] = board_counts
+    return all_counts
 
 
 def load_final_counts(game_id, board_num_list):
@@ -57,13 +58,14 @@ def load_changes(game_id, board_num_list):
         to_sum = 0
         # Get all to_board stats for that board
         to_board_recs = Record.query.filter(Record.game_id == game_id,
-                                            Record.to_board == board_num)
+                                            Record.to_board_num == board_num)
         # Sum beads_moved IN
         for rec in to_board_recs:
             to_sum += rec.beads_moved
         # Get all from_board stats for that board
         from_board_recs = Record.query.filter(Record.game_id == game_id,
-                                              Record.from_board == board_num)
+                                              Record.from_board_num ==
+                                              board_num)
         # Sum beads_moved OUT
         for rec in from_board_recs:
             from_sum += rec.beads_moved

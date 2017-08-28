@@ -4,7 +4,7 @@
       Rapid Rehousing</a>
   {% if 'Rapid' in board_list %}
     <span class="label label-info ">
-      {{ boards['Rapid']|length }}
+      {{ board_lens['Rapid'] }}
     </span>
     {% if maxes['Rapid'] > 10 %}
       <mark><small>
@@ -14,7 +14,7 @@
   {% else %}
     </s>
     <span class="label label-info ">
-      {{ boards['Rapid']|length }}
+      {{ board_lens['Rapid'] }}
     </span>
     <mark><small>Closed</small></mark>
   {% endif %}

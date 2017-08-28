@@ -5,7 +5,6 @@ from app import db
 from .boards import Emergency, Rapid, Outreach, Transitional
 from .boards import Permanent, Unsheltered, Market
 from .record import Count, Decision
-from ..utils.dbsupport import get_board_contents
 from ..utils.lists import BOARD_NUM_LIST, AVAILABLE_BEADS, EMERG_START
 from ..utils.lists import BOARD_LIST
 from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
@@ -161,6 +160,7 @@ class Game(db.Model):
         return
 
     def convert_program(self, from_program_name, to_program_name):
+        from ..utils.dbsupport import get_board_contents
         from_board_num = BOARD_LIST.index(from_program_name)
         to_board_num = BOARD_LIST.index(to_program_name)
         # Get both database objects and unpickle boards
@@ -209,22 +209,3 @@ class Game(db.Model):
                        final_counts[2] +        # Rapid
                        final_counts[5])         # Permanent
         return final_score
-
-    def check_no_red(game_id, table_name):
-        # This is called from boards.py, so we need to query the game
-        this_game = Game.query.get_or_404(int(game_id))
-        # No_red beads rules for Transitional board
-        if table_name == "transitional":
-            no_red = True
-        # No_red beads rules for Emergency board
-        elif this_game.board_to_play == 1 and \
-            table_name == "market" and (this_game.round_count == 1 or
-                                        this_game.round_count == 3):
-            no_red = True
-        # No_red beads rules for Rapid board
-        elif this_game.board_to_play == 2 and (this_game.round_count == 2 or
-                                               this_game.round_count == 4):
-            no_red = True
-        else:
-            no_red = False
-        return no_red

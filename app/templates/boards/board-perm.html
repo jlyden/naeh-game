@@ -4,7 +4,7 @@
       Permanent Supportive</a>
     {% if 'Permanent' in board_list %}
       <span class="label label-info ">
-        {{ boards['Permanent']|length }}
+        {{ board_lens['Permanent'] }}
       </span>
       {% if maxes['Permanent'] > 20 %}
         <mark><small>
@@ -14,7 +14,7 @@
     {% else %}
       </s>
       <span class="label label-info ">
-        {{ boards['Permanent']|length }}
+        {{ board_lens['Permanent'] }}
       </span>
       <mark><small>Closed</small></mark>
     {% endif %}

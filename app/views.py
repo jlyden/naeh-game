@@ -51,17 +51,6 @@ def status(game_id):
                            decisions=decisions)
 
 
-# TODO: Edit after record refactor to construct 'Log' from Record
-# @app.route('/view_log/<game_id>')
-# def view_log(game_id):
-#     this_game = Game.query.get_or_404(int(game_id))
-#     moves_by_round = load_logs(game_id, this_game.round_count)
-#     return render_template('log.html',
-#                            BOARD_LIST=BOARD_LIST,
-#                            game=this_game,
-#                            moves_by_round=moves_by_round)
-
-
 @app.route('/play_round/<game_id>')
 def play_round(game_id):
     this_game = Game.query.get_or_404(int(game_id))
@@ -113,9 +102,9 @@ def about_boards(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     return render_template('about-boards.html', game=this_game)
 
-# TODO: Finish record refactor - up to events and decisions
 # TODO: Check eval(prog) for numbers
 # TODO: After round, nav to splash screen showing where intake went
 # TODO: Add system events to splash screen
+# TODO: do we need logs again?
 # TODO: One-button run simulation version with side-by-side comparison
 # TODO: add animation

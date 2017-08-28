@@ -6,8 +6,8 @@
           <div class="panel-body">
           <ul class="list-inline center-block">
             {% for decision in decisions %}
-              {% if 'closed' in decision %}
-                <li class="list-inline-item list-group-item-danger">
+              {% if 'converted' in decision %}
+                <li class="list-inline-item list-group-item-warning">
               {% else %}
                 <li class="list-inline-item list-group-item-success">
               {% endif %}

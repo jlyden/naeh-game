@@ -4,7 +4,7 @@
       Emergency Housing</a>
     {% if 'Emergency' in board_list %}
       <span class="label label-info ">
-        {{ boards['Emergency']|length }}
+        {{ board_lens['Emergency'] }}
       </span>
       {% if maxes['Emergency'] > 25 %}
         <mark><small>
@@ -14,7 +14,7 @@
     {% else %}
       </s>
       <span class="label label-info ">
-        {{ boards['Emergency']|length }}
+        {{ board_lens['Emergency'] }}
       </span>
       <mark><small>Closed</small></mark>
     {% endif %}

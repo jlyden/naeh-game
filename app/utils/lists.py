@@ -18,8 +18,8 @@ BOARD_LIST = ["Intake", "Emergency", "Rapid",
 
 BOARD_NUM_LIST = pickle.dumps(list(range(0, 6)))
 
-ALL_BOARDS_LIST = ["Emergency", "Rapid", "Outreach", "Transitional",
-                   "Permanent", "Unsheltered", "Market"]
+ALL_BOARDS_LIST = ["Intake", "Emergency", "Rapid", "Outreach",
+                   "Transitional", "Permanent", "Unsheltered", "Market"]
 
 
 def generate_anywhere_list(board_num_list_pickle):
@@ -30,3 +30,9 @@ def generate_anywhere_list(board_num_list_pickle):
     if 3 in board_num_list:
         board_num_list.remove(3)
     return random.sample(board_num_list, len(board_num_list))
+
+
+def pull_intake():
+    board_list_copy = ALL_BOARDS_LIST
+    board_list_copy.remove("Intake")
+    return board_list_copy

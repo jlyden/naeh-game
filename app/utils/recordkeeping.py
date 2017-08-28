@@ -1,6 +1,6 @@
-import pickle
 from app import db
-from .lists import ALL_BOARDS_LIST
+from .lists import ALL_BOARDS_LIST, pull_intake
+from .dbsupport import get_board_contents
 from ..models.record import Record, Count
 
 
@@ -32,13 +32,12 @@ def end_round(game):
 
 
 def write_all_counts(game_id, round_count):
-    for board in ALL_BOARDS_LIST:
+    trimmed_board_list = pull_intake(ALL_BOARDS_LIST)
+    for prog in trimmed_board_list:
         # Get board number
-        board_num = get_board_number(board)
+        board_num = ALL_BOARDS_LIST.index(prog)
         # Get board length
-        prog_table = eval(board)
-        prog = prog_table.query.filter_by(game_id=game_id).first()
-        prog_board = pickle.loads(prog.board)
+        program, prog_board = get_board_contents(game_id, prog)
         board_length = len(prog_board)
         write_count(game_id, round_count, board_num, board_length)
     return
@@ -54,8 +53,3 @@ def write_count(game_id, round_count, board, beads):
     print('Board ' + board + ' has ' + beads + ' beads at end of round ' +
           round_count)
     return
-
-
-def get_board_number(board):
-    """ ALL_BOARDS_LIST doesn't have Intake, so shift for that """
-    return ALL_BOARDS_LIST.index(board) + 1

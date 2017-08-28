@@ -36,8 +36,6 @@
             <li>
               {% if 'view' in request.path or 'about' in request.path %}
               <a href="{{ url_for('status', game_id=game.id) }}" class="navbar-link">Run Simulation {{ game.id }}</a>
-              {% else  %}
-              <a href="{{ url_for('view_log', game_id=game.id) }}" class="navbar-link">View Simulation Log {{ game.id }}</a>
               {% endif %}
             </li>
             <li>
