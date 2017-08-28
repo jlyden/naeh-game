@@ -12,7 +12,7 @@ from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
 from ..utils.lists import EMPTY_LIST, EXTRA_BOARD, generate_anywhere_list
 from ..utils.statusloads import load_counts, load_final_counts
 from ..utils.beadmoves import move_beads
-from .recordkeeping import write_record
+from ..utils.recordkeeping import write_record
 
 
 class Game(db.Model):

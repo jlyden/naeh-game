@@ -1,7 +1,6 @@
 import pickle
 from app import db
 from ..utils.beadmoves import move_beads, find_room, use_room
-from ..utils.misc import check_no_red
 
 
 # Mixin class for related boards
@@ -14,6 +13,7 @@ class Other_Boards(object):
         return "%r -> %r" % self.__tablename__, str(board)
 
     def receive_beads(self, bead_count, from_board):
+        from .boards.game import check_no_red
         no_red = check_no_red(self.game_id, self.__tablename__)
         this_board = pickle.loads(self.board)
         room = find_room(self.maximum, this_board)
@@ -30,6 +30,7 @@ class Other_Boards(object):
         return extra, from_board, beads_moved
 
     def receive_unlimited(self, bead_count, from_board):
+        from .boards.game import check_no_red
         no_red = check_no_red(self.game_id, self.__tablename__)
         this_board = pickle.loads(self.board)
         from_board, this_board = move_beads(bead_count, from_board,

@@ -1,4 +1,4 @@
-from ..models.score import Record, Count, Decision
+from ..models.record import Record, Count, Decision
 from .lists import ALL_BOARDS_LIST
 from .dbsupport import get_board_contents
 
