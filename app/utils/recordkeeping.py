@@ -11,9 +11,9 @@ def write_record(game_id, round_count, from_num, to_num, beads_moved):
                         to_board_num=to_num,
                         beads_moved=beads_moved)
     db.session.add(new_record)
-    db.commit
-    print('New Record: from ' + from_num + ' to ' + to_num + ', ' +
-          beads_moved + ' beads')
+    db.session.commit()
+    print('New Record: from ' + str(from_num) + ' to ' + str(to_num) + ', ' +
+          str(beads_moved) + ' beads')
     return
 
 
@@ -32,7 +32,7 @@ def end_round(game):
 
 
 def write_all_counts(game_id, round_count):
-    trimmed_board_list = pull_intake(ALL_BOARDS_LIST)
+    trimmed_board_list = pull_intake()
     for prog in trimmed_board_list:
         # Get board number
         board_num = ALL_BOARDS_LIST.index(prog)
@@ -43,13 +43,13 @@ def write_all_counts(game_id, round_count):
     return
 
 
-def write_count(game_id, round_count, board, beads):
+def write_count(game_id, round_count, board_num, beads):
     this_count = Count(game_id=game_id,
                        round_count=round_count,
-                       board_name=board,
+                       board_num=board_num,
                        beads=beads)
     db.session.add(this_count)
     db.session.commit()
-    print('Board ' + board + ' has ' + beads + ' beads at end of round ' +
-          round_count)
+    print('Board ' + str(board_num) + ' has ' + str(beads) +
+          ' beads at end of round ' + str(round_count))
     return

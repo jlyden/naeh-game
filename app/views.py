@@ -74,9 +74,9 @@ def play_board(game, board_num, board_num_list):
     if game.board_to_play == 6:
         round_count = end_round(game)
     # If game is over, time to calculate Final Score
-    if round_count == 6:
-        final_score = game.generate_score()
-        game.final_score = final_score
+        if round_count == 6:
+            final_score = game.generate_score()
+            game.final_score = final_score
     db.session.commit()
     return redirect(url_for('status', game_id=game.id))
 

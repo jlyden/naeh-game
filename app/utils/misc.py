@@ -27,5 +27,5 @@ def set_board_to_play(board_num, board_num_list):
     if next_index > (len(board_num_list) - 1):
         board_to_play = 6
     else:
-        board_to_play = board_num_list(current_index + 1)
+        board_to_play = board_num_list[next_index]
     return board_to_play

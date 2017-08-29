@@ -9,6 +9,7 @@ from .recordkeeping import write_record
 def play_intake(game):
     # Load boards
     intake = game.load_intake()
+    print("intake board is " + str(intake))
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     market = Market.query.filter_by(game_id=game.id).first()
     emerg = Emergency.query.filter_by(game_id=game.id).first()
@@ -20,7 +21,7 @@ def play_intake(game):
     if game.intake_cols == 6:
         intake = market.receive_unlimited(col, intake)
         write_record(game.id, game.round_count, 0, 7, col)
-    surplus, intake = emerg.receive_beads(col, intake)
+    surplus, intake, beads_moved = emerg.receive_beads(col, intake)
     write_record(game.id, game.round_count, 0, 1, col)
     if game.round_count == 1:
         intake = unsheltered.receive_unlimited(col, intake)
@@ -67,9 +68,9 @@ def play_rapid(game):
     col = math.ceil(rapid.maximum / 5)
 
     # Move beads and record moves
-    rapid_board, moves = market.receive_unlimited(3 * col, rapid_board)
+    rapid_board = market.receive_unlimited(3 * col, rapid_board)
     write_record(game.id, game.round_count, 2, 7, 3 * col)
-    extra, rapid_board, moves = emerg.receive_beads(col, rapid_board)
+    extra, rapid_board, beads_moved = emerg.receive_beads(col, rapid_board)
     write_record(game.id, game.round_count, 2, 1, col)
 
     # Save played board
@@ -112,7 +113,7 @@ def play_transitional(game):
     # Move beads
     trans_board = market.receive_unlimited(col, trans_board)
     write_record(game.id, game.round_count, 4, 7, col)
-    extra, trans_board = emerg.receive_beads(col, trans_board)
+    extra, trans_board, beads_moved = emerg.receive_beads(col, trans_board)
     write_record(game.id, game.round_count, 4, 1, col)
     if extra:
         trans_board = unsheltered.receive_unlimited(extra, trans_board, 4)
@@ -131,7 +132,7 @@ def play_permanent(game):
     # Moves beads; different rules depending on even or odd round
     if game.round_count % 2 == 0:
         unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
-        perm_board, moves = unsheltered.receive_unlimited(1, perm_board)
+        perm_board = unsheltered.receive_unlimited(1, perm_board)
         write_record(game.id, game.round_count, 5, 6, 1)
     else:
         market = Market.query.filter_by(game_id=game.id).first()

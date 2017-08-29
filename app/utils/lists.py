@@ -33,6 +33,6 @@ def generate_anywhere_list(board_num_list_pickle):
 
 
 def pull_intake():
-    board_list_copy = ALL_BOARDS_LIST
+    board_list_copy = list(ALL_BOARDS_LIST)
     board_list_copy.remove("Intake")
     return board_list_copy
