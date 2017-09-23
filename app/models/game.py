@@ -105,7 +105,6 @@ class Game(db.Model):
 
     def load_intake(self):
         available_beads = pickle.loads(self.available_pickle)
-        print('available_beads is ' + str(available_beads))
         if len(available_beads) == 0:
             flash(u'Game over - no more plays.', 'warning')
             return redirect(url_for('status', game_id=self.id))
@@ -114,8 +113,6 @@ class Game(db.Model):
             no_red = False  # Red beads always allowed in Intake
             available_beads, intake = move_beads(50, available_beads, intake,
                                                  no_red)
-            print('after load, available_beads is ' + str(available_beads))
-            print('after load, intake is ' + str(intake))
             self.available_pickle = pickle.dumps(available_beads)
             db.session.commit()
             return intake

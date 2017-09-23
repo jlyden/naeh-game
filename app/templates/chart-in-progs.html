@@ -13,7 +13,7 @@
   var progData = {
     labels : [0, 1, 2, 3, 4, 5],
     datasets : [{
-          data: [{% for count in counts['Emergency'] %}
+          data: [{% for count in counts[1] %}
                     {{count}},
                   {% endfor %}],
           label: "Emergency",
@@ -21,7 +21,7 @@
           strokeColor: "rgba(151,187,205,.6)",
           pointColor: "rgba(151,187,205,.6)",
         },{
-          data: [{% for count in counts['Rapid'] %}
+          data: [{% for count in counts[2] %}
                     {{count}},
                   {% endfor %}],
           label: "Rapid",
@@ -29,7 +29,7 @@
           strokeColor: "rgba(255,51,51,.6)",
           pointColor: "rgba(255,51,51,.6)",
         },{
-          data: [{% for count in counts['Transitional'] %}
+          data: [{% for count in counts[4] %}
                     {{count}},
                   {% endfor %}],
           label: "Transitional",
@@ -37,7 +37,7 @@
           strokeColor: "rgba(51,204,51,.6)",
           pointColor: "rgba(51,204,51,.6)",
         },{
-          data: [{% for count in counts['Permanent'] %}
+          data: [{% for count in counts[5] %}
                     {{count}},
                   {% endfor %}],
           label: "Permanent",

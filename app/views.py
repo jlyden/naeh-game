@@ -32,9 +32,11 @@ def new_game():
 
 @app.route('/status/<game_id>')
 def status(game_id):
+    print('Loading status ...')
     this_game = Game.query.get_or_404(int(game_id))
     board_num_list = pickle.loads(this_game.board_num_list_pickle)
     current_board_list = gen_board_string_list(board_num_list)
+    print('current_board_list is ' + str(current_board_list))
     programs = []
     # If time for system event, populate programs
     if this_game.board_to_play == 9:
@@ -42,7 +44,7 @@ def status(game_id):
     # Load other game data for status page
     board_lens, maxes = load_board_lens_and_maxes(game_id, current_board_list)
     counts = load_counts(game_id, board_num_list)
-    changes = load_changes(game_id, board_num_list)
+    changes = load_changes(game_id, this_game.round_count, board_num_list)
     decisions = load_decisions(game_id)
     return render_template('status.html', tips=tips, game=this_game,
                            board_list=current_board_list,

@@ -9,7 +9,6 @@ from .recordkeeping import write_record
 def play_intake(game):
     # Load boards
     intake = game.load_intake()
-    print("intake board is " + str(intake))
     unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
     market = Market.query.filter_by(game_id=game.id).first()
     emerg = Emergency.query.filter_by(game_id=game.id).first()

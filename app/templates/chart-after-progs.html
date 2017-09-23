@@ -13,7 +13,7 @@
   var afterData = {
   labels : [0, 1, 2, 3, 4, 5],
   datasets : [{
-        data: [{% for count in counts['Market'] %}
+        data: [{% for count in counts[7] %}
                   {{count}},
                 {% endfor %}],
         label: "Market",
@@ -21,7 +21,7 @@
         strokeColor: "rgba(151,187,205,.6)",
         pointColor: "rgba(151,187,205,.6)",
       },{
-        data: [{% for count in counts['Unsheltered'] %}
+        data: [{% for count in counts[6] %}
                   {{count}},
                 {% endfor %}],
         label: "Unsheltered",

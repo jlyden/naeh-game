@@ -32,7 +32,7 @@
   var transData = {
     labels : [1, 2, 3, 4, 5],
     datasets : [{
-          data: [{% for _,b in changes['Transitional'] %}
+          data: [{% for _,b in changes[4] %}
                     40,
                   {% endfor %}],
           label: "",
@@ -40,7 +40,7 @@
           strokeColor: "rgba(255,255,255,.2)",
           pointColor: "rgba(255,255,255,.2)",
         },{
-          data: [{% for a,_ in changes['Transitional'] %}
+          data: [{% for a,_ in changes[4] %}
                     {{a}},
                   {% endfor %}],
           label: "Beads In",
@@ -48,7 +48,7 @@
           strokeColor: "rgba(151,187,205,.6)",
           pointColor: "rgba(151,187,205,.6)",
         },{
-          data: [{% for _,b in changes['Transitional'] %}
+          data: [{% for _,b in changes[4] %}
                     {{b}},
                   {% endfor %}],
           label: "Beads Out",
