@@ -18,6 +18,8 @@ BOARD_LIST = ["Intake", "Emergency", "Rapid",
 
 BOARD_NUM_LIST = pickle.dumps(list(range(0, 6)))
 
+BOARD_CHARTS_LIST = [1, 2, 4, 5, 6, 7]
+
 ALL_BOARDS_LIST = ["Intake", "Emergency", "Rapid", "Outreach",
                    "Transitional", "Permanent", "Unsheltered", "Market"]
 
@@ -36,12 +38,3 @@ def pull_intake():
     board_list_copy = list(ALL_BOARDS_LIST)
     board_list_copy.remove("Intake")
     return board_list_copy
-
-
-def prep_for_counts(board_num_list):
-    # Remove Intake, add Market and Unsheletered
-    if 0 in board_num_list:
-        board_num_list.remove(0)
-    board_num_list.append(6)
-    board_num_list.append(7)
-    return board_num_list

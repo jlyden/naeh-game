@@ -26,7 +26,7 @@ def play_intake(game):
         intake = unsheltered.receive_unlimited(col, intake)
         write_record(game.id, game.round_count, 0, 6, col)
     elif game.round_count == 4:
-        surplus, intake = emerg.receive_beads(col, intake,)
+        surplus, intake = emerg.receive_beads(col, intake)
         write_record(game.id, game.round_count, 0, 1, col)
     db.session.commit()
     intake = game.send_anywhere(len(intake), intake, 0)

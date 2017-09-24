@@ -1,5 +1,5 @@
 import pickle
-from flask import request, render_template, redirect, url_for, flash
+from flask import request, redirect, url_for, render_template, flash
 from app import app, db
 from .models.game import Game
 from .utils.boardplay import DISPATCHER_DEFAULT
@@ -15,7 +15,7 @@ from .utils.content import tips
 @app.route('/')
 @app.route('/index')
 def home():
-    # Unfinished games have a final_score of 0 by default
+    # Unfinished games have final_score set to 0
     open_games = Game.query.filter(Game.final_score == 0
                                    ).order_by(Game.start_datetime.desc())
     complete_games = Game.query.filter(Game.final_score > 0
@@ -30,24 +30,25 @@ def new_game():
     return redirect(url_for('status', game_id=new_game.id))
 
 
-@app.route('/status/<game_id>')
+@app.route('/status/game<game_id>')
 def status(game_id):
-    print('Loading status ...')
+    print('Loading status for game ' + str(game_id) + ' ...')
     this_game = Game.query.get_or_404(int(game_id))
     board_num_list = pickle.loads(this_game.board_num_list_pickle)
-    current_board_list = gen_board_string_list(board_num_list)
-    print('current_board_list is ' + str(current_board_list))
-    programs = []
+    print('board_num_list is ' + str(board_num_list))
+    board_string_list = gen_board_string_list(board_num_list)
     # If time for system event, populate programs
+    programs = []
     if this_game.board_to_play == 9:
-        programs = gen_progs_for_sys_event(current_board_list)
+        # Keep board string list for UI
+        programs = gen_progs_for_sys_event(board_string_list)
     # Load other game data for status page
-    board_lens, maxes = load_board_lens_and_maxes(game_id, current_board_list)
-    counts = load_counts(game_id, board_num_list)
-    changes = load_changes(game_id, this_game.round_count, board_num_list)
+    board_lens, maxes = load_board_lens_and_maxes(game_id, board_num_list)
+    counts = load_counts(game_id)
+    changes = load_changes(game_id, this_game.round_count)
     decisions = load_decisions(game_id)
     return render_template('status.html', tips=tips, game=this_game,
-                           board_list=current_board_list,
+                           board_list=board_num_list,
                            programs=programs, board_lens=board_lens,
                            maxes=maxes, counts=counts, changes=changes,
                            decisions=decisions)

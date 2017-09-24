@@ -1,27 +1,25 @@
 from ..models.record import Record, Count, Decision
-from .lists import pull_intake, prep_for_counts
+from .lists import BOARD_CHARTS_LIST
 from .dbsupport import get_board_contents
 
 
-def load_board_lens_and_maxes(game_id, current_board_list):
+def load_board_lens_and_maxes(game_id, board_num_list):
     """ Get lengths of all boards and max values of active boards  """
     board_lens = {}
     maxes = {}
-    trimmed_board_list = pull_intake()
-    for prog in trimmed_board_list:
-        program, prog_board = get_board_contents(game_id, prog)
-        board_lens[prog] = len(prog_board)
-        if prog in current_board_list:
+    for board_num in BOARD_CHARTS_LIST:
+        program, prog_board = get_board_contents(game_id, board_num)
+        board_lens[board_num] = len(prog_board)
+        if board_num in board_num_list:
             board_max = program.maximum
-            maxes[prog] = board_max
+            maxes[board_num] = board_max
     return board_lens, maxes
 
 
-def load_counts(game_id, board_num_list):
-    """ Get round-by-round counts of active boards """
-    updated_board_list = prep_for_counts(board_num_list)
+def load_counts(game_id):
+    """ Get round-by-round counts of boards """
     all_counts = {}
-    for board_num in updated_board_list:
+    for board_num in BOARD_CHARTS_LIST:
         board_counts = []
         # Get all counts associated with the board, in order
         counts = Count.query.filter(Count.game_id == game_id,
@@ -50,19 +48,20 @@ def load_final_counts(game_id, board_num_list):
     return final_counts
 
 
-def load_changes(game_id, round_count, board_num_list):
-    """ Get round-by-round changes (beads in, beads out) of active boards """
+def load_changes(game_id, round_count):
+    """ Get round-by-round changes (beads in, beads out) """
     changes = {}
     rounds = range(1, round_count + 1)
     # Run through all the rounds, calculating tuples
-    print('board num list is ' + str(board_num_list))
-    for board_num in board_num_list:
+    for board_num in BOARD_CHARTS_LIST:
         changes_tuples = []
         for each_round in rounds:
             from_sum = 0
             to_sum = 0
             # Get all to_board stats for that board
             to_board_recs = Record.query.filter(Record.game_id == game_id,
+                                                Record.round_count ==
+                                                each_round,
                                                 Record.to_board_num ==
                                                 board_num)
             # Sum beads_moved IN
@@ -70,6 +69,8 @@ def load_changes(game_id, round_count, board_num_list):
                 to_sum += rec.beads_moved
             # Get all from_board stats for that board
             from_board_recs = Record.query.filter(Record.game_id == game_id,
+                                                  Record.round_count ==
+                                                  each_round,
                                                   Record.from_board_num ==
                                                   board_num)
             # Sum beads_moved OUT
@@ -78,9 +79,8 @@ def load_changes(game_id, round_count, board_num_list):
             # Add tuple of changes (to, from)
             tup = (to_sum, from_sum)
             changes_tuples.append(tup)
-            print('board num ' + str(board_num) + ' change tuples is ' + str(changes_tuples))
         changes[board_num] = changes_tuples
-    print(str(changes))
+    print('all the changes are ' + str(changes))
     return changes
 
 

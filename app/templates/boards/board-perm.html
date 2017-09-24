@@ -1,20 +1,20 @@
 <h4>
   <a href="{{ url_for('about_boards', game_id=game.id, _anchor='perm') }}" data-toggle="tooltip" title="{{ tips['ptip'] }}">
-    {% if 'Permanent' not in board_list %}<s>{% endif %}
+    {% if 5 not in board_list %}<s>{% endif %}
       Permanent Supportive</a>
-    {% if 'Permanent' in board_list %}
+    {% if 5 in board_list %}
       <span class="label label-info ">
-        {{ board_lens['Permanent'] }}
+        {{ board_lens[5] }}
       </span>
-      {% if maxes['Permanent'] > 20 %}
+      {% if maxes[5] > 20 %}
         <mark><small>
-          Expanded to {{ maxes['Permanent'] }} slots
+          Expanded to {{ maxes[5] }} slots
         </small></mark>
       {% endif %}
     {% else %}
       </s>
       <span class="label label-info ">
-        {{ board_lens['Permanent'] }}
+        {{ board_lens[5] }}
       </span>
       <mark><small>Closed</small></mark>
     {% endif %}
