@@ -9,29 +9,30 @@ from .recordkeeping import write_record
 def play_intake(game):
     # Load boards
     intake = game.load_intake()
-    unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
-    market = Market.query.filter_by(game_id=game.id).first()
-    emerg = Emergency.query.filter_by(game_id=game.id).first()
-    # col = one 'column' in game instructions
-    col = math.ceil(50 / game.intake_cols)
+    if len(intake) > 0:
+        unsheltered = Unsheltered.query.filter_by(game_id=game.id).first()
+        market = Market.query.filter_by(game_id=game.id).first()
+        emerg = Emergency.query.filter_by(game_id=game.id).first()
+        # col = one 'column' in game instructions
+        col = math.ceil(50 / game.intake_cols)
 
-    # Move beads and record moves
-    # If Diversion is open
-    if game.intake_cols == 6:
-        intake = market.receive_unlimited(col, intake)
-        write_record(game.id, game.round_count, 0, 7, col)
-    beads_moved, intake = emerg.receive_beads(col, intake)
-    write_record(game.id, game.round_count, 0, 1, beads_moved)
-    if game.round_count == 1:
-        intake = unsheltered.receive_unlimited(col, intake)
-        write_record(game.id, game.round_count, 0, 6, col)
-    elif game.round_count == 4:
+        # Move beads and record moves
+        # If Diversion is open
+        if game.intake_cols == 6:
+            intake = market.receive_unlimited(col, intake)
+            write_record(game.id, game.round_count, 0, 7, col)
         beads_moved, intake = emerg.receive_beads(col, intake)
         write_record(game.id, game.round_count, 0, 1, beads_moved)
-    intake = game.send_anywhere(len(intake), intake, 0)
-    # send_anywhere() takes care of it's own write_record()s
-    # Intake always ends at 0, and can't receive beads, so not saved to db
-    return
+        if game.round_count == 1:
+            intake = unsheltered.receive_unlimited(col, intake)
+            write_record(game.id, game.round_count, 0, 6, col)
+        elif game.round_count == 4:
+            beads_moved, intake = emerg.receive_beads(col, intake)
+            write_record(game.id, game.round_count, 0, 1, beads_moved)
+        intake = game.send_anywhere(intake, 0)
+        # send_anywhere() takes care of it's own write_record()s
+        # Intake always ends at 0, and can't receive beads, so not saved to db
+        return
 
 
 def play_emergency(game):
@@ -49,7 +50,7 @@ def play_emergency(game):
     emerg_board = unsheltered.receive_unlimited(col, emerg_board)
     write_record(game.id, game.round_count, 1, 6, col)
     if len(emerg_board) > 0:
-        emerg_board = game.send_anywhere(len(emerg_board), emerg_board, 1)
+        emerg_board = game.send_anywhere(emerg_board, 1)
         # send_anywhere() takes care of it's own write_record()s
 
     # Save played board
@@ -97,8 +98,7 @@ def play_outreach(game):
     write_record(game.id, game.round_count, 6, 3, beads_moved)
     unsheltered.board = pickle.dumps(unsheltered_board)
     # Move beads FROM Outreach
-    outreach_board = game.send_anywhere(len(outreach_board),
-                                        outreach_board, 3)
+    outreach_board = game.send_anywhere(outreach_board, 3)
     # send_anywhere() takes care of it's own write_record()s
 
     # Save played board

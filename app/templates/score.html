@@ -1,6 +1,6 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
-    <h2 class="panel-title">Final Score = {{ ((score.unsheltered * 3) + score.emerg_total + score.trans_total) - (score.market + score.rapid + score.perm) }}</h2>
+    <h2 class="panel-title">Final Score = {{ ((counts[6].pop() * 3) + counts[1]|sum + counts[4]|sum) - (counts[7].pop() + counts[2].pop() + counts[5].pop()) }}</h2>
   </div>
   <div class="panel-body">
     <table class="table">
@@ -12,27 +12,27 @@
       </tr>
       <tr>
         <td>Unsheltered x 3</td>
-        <td>{{ score.unsheltered * 3 }}</td>
+        <td>{{ counts[6].pop() * 3 }}</td>
         <td>Market</td>
-        <td>{{ score.market}}</td>
+        <td>{{ counts[7].pop() }}</td>
       </tr>
       <tr>
         <td>Emergency</td>
-        <td>{{ score.emerg_total }}</td>
+        <td>{{ counts[1]|sum }}</td>
         <td>Rapid</td>
-        <td>{{ score.rapid}}</td>
+        <td>{{ counts[2].pop() }}</td>
       </tr>
       <tr>
         <td>Transitional</td>
-        <td>{{ score.trans_total }}</td>
+        <td>{{ counts[4]|sum }}</td>
         <td>Permanent</td>
-        <td>{{ score.perm}}</td>
+        <td>{{ counts[5].pop() }}</td>
       </tr>
       <tr>
         <th>Homeless Score</th>
-        <th>{{ (score.unsheltered * 3) + score.emerg_total + score.trans_total }}</th>
+        <th>{{ (counts[6].pop() * 3) + counts[1]|sum + counts[4]|sum }}</th>
         <th>Housing Score</th>
-        <th>{{ score.market + score.rapid + score.perm }}</th>
+        <th>{{ counts[7].pop() + counts[2].pop() + counts[5].pop() }}</th>
       </tr>
     </table>
   </div><!--./panel-body -->

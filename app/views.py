@@ -31,10 +31,10 @@ def new_game():
 
 @app.route('/status/game<game_id>')
 def status(game_id):
-    print('Loading status for game ' + str(game_id) + ' ...')
     this_game = Game.query.get_or_404(int(game_id))
+    print('Loading status for game ' + str(game_id) + ', round ' + str(this_game.round_count) + ' ...')
     board_num_list = pickle.loads(this_game.board_num_list_pickle)
-    print('board_num_list is ' + str(board_num_list))
+#    print('board_num_list is ' + str(board_num_list))
     # If time for system event, populate programs
     programs = []
     if this_game.board_to_play == 9:
@@ -55,7 +55,11 @@ def status(game_id):
 @app.route('/play_round/<game_id>')
 def play_round(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    if this_game.round_count < 6:
+    # Ensure there are beads to play
+    available_beads = pickle.loads(this_game.available_pickle)
+    if len(available_beads) == 0:
+        flash(u'Game over - no more plays.', 'warning')
+    elif this_game.round_count < 6:
         board_num_list = pickle.loads(this_game.board_num_list_pickle)
         for board_num in board_num_list:
             play_board(this_game, board_num, board_num_list)
@@ -100,9 +104,11 @@ def about_boards(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     return render_template('about-boards.html', game=this_game)
 
+# TODO: Something's wrong with Line charts (stopping at round 2)
+# TODO: Add recalc score, just in case
 # TODO: Check eval(prog) for numbers
+# TODO: Remove Help top bar link from Help page
 # TODO: After round, nav to splash screen showing where intake went
 # TODO: Add system events to splash screen
 # TODO: do we need logs again?
 # TODO: One-button run simulation version with side-by-side comparison
-# TODO: add animation

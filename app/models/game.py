@@ -105,29 +105,28 @@ class Game(db.Model):
 
     def load_intake(self):
         available_beads = pickle.loads(self.available_pickle)
-        if len(available_beads) == 0:
-            flash(u'Game over - no more plays.', 'warning')
-            return redirect(url_for('status', game_id=self.id))
-        else:
-            intake = []
-            no_red = False  # Red beads always allowed in Intake
-            available_beads, intake = move_beads(50, available_beads, intake,
-                                                 no_red)
-            self.available_pickle = pickle.dumps(available_beads)
-            db.session.commit()
-            return intake
+        intake = []
+        no_red = False  # Red beads always allowed in Intake
+        available_beads, intake = move_beads(50, available_beads, intake,
+                                             no_red)
+        print('after load, len(available_beads) is ' + str(len(available_beads)))
+        self.available_pickle = pickle.dumps(available_beads)
+        db.session.commit()
+        return intake
 
-    def send_anywhere(self, extra, from_board, from_board_num):
+    def send_anywhere(self, from_board, from_board_num):
         # Get list of available programs to send beads
         anywhere_list = gen_anywhere_list(self.board_num_list_pickle)
+        print('anywhere_list is ' + str(anywhere_list))
         # Cycle through programs, moving as many beads as possible to each
-        while len(from_board) > 0 and len(anywhere_list) > 0:
+        while (len(from_board) > 0) and (len(anywhere_list) > 0):
             to_board_num = anywhere_list.pop()
             prog_table = eval(ALL_BOARDS[to_board_num])
             prog = prog_table.query.filter_by(game_id=self.id).first()
-            beads_moved, from_board = prog.receive_beads(extra, from_board)
-            write_record(self.id, self.round_count, from_board_num,
-                         to_board_num, beads_moved)
+            beads_moved, from_board = prog.receive_beads(len(from_board), from_board)
+            if beads_moved > 0:
+                write_record(self.id, self.round_count, from_board_num,
+                             to_board_num, beads_moved)
 
         # Whatever remains is sent to unsheltered
         if len(from_board) > 0:
@@ -196,15 +195,15 @@ class Game(db.Model):
 
     def generate_score(self):
         # Count lists
-        counts = load_counts(self.id, [1, 4])  # Emergency, Transitional
+        counts = load_counts(self.id)
         # End_counts
-        final_counts = load_final_counts(self.id, [2, 5, 6, 7])
+#        final_counts = load_final_counts(self.id, [2, 5, 6, 7])
 
         # Calculate the final score
-        final_score = ((final_counts[6] * 3) +  # Unsheltered
+        final_score = ((counts[6].pop() * 3) +  # Unsheltered
                        sum(counts[1]) +         # Emergency
                        sum(counts[4]) -         # Transitional
-                       final_counts[7] +        # Market
-                       final_counts[2] +        # Rapid
-                       final_counts[5])         # Permanent
+                       counts[7].pop() +        # Market
+                       counts[2].pop() +        # Rapid
+                       counts[5].pop())         # Permanent
         return final_score

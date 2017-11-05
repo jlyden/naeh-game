@@ -13,8 +13,8 @@ def write_record(game_id, round_count, from_num, to_num, beads_moved):
                         beads_moved=beads_moved)
     db.session.add(new_record)
     db.session.commit()
-    print('New Record: from ' + str(from_num) + ' to ' + str(to_num) + ', ' +
-          str(beads_moved) + ' beads')
+#    print('New Record: from ' + str(from_num) + ' to ' + str(to_num) + ', ' +
+#          str(beads_moved) + ' beads')
     return
 
 
@@ -46,8 +46,8 @@ def write_count(game_id, round_count, board_num, beads):
                        beads=beads)
     db.session.add(this_count)
     db.session.commit()
-    print('Board ' + str(board_num) + ' has ' + str(beads) +
-          ' beads at end of round ' + str(round_count))
+#    print('Board ' + str(board_num) + ' has ' + str(beads) +
+#          ' beads at end of round ' + str(round_count))
     return
 
 

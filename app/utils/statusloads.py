@@ -30,7 +30,7 @@ def load_counts(game_id):
         all_counts[board_num] = board_counts
     return all_counts
 
-
+# Since load counts generates all, this isn't needed
 def load_final_counts(game_id, board_num_list):
     """ Get final counts (end of round 5) """
     final_counts = {}
@@ -79,7 +79,7 @@ def load_changes(game_id, round_count):
             tup = (to_sum, from_sum)
             changes_tuples.append(tup)
         changes[board_num] = changes_tuples
-    print('all the changes are ' + str(changes))
+#    print('all the changes are ' + str(changes))
     return changes
 
 
