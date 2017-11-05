@@ -104,11 +104,12 @@ def about_boards(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     return render_template('about-boards.html', game=this_game)
 
-# TODO: Something's wrong with Line charts (stopping at round 2)
-# TODO: Add recalc score, just in case
-# TODO: Check eval(prog) for numbers
-# TODO: Remove Help top bar link from Help page
 # TODO: After round, nav to splash screen showing where intake went
 # TODO: Add system events to splash screen
+# TODO: Something's wrong with Line charts (stopping at round 2)
+# TODO: Add recalc score, just in case
+# TODO: Improve Run Round button/link
+# TODO: Check eval(prog) for numbers
+# TODO: Remove Help top bar link from Help page
 # TODO: do we need logs again?
 # TODO: One-button run simulation version with side-by-side comparison
