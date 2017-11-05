@@ -104,12 +104,13 @@ def about_boards(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     return render_template('about-boards.html', game=this_game)
 
-# TODO: After round, nav to splash screen showing where intake went
-# TODO: Add system events to splash screen
-# TODO: Something's wrong with Line charts (stopping at round 2)
+
+# TODO: After round, status pops modal showing where intake went
+# TODO: Add system events to post-round modal
+# TODO: Something's wrong with Line charts (some boards dropping out early)
 # TODO: Add recalc score, just in case
-# TODO: Improve Run Round button/link
+# TODO: Sticky header?
+# TODO: Improve Run Round button/link - move to header
 # TODO: Check eval(prog) for numbers
-# TODO: Remove Help top bar link from Help page
 # TODO: do we need logs again?
 # TODO: One-button run simulation version with side-by-side comparison

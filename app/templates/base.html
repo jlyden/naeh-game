@@ -26,20 +26,24 @@
           </li>
           {% if game %}
             <li class="navbar-text">
+              {% if 'status' in request.path %}
               Simulation Number {{ game.id }}
-              {% if game.round_count < 6 %}
-                : Round {{ game.round_count }}
-              {% else %}
-                : Simulation Ended
+                {% if game.round_count < 6 %}
+                  : Round {{ game.round_count }}
+                {% else %}
+                  : Simulation Ended
+                {% endif %}
               {% endif %}
             </li>
             <li>
               {% if 'view' in request.path or 'about' in request.path %}
-              <a href="{{ url_for('status', game_id=game.id) }}" class="navbar-link">Run Simulation {{ game.id }}</a>
+              <a href="{{ url_for('status', game_id=game.id) }}" class="navbar-link">Back to Simulation {{ game.id }}</a>
               {% endif %}
             </li>
             <li>
+              {% if 'about' not in request.path %}
               <a href="{{ url_for('about_boards', game_id=game.id, _anchor='help') }}" class="navbar-link">Help</a>
+              {% endif %}
             </li>
           {% endif %}
         </ul>
