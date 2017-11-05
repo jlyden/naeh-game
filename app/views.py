@@ -1,15 +1,14 @@
 import pickle
-from flask import request, redirect, url_for, render_template, flash
 from app import app, db
+from flask import request, redirect, url_for, render_template, flash
 from .models.game import Game
-from .utils.boardplay import DISPATCHER_DEFAULT
-from .utils.lists import BOARD_LIST
-from .utils.misc import gen_board_string_list, gen_progs_for_sys_event
-from .utils.misc import set_board_to_play
+from .utils.boardplay import PLAY_BOARD
+from .utils.content import tips
+from .utils.lists import ALL_BOARDS
+from .utils.lists import gen_progs_for_sys_event, set_board_to_play
 from .utils.recordkeeping import end_round
 from .utils.statusloads import load_board_lens_and_maxes, load_decisions
-from .utils.statusloads import load_counts, load_changes
-from .utils.content import tips
+from .utils.statusloads import load_changes, load_counts
 
 
 @app.route('/')
@@ -36,14 +35,13 @@ def status(game_id):
     this_game = Game.query.get_or_404(int(game_id))
     board_num_list = pickle.loads(this_game.board_num_list_pickle)
     print('board_num_list is ' + str(board_num_list))
-    board_string_list = gen_board_string_list(board_num_list)
     # If time for system event, populate programs
     programs = []
     if this_game.board_to_play == 9:
-        # Keep board string list for UI
-        programs = gen_progs_for_sys_event(board_string_list)
+        programs = gen_progs_for_sys_event(board_num_list)
     # Load other game data for status page
-    board_lens, maxes = load_board_lens_and_maxes(game_id, board_num_list)
+    # TODO: Look at what I'm passing and why
+    board_lens, maxes = load_board_lens_and_maxes(game_id)
     counts = load_counts(game_id)
     changes = load_changes(game_id, this_game.round_count)
     decisions = load_decisions(game_id)
@@ -61,7 +59,6 @@ def play_round(game_id):
         board_num_list = pickle.loads(this_game.board_num_list_pickle)
         for board_num in board_num_list:
             play_board(this_game, board_num, board_num_list)
-        return redirect(url_for('status', game_id=game_id))
     else:
         flash(u'Game over - no more plays.', 'warning')
     return redirect(url_for('status', game_id=game_id))
@@ -69,19 +66,17 @@ def play_round(game_id):
 
 def play_board(game, board_num, board_num_list):
     # Play the board specified
-    print("Playing " + str(board_num) + ", " + BOARD_LIST[board_num])
-    DISPATCHER_DEFAULT[board_num](game)
+    print("Playing " + str(board_num) + ", " + ALL_BOARDS[board_num])
+    PLAY_BOARD[board_num](game)
     # Set next board_to_play
     game.board_to_play = set_board_to_play(board_num, board_num_list)
-    # If board list is exhausted (set to 6 by previous method)
-    if game.board_to_play == 6:
-        round_count = end_round(game)
-    # If game is over, time to calculate Final Score
-        if round_count == 6:
-            final_score = game.generate_score()
-            game.final_score = final_score
     db.session.commit()
-    return redirect(url_for('status', game_id=game.id))
+    # If board list is exhausted, end round and return to status page
+    if game.board_to_play == 6:
+        end_round(game)
+        return redirect(url_for('status', game_id=game.id))
+    else:
+        return  # control to play_round
 
 
 @app.route('/event/<game_id>', methods=['POST'])

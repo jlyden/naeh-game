@@ -1,17 +1,17 @@
 import pickle
 from datetime import datetime
-from flask import redirect, url_for, flash
 from app import db
+from flask import redirect, url_for, flash
 from .boards import Emergency, Rapid, Outreach, Transitional
 from .boards import Permanent, Unsheltered, Market
 from .record import Count, Decision
-from ..utils.lists import BOARD_NUM_LIST, AVAILABLE_BEADS, EMERG_START
-from ..utils.lists import BOARD_LIST
-from ..utils.lists import RAPID_START, OUTREACH_START, TRANS_START, PERM_START
-from ..utils.lists import EMPTY_LIST, EXTRA_BOARD, generate_anywhere_list
-from ..utils.statusloads import load_counts, load_final_counts
 from ..utils.beadmoves import move_beads
+from ..utils.lists import ALL_BOARDS, AVAILABLE_BEADS, BOARD_NUM_LIST
+from ..utils.lists import EMERG_START, RAPID_START, OUTREACH_START, TRANS_START
+from ..utils.lists import PERM_START, EMPTY_LIST, EXTRA_BOARD
+from ..utils.lists import gen_anywhere_list
 from ..utils.recordkeeping import write_record
+from ..utils.statusloads import load_counts, load_final_counts
 
 
 class Game(db.Model):
@@ -119,14 +119,13 @@ class Game(db.Model):
 
     def send_anywhere(self, extra, from_board, from_board_num):
         # Get list of available programs to send beads
-        anywhere_list = generate_anywhere_list(self.board_num_list_pickle)
+        anywhere_list = gen_anywhere_list(self.board_num_list_pickle)
         # Cycle through programs, moving as many beads as possible to each
         while len(from_board) > 0 and len(anywhere_list) > 0:
             to_board_num = anywhere_list.pop()
-            prog_table = eval(BOARD_LIST[to_board_num])
+            prog_table = eval(ALL_BOARDS[to_board_num])
             prog = prog_table.query.filter_by(game_id=self.id).first()
-            extra, from_board, beads_moved = prog.receive_beads(extra,
-                                                                from_board)
+            beads_moved, from_board = prog.receive_beads(extra, from_board)
             write_record(self.id, self.round_count, from_board_num,
                          to_board_num, beads_moved)
 
@@ -161,12 +160,12 @@ class Game(db.Model):
 
     def convert_program(self, from_program_name, to_program_name):
         from ..utils.dbsupport import get_board_contents
-        from_board_num = BOARD_LIST.index(from_program_name)
-        to_board_num = BOARD_LIST.index(to_program_name)
+        from_board_num = ALL_BOARDS.index(from_program_name)
+        to_board_num = ALL_BOARDS.index(to_program_name)
         # Get both database objects and unpickle boards
         from_prog, from_prog_board = get_board_contents(self.id,
-                                                        from_program_name)
-        to_prog, to_prog_board = get_board_contents(self.id, to_program_name)
+                                                        from_board_num)
+        to_prog, to_prog_board = get_board_contents(self.id, to_board_num)
         beads_moved = len(from_prog_board)
 
         # Move beads from from_prog.board to to_prog.board

@@ -1,11 +1,11 @@
 import pickle
 from ..models.boards import Emergency, Rapid, Outreach, Transitional
 from ..models.boards import Permanent, Unsheltered, Market
-from .lists import ALL_BOARDS_LIST
+from .lists import ALL_BOARDS
 
 
 def get_board_contents(game_id, board_num):
-    program_name = ALL_BOARDS_LIST[board_num]
+    program_name = ALL_BOARDS[board_num]
     prog_table = eval(program_name)
     program = prog_table.query.filter_by(game_id=game_id).first()
     prog_board = pickle.loads(program.board)

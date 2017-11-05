@@ -3,16 +3,15 @@ from .lists import BOARD_CHARTS_LIST
 from .dbsupport import get_board_contents
 
 
-def load_board_lens_and_maxes(game_id, board_num_list):
+def load_board_lens_and_maxes(game_id):
     """ Get lengths of all boards and max values of active boards  """
     board_lens = {}
     maxes = {}
     for board_num in BOARD_CHARTS_LIST:
         program, prog_board = get_board_contents(game_id, board_num)
         board_lens[board_num] = len(prog_board)
-        if board_num in board_num_list:
-            board_max = program.maximum
-            maxes[board_num] = board_max
+        board_max = program.maximum
+        maxes[board_num] = board_max
     return board_lens, maxes
 
 

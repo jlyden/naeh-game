@@ -25,9 +25,8 @@ class Other_Boards(object):
             db.session.commit()
             beads_moved = bead_count - extra
         else:
-            extra = bead_count
             beads_moved = 0
-        return extra, from_board, beads_moved
+        return beads_moved, from_board
 
     def receive_unlimited(self, bead_count, from_board):
         from ..utils.dbsupport import check_no_red

@@ -1,20 +1,20 @@
 <h4>
   <a href="{{ url_for('about_boards', game_id=game.id, _anchor='outreach') }}" data-toggle="tooltip" title="{{ tips['otip'] }}">
-    {% if 'Outreach' not in board_list %}<s>{% endif %}
+    {% if 3 not in board_list %}<s>{% endif %}
       Outreach Program</a>
-    {% if 'Outreach' in board_list %}
+    {% if 3 in board_list %}
       <span class="label label-info ">
-        {{ board_lens['Outreach'] }}
+        {{ board_lens[3] }}
       </span>
-      {% if maxes['Outreach'] > 10 %}
+      {% if maxes[3] > 10 %}
         <mark><small>
-          Expanded to {{ maxes['Outreach'] }} slots
+          Expanded to {{ maxes[3] }} slots
         </small></mark>
       {% endif %}
     {% else %}
       </s>
       <span class="label label-info ">
-        {{ board_lens['Outreach'] }}
+        {{ board_lens[3] }}
       </span>
       <mark><small>Closed</small></mark>
     {% endif %}
