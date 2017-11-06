@@ -8,7 +8,7 @@ from .utils.lists import ALL_BOARDS
 from .utils.lists import gen_progs_for_sys_event, set_board_to_play
 from .utils.recordkeeping import end_round
 from .utils.statusloads import load_board_lens_and_maxes, load_decisions
-from .utils.statusloads import load_changes, load_counts
+from .utils.statusloads import load_changes, load_counts, load_intake_dest
 
 
 @app.route('/')
@@ -32,7 +32,8 @@ def new_game():
 @app.route('/status/game<game_id>')
 def status(game_id):
     this_game = Game.query.get_or_404(int(game_id))
-    print('Loading status for game ' + str(game_id) + ', round ' + str(this_game.round_count) + ' ...')
+    print('Loading status for game ' + str(game_id) + ', round ' +
+          str(this_game.round_count) + ' ...')
     board_num_list = pickle.loads(this_game.board_num_list_pickle)
 #    print('board_num_list is ' + str(board_num_list))
     # If time for system event, populate programs
@@ -44,12 +45,13 @@ def status(game_id):
     board_lens, maxes = load_board_lens_and_maxes(game_id)
     counts = load_counts(game_id)
     changes = load_changes(game_id, this_game.round_count)
+    intake_dest = load_intake_dest(game_id, this_game.round_count - 1)
     decisions = load_decisions(game_id)
     return render_template('status.html', tips=tips, game=this_game,
                            board_list=board_num_list,
                            programs=programs, board_lens=board_lens,
                            maxes=maxes, counts=counts, changes=changes,
-                           decisions=decisions)
+                           intake_dest=intake_dest, decisions=decisions)
 
 
 @app.route('/play_round/<game_id>')

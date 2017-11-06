@@ -25,16 +25,22 @@
             <a href="{{ url_for('home') }}" class="navbar-link">Home</a>
           </li>
           {% if game %}
-            <li class="navbar-text">
-              {% if 'status' in request.path %}
-              Simulation Number {{ game.id }}
-                {% if game.round_count < 6 %}
-                  : Round {{ game.round_count }}
-                {% else %}
-                  : Simulation Ended
-                {% endif %}
-              {% endif %}
-            </li>
+            {% if 'status' in request.path %}
+              <li class="navbar-text">
+                Simulation Number {{ game.id }}
+                  {% if game.round_count < 6 %}
+                    : Round {{ game.round_count }}
+                  {% else %}
+                    : Simulation Ended
+                  {% endif %}
+              </li>
+              <li>
+                <button class="btn btn-link" data-toggle="modal" data-target="#intake_report">
+                  Intake Report
+                  <!-- https://stackoverflow.com/questions/37903896/is-it-possible-load-bootstrap-modal-directly-with-flask -->
+                </button>
+              </li>
+            {% endif %}
             <li>
               {% if 'view' in request.path or 'about' in request.path %}
               <a href="{{ url_for('status', game_id=game.id) }}" class="navbar-link">Back to Simulation {{ game.id }}</a>

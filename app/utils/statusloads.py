@@ -83,6 +83,31 @@ def load_changes(game_id, round_count):
     return changes
 
 
+def load_intake_dest(game_id, round_count):
+    """ Get intake board's destination distribution for one round """
+    intake_num = 0
+    intake_dest = [0]  # Intake board is position 0
+    destinations = Record.query.filter(Record.game_id == game_id,
+                                       Record.round_count == round_count,
+                                       Record.from_board_num == intake_num)
+    # Go board-by-board and compare to Record of destinations
+    for i in range(1, 8):
+        for dest in destinations:
+            if dest.to_board_num == i:
+                # If first time this board_num is found, append to list
+                if len(intake_dest) < (i + 1):
+                    intake_dest.append(dest.beads_moved)
+                # else add to exsiting value
+                else:
+                    intake_dest[i] += dest.beads_moved
+        # If we got through Record of destinations without a match ...
+        if len(intake_dest) < (i + 1):
+                intake_dest.append(0)
+    intake_dest.pop(0)  # Now we can remove that Intake placeholder
+    print('intake_dest for round ' + str(round_count) + ' is ' + str(intake_dest))
+    return intake_dest
+
+
 def load_decisions(game_id):
     """ Get major game decisions """
     decisions = []
