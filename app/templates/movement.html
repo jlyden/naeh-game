@@ -42,7 +42,10 @@
     }
 
   // intake_movement_chart - draw chart and legend
-  var mchart = new Chart(document.getElementById("intake_movement_chart").getContext("2d"))
-  var movement_chart = mchart.Pie(intakeMovement, options);
-  document.getElementById("intake_movement_legend").innerHTML = movement_chart.generateLegend();
+  var mchart = document.getElementById("intake_movement_chart")
+  var movement_chart = new Chart(mchart,
+    { type: 'pie',
+      data: intakeMovement,
+      options: options});
+  //document.getElementById("intake_movement_legend").innerHTML = movement_chart.generateLegend();
 </script>
