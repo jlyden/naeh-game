@@ -1,13 +1,8 @@
 .vagrant/
 Vagrantfile
-
 *.pyc
-
 *.sql
-*.sqlite
-
 *.log
-
 *~
-
 migrations/
+node_modules/
