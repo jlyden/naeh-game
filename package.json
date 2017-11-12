@@ -1,0 +1,16 @@
+{
+  "name": "game",
+  "version": "1.0.0",
+  "description": "'NAEH Homeless Services Simulation'",
+  "main": "index.js",
+  "repository": "https://github.com/jlyden/naeh-game.",
+  "author": "jennifer lyden",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "bootstrap": "4.0.0-beta.2",
+    "chartjs": "^0.3.24",
+    "jquery": "1.9.1",
+    "popper.js": "^1.12.3"
+  }
+}

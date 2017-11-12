@@ -7,3 +7,6 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 WTF_CSRF_ENABLED = True
 SECRET_KEY = '4$3cr3t4'
+
+static_url_path = None
+static_folder = None
