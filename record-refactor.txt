@@ -1,9 +1,0 @@
-Current game details storage:
- - board_list_pickle (game) - strings?
- - record (record) - game_id, round_count, board_name, beads_in, beads_out, end_count (for round), note (major decisions)
- - log (log) - game_id, round_count, board_played (string), moves (pickle of strings with counts for each move)
-
-
-Plans:
- - Use BOARD_NAMES when names needed in UI, but change BOARD_LIST to numbers only (refs to BOARD_NAMES).
- - new table: Stats - game_id, round_count, from_board(int), to_board(int), beads_moved
