@@ -28,60 +28,46 @@
 
 <script>
 {% if changes %}
-  // status bar charts
-  var permData = {
+  // chart data
+  var data = {
     labels : [1, 2, 3, 4, 5],
     datasets : [{
-          data: [{% for _,b in changes[5] %}
-                    40,
-                  {% endfor %}],
-          label: "",
-          fillColor: "rgba(255,255,255,.2)",
-          strokeColor: "rgba(255,255,255,.2)",
-          pointColor: "rgba(255,255,255,.2)",
-        },{
           data: [{% for a,_ in changes[5] %}
                     {{a}},
                   {% endfor %}],
           label: "Beads In",
-          fillColor: "rgba(255,99,71,.2)",
-          strokeColor: "rgba(255,99,71,.6)",
-          pointColor: "rgba(255,99,71,.6)",
+          backgroundColor: "rgba(255,99,71,.8)"
         },{
           data: [{% for _,b in changes[5] %}
                     {{b}},
                   {% endfor %}],
           label: "Beads Out",
-          fillColor: "rgba(0,255,127,.2)",
-          strokeColor: "rgba(0,255,127,.6)",
-          pointColor: "rgba(0,255,127,.6)",
+          backgroundColor: "rgba(0,255,127,.8)"
         }
       ]
     }
-  // Set defaults and options
-  Chart.defaults.global.responsive = true;
-  Chart.defaults.global.scaleLineColor = "black";
-  Chart.defaults.global.scaleFontSize = 16;
-  // legendTemplate takes a template as a string
-  var options = {
-    display: true,
-    scaleShowGridLines : false,
-    barShowStroke : true,
-    bezierCurve: false,
-    multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
-    legendTemplate : '<ul class="list-inline">'
-                      +'<% for (var i=1; i<datasets.length; i++) { %>'
-                      +'<li class="list-group-item">'
-                        +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
-                        +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'
-                      +'</span></li>'
-                      +'<% } %>'
-                    +'</ul>'
-    }
 
-  // perm chart - draw chart and legend
-  var echart = new Chart(document.getElementById("perm_chart").getContext("2d"))
-  var perm_chart = echart.Bar(permData, options);
-  document.getElementById("perm_legend").innerHTML = perm_chart.generateLegend();
+  var options = {
+    scales: {
+      yAxes: [{
+        display: true,
+        ticks: {
+          suggestedMin: 0,
+          suggestedMax: 40
+            }
+        }]
+    },
+    legend: {
+      labels: {
+        boxWidth: 2
+      }
+    }
+  }
+
+  var ctx = document.getElementById("perm_chart").getContext("2d");
+  var perm_chart = new Chart(ctx, {
+    type: 'bar',
+    data: data,
+    options: options});
 {% endif %}
 </script>

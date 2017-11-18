@@ -14,6 +14,7 @@ This Simulation is designed to help communities understand how the homeless assi
  * Port Forwarding: `config.vm.network "forwarded_port", guest: 5000, host: 5000, host_ip: "127.0.0.1"`
  * Folder Syncing (saves hassle of using Git inside virtual box): `config.vm.synced_folder "../relative-path/to-cloned-project/naeh-game/", "/game"`
 3. Run Virtual Machine
+ * Guest additions errors? [Try this](http://kvz.io/blog/2013/01/16/vagrant-tip-keep-virtualbox-guest-additions-in-sync/)
 
 ### On Virtual Machine
 1. Install Flask, SQLAlchemy, and MySQL
@@ -35,6 +36,7 @@ This Simulation is designed to help communities understand how the homeless assi
    * `FLUSH PRIVILEGES;`
    * Logout of MySQL:`exit`
 3. Migrate DB
+   * Navigate to root directory of project
    * `./manage.py db init`
    * `./manage.py db migrate`
    * `./manage.py db upgrade`

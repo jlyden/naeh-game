@@ -4,48 +4,39 @@
       <div class="panel-body">
         <div>
           <canvas id="intake_movement_chart"></canvas>
-          <div id="intake_movement_legend"></div>
         </div>
       </div>
 
 <script>
-  // intake_movement data
-  var intakeMovement = {
+  // chart data
+  var data = {
     labels : ["Emergency", "Rapid", "Outreach",
-              "Transitional", "Permanent", "Market",
-              "Unsheltered"],
+              "Transitional", "Permanent",
+              "Unsheltered", "Market"],
     datasets : [{
           data: [{% for value in intake_dest %}
                     {{ value }},
                   {% endfor %}],
             backgroundColor: ["#FA8072", "#98FB98", "#FFA07A",
-                              "#DDA0DD", "#8FBC8F", "#00FF7F",
-                              "#FF6347"]
+                              "#DDA0DD", "#8FBC8F",
+                              "#FF6347", "#00FF7F"]
         }]
   }
-  // legendTemplate takes a template as a string
   var options = {
-    display: true,
     animation: {
       animateRotate: true,
       animateScale: true
     },
-    multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
-    legendTemplate : '<ul class="list-inline">'
-                      +'<% for (var i=0; i<datasets.length; i++) { %>'
-                      +'<li class="list-group-item">'
-                        +'<span style=\"background-color:<%=datasets[i].strokeColor%>\">'
-                        +'<% if (datasets[i].label) { %><%= datasets[i].label %><% } %>'
-                      +'</span></li>'
-                      +'<% } %>'
-                    +'</ul>'
+    legend: {
+      labels: {
+        boxWidth: 2
+      }
     }
+  }
 
-  // intake_movement_chart - draw chart and legend
-  var mchart = document.getElementById("intake_movement_chart")
-  var movement_chart = new Chart(mchart,
-    { type: 'pie',
-      data: intakeMovement,
-      options: options});
-  //document.getElementById("intake_movement_legend").innerHTML = movement_chart.generateLegend();
+  var ctx = document.getElementById("intake_movement_chart")
+  var movement_chart = new Chart(ctx, {
+    type: 'pie',
+    data: data,
+    options: options});
 </script>

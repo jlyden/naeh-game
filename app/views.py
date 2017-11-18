@@ -108,6 +108,11 @@ def about_boards(game_id):
 
 
 # TODO: After round, status pops modal showing where intake went
+# TODO: Stacked bar graphs showing where people in various programs came from
+#       and went to
+# TODO: Let user decide random vs. ordered 'place anywhere' program order
+# TODO: Red beads!?!?
+# TODO: Make notes about the information missing for novice users
 # TODO: Add system events to post-round modal
 # TODO: Something's wrong with Line charts (some boards dropping out early)
 # TODO: Add recalc score, just in case
