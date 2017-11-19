@@ -1,28 +1,22 @@
 <h4>
   <a href="{{ url_for('about_boards', game_id=game.id, _anchor='trans') }}" data-toggle="tooltip" title="{{ tips['ttip'] }}">
-  {% if 4 not in board_list %}<s>{% endif %}
     Transitional Housing</a>
-  {% if 4 in board_list %}
-    <span class="label label-info ">
-      {{ board_lens[4] }}
-    </span>
+  <span class="label label-info ">
+      {{ board_lens[4] }} people
+  </span>
+  <mark><small>
     {% if maxes[4] > 20 %}
-      <mark><small>
         Expanded to {{ maxes[4] }} slots
-      </small></mark>
+    {% elif 4 not in board_list %}
+      Closed
+    {% else %}
+      20 slots
     {% endif %}
-  {% else %}
-    </s>
-    <span class="label label-info ">
-      {{ board_lens[4] }}
-    </span>
-    <mark><small>Closed</small></mark>
-  {% endif %}
+  </small></mark>
 </h4>
 {% if game.round_count > 1 %}
   <div>
     <canvas id="trans_chart"></canvas>
-    <div id="trans_legend"></div>
   </div>
 {% endif %}
 
@@ -34,13 +28,13 @@
           data: [{% for a,_ in changes[4] %}
                     {{a}},
                   {% endfor %}],
-          label: "Beads In",
+          label: "People In",
           backgroundColor: "rgba(255,99,71,.8)"
         },{
           data: [{% for _,b in changes[4] %}
                     {{b}},
                   {% endfor %}],
-          label: "Beads Out",
+          label: "People Out",
           backgroundColor: "rgba(0,255,127,.8)"
         }
       ]

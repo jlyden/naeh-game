@@ -116,8 +116,6 @@ def about_boards(game_id):
 # TODO: Add system events to post-round modal
 # TODO: Something's wrong with Line charts (some boards dropping out early)
 # TODO: Add recalc score, just in case
-# TODO: Sticky header?
-# TODO: Improve Run Round button/link - move to header
 # TODO: Check eval(prog) for numbers
 # TODO: do we need logs again?
 # TODO: One-button run simulation version with side-by-side comparison

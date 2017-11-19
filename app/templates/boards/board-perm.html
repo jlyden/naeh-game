@@ -1,28 +1,22 @@
 <h4>
   <a href="{{ url_for('about_boards', game_id=game.id, _anchor='perm') }}" data-toggle="tooltip" title="{{ tips['ptip'] }}">
-    {% if 5 not in board_list %}<s>{% endif %}
-      Permanent Supportive</a>
-    {% if 5 in board_list %}
-      <span class="label label-info ">
-        {{ board_lens[5] }}
-      </span>
-      {% if maxes[5] > 20 %}
-        <mark><small>
-          Expanded to {{ maxes[5] }} slots
-        </small></mark>
-      {% endif %}
+    Permanent Supportive</a>
+  <span class="label label-info ">
+    {{ board_lens[5] }} people
+  </span>
+  <mark><small>
+    {% if maxes[5] > 20 %}
+      Expanded to {{ maxes[5] }} slots
+    {% elif 5 not in board_list %}
+      Closed
     {% else %}
-      </s>
-      <span class="label label-info ">
-        {{ board_lens[5] }}
-      </span>
-      <mark><small>Closed</small></mark>
+      20 slots
     {% endif %}
+  </small></mark>
 </h4>
 {% if game.round_count > 1 %}
   <div>
     <canvas id="perm_chart"></canvas>
-    <div id="perm_legend"></div>
   </div>
 {% endif %}
 
@@ -35,13 +29,13 @@
           data: [{% for a,_ in changes[5] %}
                     {{a}},
                   {% endfor %}],
-          label: "Beads In",
+          label: "People In",
           backgroundColor: "rgba(255,99,71,.8)"
         },{
           data: [{% for _,b in changes[5] %}
                     {{b}},
                   {% endfor %}],
-          label: "Beads Out",
+          label: "People Out",
           backgroundColor: "rgba(0,255,127,.8)"
         }
       ]
