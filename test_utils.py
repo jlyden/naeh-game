@@ -49,6 +49,8 @@ class TestBeadmoves(unittest.TestCase):
         assert to_board.__eq__(to_board_no_red)
         return
 
+# TODO: Add tests move 1 bead, 0 beads, all beads
+
     def test_find_room(self):
         from app.utils.beadmoves import find_room
         # arrange
@@ -60,7 +62,7 @@ class TestBeadmoves(unittest.TestCase):
         assert room == 5
         return
 
-    def test_use_room_more_room(self):
+    def test_use_room_when_more_room(self):
         from app.utils.beadmoves import use_room
         # arrange
         room = 15
@@ -88,7 +90,7 @@ class TestBeadmoves(unittest.TestCase):
         assert extra == 0
         return
 
-    def test_use_room_more_beads(self):
+    def test_use_room_when_more_beads(self):
         from app.utils.beadmoves import use_room
         # arrange
         room = 5
@@ -117,82 +119,99 @@ class TestBeadmoves(unittest.TestCase):
         return
 
 
-class TestMisc(unittest.TestCase):
-
-    def test_message_for(self):
-        from app.utils.misc import message_for
-        # arrange
-        beads_moved = 5
-        board_name = "Emergency"
-
-        # act, assert
-        message = message_for(beads_moved, board_name)
-        assert message == "5 beads to Emergency"
-        return
-
-    def test_gen_progs_for_sys_event(self):
-        from app.utils.misc import gen_progs_for_sys_event
-        import pickle
-        # arrange
-        test_list = ['Intake', 'a', 'b', 'c', 'd']
-        test_list_pickle = pickle.dumps(test_list)
-        verification_dict = {
-            'a': ['b', 'c', 'd'],
-            'b': ['a', 'c', 'd'],
-            'c': ['a', 'b', 'd'],
-            'd': ['a', 'b', 'c']}
-
-        # act, assert
-        test_dict = gen_progs_for_sys_event(test_list_pickle)
-        assert test_dict == verification_dict
-        return
-
-
 class TestLists(unittest.TestCase):
 
-    def test_generate_anywhere_list_no_Outreach(self):
-        from app.utils.lists import generate_anywhere_list
+    def test_gen_anywhere_list_no_Outreach(self):
+        from app.utils.lists import gen_anywhere_list
         import pickle
         # arrange
-        pre_test_list = ['Intake', 'a', 'b', 'c', 'd']
+        pre_test_list = [0, 1, 2, 4]
         test_list_pickle = pickle.dumps(pre_test_list)
-        verification_list = ['a', 'b', 'c', 'd']
+        verification_list = [1, 2, 4]
 
         # act
-        test_list = generate_anywhere_list(test_list_pickle)
+        test_list = gen_anywhere_list(test_list_pickle)
 
         # assert - check contents
         assert len(test_list) == len(pre_test_list) - 1
         assert set(test_list).issubset(pre_test_list)
         assert set(test_list).issubset(verification_list)
-        assert 'Intake' not in test_list
+        assert 0 not in test_list
         # assert - check randomness
         test_list_sorted = sorted(test_list)
         assert test_list_sorted != test_list
         return
 
-    def test_generate_anywhere_list_yes_Outreach(self):
-        from app.utils.lists import generate_anywhere_list
+    def test_gen_anywhere_list_yes_Outreach(self):
+        from app.utils.lists import gen_anywhere_list
         import pickle
         # arrange
-        pre_test_list = ['Intake', 'Outreach', 'a', 'b', 'c', 'd']
+        pre_test_list = [0, 1, 2, 3, 4, 5]
         test_list_pickle = pickle.dumps(pre_test_list)
-        verification_list = ['a', 'b', 'c', 'd']
+        verification_list = [1, 2, 4, 5]
 
         # act
-        test_list = generate_anywhere_list(test_list_pickle)
+        test_list = gen_anywhere_list(test_list_pickle)
 
         # assert - check contents
         assert len(test_list) == len(pre_test_list) - 2
         assert set(test_list).issubset(pre_test_list)
         assert set(test_list).issubset(verification_list)
-        assert 'Intake' not in test_list
-        assert 'Outreach' not in test_list
+        assert 0 not in test_list
+        assert 3 not in test_list
         # assert - check randomness
         test_list_sorted = sorted(test_list)
         assert test_list_sorted != test_list
         return
 
+    def test_gen_board_string_list_all_progs(self):
+        from app.utils.lists import gen_board_string_list
+        # arrange
+        pre_test_list = [0, 1, 2, 3, 4, 5]
+        verification_list = ['Intake', 'Emergency', 'Rapid', 'Outreach',
+            'Transitional', 'Permanent']
+
+        # act, assert
+        test_list = gen_board_string_list(pre_test_list)
+        assert test_list == verification_list
+        return
+
+    def test_gen_board_string_list_some_progs(self):
+        from app.utils.lists import gen_board_string_list
+        # arrange
+        pre_test_list = [0, 2, 3, 4]
+        verification_list = ['Intake', 'Rapid', 'Outreach', 'Transitional']
+
+        # act, assert
+        test_list = gen_board_string_list(pre_test_list)
+        assert test_list == verification_list
+        return
+
+    def test_gen_progs_for_sys_event(self):
+        from app.utils.lists import gen_progs_for_sys_event
+        # arrange
+        pre_test_list = [0, 1, 2, 4]
+        verification_dict = {
+            'Emergency': ['Rapid', 'Transitional'],
+            'Rapid': ['Emergency', 'Transitional'],
+            'Transitional': ['Emergency', 'Rapid']}
+
+        # act, assert
+        test_dict = gen_progs_for_sys_event(pre_test_list)
+        assert test_dict == verification_dict
+        return
+
+    def test_set_board_to_play_from_all_boards_intake(self):
+        from app.utils.lists import set_board_to_play
+        # arrange
+        pre_test_list = [0, 1, 2, 3, 4, 5]
+        last_board_played = 5
+        verification_string = 'Intake'
+
+        # act, assert
+        test_string = set_board_to_play(last_board_played, pre_test_list)
+        assert test_string == verification_string
+        return
 
 # Test POST assert does not raise exception
 # view tests, model tests, api tests, unit tests

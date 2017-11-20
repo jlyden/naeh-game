@@ -62,9 +62,3 @@ def set_board_to_play(board_num, board_num_list):
     else:
         board_to_play = board_num_list[next_index]
     return board_to_play
-
-
-def pull_intake():
-    board_list_copy = list(ALL_BOARDS)
-    board_list_copy.remove("Intake")
-    return board_list_copy
