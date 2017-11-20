@@ -40,6 +40,8 @@
             {% if game %}
               {% if 'about' not in request.path %}
                 <li><a class="nav-item nav-link" href="{{ url_for('about_boards', game_id=game.id, _anchor='help') }}">Help</a></li>
+              {% elif 'about' in request.path %}
+                <li><a class="nav-item nav-link" href="{{ url_for('status', game_id=game.id) }}">Back to Simulation {{ game.id }}</a></li>
               {% endif %}
               {% if 'status' in request.path %}
                 <li class="navbar-text">
@@ -55,9 +57,9 @@
                     Run Simulation Round
                   </a></li>
                 {% endif %}
-              {% endif %}
-              {% if 'view' in request.path or 'about' in request.path %}
-                <li><a class="nav-item nav-link" href="{{ url_for('status', game_id=game.id) }}">Back to Simulation {{ game.id }}</a></li>
+                <li><button class="btn btn-link nav-item nav-link" data-toggle="modal" data-target="#intake_report">Intake Report, Round {{ game.round_count -1 }}
+                </button></li>
+                  <!--https://stackoverflow.com/questions/37903896/is-it-possible-load-bootstrap-modal-directly-with-flask -->
               {% endif %}
             {% endif %}
           </ul> <!-- navbar-nav -->
@@ -65,14 +67,8 @@
       </div><!-- container-fluid -->
     </nav>
 
-<!--
-                <button class="btn btn-link" data-toggle="modal" data-target="#intake_report">
-                  Intake Report
-                  https://stackoverflow.com/questions/37903896/is-it-possible-load-bootstrap-modal-directly-with-flask -->
-<!--                </button> -->
-
   {% with messages = get_flashed_messages(with_categories=true) %}
-    <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+    <!-- Categories: success (gr), info (bl), warning (yel), danger (red) -->
     {% if messages %}
       {% for category, message in messages %}
         <div class="alert alert-{{ category }}" role="alert">
