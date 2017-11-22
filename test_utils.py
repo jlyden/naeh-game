@@ -169,7 +169,7 @@ class TestLists(unittest.TestCase):
         # arrange
         pre_test_list = [0, 1, 2, 3, 4, 5]
         verification_list = ['Intake', 'Emergency', 'Rapid', 'Outreach',
-            'Transitional', 'Permanent']
+                             'Transitional', 'Permanent']
 
         # act, assert
         test_list = gen_board_string_list(pre_test_list)
@@ -187,7 +187,23 @@ class TestLists(unittest.TestCase):
         assert test_list == verification_list
         return
 
-    def test_gen_progs_for_sys_event(self):
+    def test_gen_progs_for_sys_event_all_progs(self):
+        from app.utils.lists import gen_progs_for_sys_event
+        # arrange
+        pre_test_list = [0, 1, 2, 3, 4, 5]
+        verification_dict = {
+            'Emergency': ['Rapid', 'Outreach', 'Transitional', 'Permanent'],
+            'Rapid': ['Emergency', 'Outreach', 'Transitional', 'Permanent'],
+            'Outreach': ['Emergency', 'Rapid', 'Transitional', 'Permanent'],
+            'Transitional': ['Emergency', 'Rapid', 'Outreach', 'Permanent'],
+            'Permanent': ['Emergency', 'Rapid', 'Outreach', 'Transitional']}
+
+        # act, assert
+        test_dict = gen_progs_for_sys_event(pre_test_list)
+        assert test_dict == verification_dict
+        return
+
+    def test_gen_progs_for_sys_event_some_progs(self):
         from app.utils.lists import gen_progs_for_sys_event
         # arrange
         pre_test_list = [0, 1, 2, 4]
@@ -201,16 +217,64 @@ class TestLists(unittest.TestCase):
         assert test_dict == verification_dict
         return
 
-    def test_set_board_to_play_from_all_boards_intake(self):
+    def test_set_board_to_play_from_all_boards_first(self):
+        from app.utils.lists import set_board_to_play
+        # arrange
+        pre_test_list = [0, 1, 2, 3, 4, 5]
+        last_board_played = 0
+        verification_int = 1
+
+        # act, assert
+        test_int = set_board_to_play(last_board_played, pre_test_list)
+        assert test_int == verification_int
+        return
+
+    def test_set_board_to_play_from_all_boards_last(self):
         from app.utils.lists import set_board_to_play
         # arrange
         pre_test_list = [0, 1, 2, 3, 4, 5]
         last_board_played = 5
-        verification_string = 'Intake'
+        verification_int = 6
 
         # act, assert
-        test_string = set_board_to_play(last_board_played, pre_test_list)
-        assert test_string == verification_string
+        test_int = set_board_to_play(last_board_played, pre_test_list)
+        assert test_int == verification_int
+        return
+
+    def test_set_board_to_play_from_four_boards_first(self):
+        from app.utils.lists import set_board_to_play
+        # arrange
+        pre_test_list = [0, 2, 3, 5]
+        last_board_played = 0
+        verification_int = 2
+
+        # act, assert
+        test_int = set_board_to_play(last_board_played, pre_test_list)
+        assert test_int == verification_int
+        return
+
+    def test_set_board_to_play_from_four_boards_middle(self):
+        from app.utils.lists import set_board_to_play
+        # arrange
+        pre_test_list = [0, 2, 3, 5]
+        last_board_played = 3
+        verification_int = 5
+
+        # act, assert
+        test_int = set_board_to_play(last_board_played, pre_test_list)
+        assert test_int == verification_int
+        return
+
+    def test_set_board_to_play_from_four_boards_last(self):
+        from app.utils.lists import set_board_to_play
+        # arrange
+        pre_test_list = [0, 2, 3, 5]
+        last_board_played = 5
+        verification_int = 6
+
+        # act, assert
+        test_int = set_board_to_play(last_board_played, pre_test_list)
+        assert test_int == verification_int
         return
 
 # Test POST assert does not raise exception
