@@ -25,10 +25,11 @@ def gen_anywhere_list(board_num_list_pickle):
     """ Generate random array of up-to-four boards numbers
         (for Emergency, Rapid, Transitional, Permanent)
         depending on what has not been closed """
-    board_num_list = pickle.loads(board_num_list_pickle)
-    board_num_list.remove(0)  # Intake
-    if 3 in board_num_list:
-        board_num_list.remove(3)  # Outreach
+    board_num_list_orig = pickle.loads(board_num_list_pickle)
+    board_num_list = board_num_list_orig[:]
+    for num in board_num_list_orig:
+        if num < 1 or num == 3 or num > 5:
+            board_num_list.remove(num)
     return random.sample(board_num_list, len(board_num_list))
 
 

@@ -35,7 +35,6 @@ def status(game_id):
     print('Loading status for game ' + str(game_id) + ', round ' +
           str(this_game.round_count) + ' ...')
     board_num_list = pickle.loads(this_game.board_num_list_pickle)
-#    print('board_num_list is ' + str(board_num_list))
     # If time for system event, populate programs
     programs = []
     if this_game.board_to_play == 9:
@@ -111,7 +110,7 @@ def about_boards(game_id):
 # TODO: Stacked bar graphs showing where people in various programs came from
 #       and went to
 # TODO: Let user decide random vs. ordered 'place anywhere' program order
-# TODO: Red beads!?!?
+# TODO: Red beads!?!? - alerts when they are blocked
 # TODO: Make notes about the information missing for novice users
 # TODO: Add system events to post-round modal
 # TODO: Something's wrong with Line charts (some boards dropping out early)
